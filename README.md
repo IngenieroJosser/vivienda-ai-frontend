@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vivienda Match AI — Colsubsidio
 
-## Getting Started
+Frontend integral para el reto de **perfilamiento inteligente de leads de vivienda**. El proyecto incluye la experiencia del afiliado, el portal comercial, marketing, administración, favicon y sistema visual del producto.
 
-First, run the development server:
+## Stack
+
+- Next.js 16.2.11 con App Router
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Datos simulados en memoria para demostración
+
+## Sistema visual
+
+- Amarillo: `#ffd000`
+- Azul: `#0067b1`
+- Fondo: `#fafafa`
+- Texto y superficies oscuras: `#111820`
+
+La página principal se conservó con su composición original. El rediseño se aplicó a las pantallas internas mediante:
+
+- Nueva identidad **Vivienda Match AI**.
+- Navegación pública diferenciada de la landing.
+- Flujo del afiliado con stepper, panel contextual y estados explicables.
+- Portal empresarial con sidebar claro, navegación por roles y jerarquía visual consistente.
+- Tarjetas, tablas, formularios, botones y estados interactivos refinados.
+- Diseño responsive para móvil, tableta y escritorio.
+- Construcción sin dependencia de Google Fonts en tiempo de compilación.
+
+## Marca y favicon
+
+Archivos principales:
+
+```text
+public/brand/vivienda-match-ai-logo.png
+public/brand/vivienda-match-ai-icon.png
+app/favicon.ico
+app/icon.png
+app/apple-icon.png
+```
+
+Los recursos originales generados se conservan en:
+
+```text
+public/brand/source/
+```
+
+## Ejecución
+
+Instalar dependencias:
+
+```bash
+npm install
+```
+
+Desarrollo:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Producción:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm run start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Pantallas incluidas
 
-## Learn More
+### Experiencia del afiliado
 
-To learn more about Next.js, take a look at the following resources:
+- `/` — Landing de campaña, conservada visualmente.
+- `/vivienda/inicio` — Identificación, consentimientos y seguridad.
+- `/vivienda/perfilamiento` — Perfilamiento conversacional adaptativo.
+- `/vivienda/documentos` — Carga, OCR y validación documental.
+- `/vivienda/analizando` — Procesamiento y estados del análisis.
+- `/vivienda/resultado` — Resultado, explicabilidad y siguientes pasos.
+- `/vivienda/proyectos` — Proyectos recomendados.
+- `/vivienda/proyectos/reserva-del-parque` — Detalle del proyecto.
+- `/vivienda/simulador` — Simulador financiero interactivo.
+- `/vivienda/agendar` — Agenda de asesoría.
+- `/vivienda/confirmacion` — Confirmación y preparación de la cita.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Portal comercial
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `/login` — Acceso empresarial.
+- `/asesor/dashboard` — Dashboard del asesor.
+- `/asesor/leads` — Bandeja y filtros de leads.
+- `/asesor/leads/lead-001` — Detalle y trazabilidad del lead.
+- `/asesor/agenda` — Agenda comercial.
+- `/asesor/comparador` — Comparador de proyectos.
 
-## Deploy on Vercel
+### Marketing y administración
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `/marketing/dashboard` — Inteligencia de adquisición.
+- `/marketing/campanas` — Gestión de campañas.
+- `/admin/proyectos` — Administración de proyectos.
+- `/admin/scoring` — Configuración versionada del scoring.
+- `/admin/auditoria` — Auditoría y trazabilidad.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Validaciones realizadas
+
+- ESLint sin errores ni advertencias.
+- TypeScript validado durante el build.
+- Compilación de producción correcta con Webpack.
+- Generación estática correcta de 34 rutas.
+- Validación HTTP `200` sobre rutas públicas, comerciales, marketing, administración y recursos de marca.
+
+## Alcance
+
+El proyecto es un frontend funcional para demo y hackathon. Los formularios, filtros, simulador, selección de citas, comparador, estados de campañas y configuración visual del scoring tienen interacción local. Para producción deben conectarse a APIs, autenticación corporativa, almacenamiento documental, CRM, motor de scoring, analítica y servicios de agenda.
