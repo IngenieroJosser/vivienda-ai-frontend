@@ -5,6 +5,7 @@ import "./globals.css";
 const manrope = Manrope({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://viviendamatch.colsubsidio.com"),
   title: { default: "Vivienda Match AI | Colsubsidio", template: "%s | Vivienda Match AI" },
   description: "Perfilamiento inteligente y recomendación personalizada de vivienda para afiliados de Colsubsidio.",
   keywords: ["Vivienda", "Colsubsidio", "Inteligencia Artificial", "Recomendación de vivienda", "Match Inmobiliario", "Subsidio de vivienda", "Colombia"],
@@ -27,14 +28,6 @@ export const metadata: Metadata = {
     description: "Perfilamiento inteligente y recomendación personalizada de vivienda para afiliados de Colsubsidio.",
     url: "https://viviendamatch.colsubsidio.com", // Puedes ajustar esta URL a la de producción
     siteName: "Vivienda Match AI",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Vivienda Match AI - Encuentra tu hogar ideal",
-      },
-    ],
     locale: "es_CO",
     type: "website",
   },
@@ -43,7 +36,6 @@ export const metadata: Metadata = {
     title: "Vivienda Match AI | Colsubsidio",
     description: "Perfilamiento inteligente y recomendación personalizada de vivienda para afiliados de Colsubsidio.",
     creator: "@Colsubsidio",
-    images: ["/og-image.jpg"],
   },
   icons: {
     icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/icon.png", type: "image/png", sizes: "512x512" }],
