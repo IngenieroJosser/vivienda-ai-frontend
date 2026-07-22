@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PublicHeader } from "@/components/public-header";
 import { Icon } from "@/components/icon";
 
 const tasks = [
@@ -24,9 +23,7 @@ export default function AnalizandoPage() {
   const percentage = Math.min(100, Math.round((active / tasks.length) * 100));
 
   return (
-    <div className="internal-shell">
-      <PublicHeader />
-      <main className="mx-auto grid min-h-[calc(100vh-76px)] max-w-[1220px] place-items-center px-5 py-10 sm:px-8 lg:px-12">
+    <main className="mx-auto grid min-h-[calc(100vh-76px)] max-w-[1220px] place-items-center px-5 py-10 sm:px-8 lg:px-12">
         <div className="flow-panel w-full overflow-hidden">
           <div className="grid lg:grid-cols-[minmax(0,1fr)_340px]">
             <section className="p-7 sm:p-10 lg:p-12">
@@ -71,6 +68,5 @@ export default function AnalizandoPage() {
           </div>
         </div>
       </main>
-    </div>
   );
 }

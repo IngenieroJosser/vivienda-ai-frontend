@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PublicHeader } from "@/components/public-header";
 import { Icon } from "@/components/icon";
 import { Pill, ProgressBar } from "@/components/ui";
 import { projects } from "@/lib/data";
+
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return projects.map((project) => ({ id: project.id }));
@@ -16,9 +17,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   if (!project) notFound();
 
   return (
-    <div className="internal-shell">
-      <PublicHeader />
-      <main className="mx-auto max-w-[1460px] px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
+    <main className="mx-auto max-w-[1460px] px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
         <div className="flex items-center justify-between gap-4">
           <Link href="/vivienda/proyectos" className="inline-flex items-center gap-2 rounded-full border border-black/[.07] bg-white px-3.5 py-2 text-[10px] font-bold text-black/45 shadow-sm transition hover:border-[#0067b1]/20 hover:text-[#0067b1]"><Icon name="arrow" className="h-3.5 w-3.5 rotate-180" />Volver a resultados</Link>
           <button className="inline-flex items-center gap-2 rounded-full border border-black/[.07] bg-white px-3.5 py-2 text-[10px] font-bold text-black/45 shadow-sm"><Icon name="heart" className="h-3.5 w-3.5" />Guardar proyecto</button>
@@ -26,9 +25,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.28fr)_390px]">
           <section className="space-y-6">
-            <div className="flow-panel overflow-hidden">
+            <div className="project-detail-hero flow-panel overflow-hidden">
               <div className="relative h-[360px] sm:h-[520px]">
-                <Image src={project.image} alt={project.name} fill className="object-cover" priority />
+                <Image src={project.image} alt={project.name} fill sizes="(max-width: 1280px) 100vw, 70vw" preload unoptimized={project.image.endsWith(".svg")} className="object-cover transition duration-700 ease-out hover:scale-[1.02]" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#111820]/68 via-transparent to-black/5" />
                 <div className="absolute left-5 top-5 flex items-center gap-2"><Pill tone="green">{project.status}</Pill><span className="rounded-full border border-white/50 bg-white/88 px-3 py-1 text-[10px] font-extrabold text-[#0067b1] backdrop-blur">{project.compatibility}% compatible</span></div>
                 <button className="absolute right-5 top-5 grid h-10 w-10 place-items-center rounded-full border border-white/50 bg-white/88 text-[#0067b1] shadow-sm backdrop-blur"><Icon name="camera" className="h-5 w-5" /></button>
@@ -67,6 +66,5 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </aside>
         </div>
       </main>
-    </div>
   );
 }

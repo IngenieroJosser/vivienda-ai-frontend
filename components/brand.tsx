@@ -1,9 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 
 export function Brand({ compact = false, dark = false }: { compact?: boolean; dark?: boolean }) {
   return (
-    <Link href="/" className="inline-flex items-center gap-2.5" aria-label="Inicio Colsubsidio Vivienda Match AI">
+    <Link href="/" prefetch className="inline-flex items-center gap-2.5" aria-label="Inicio Colsubsidio Vivienda Match AI">
       <svg className={compact ? "h-7 w-7" : "h-9 w-9"} viewBox="0 0 40 40" fill="none" aria-hidden="true">
         <path d="M4 20 18 5v9h16L20 35v-9H4Z" fill="#ffd000" />
         <path d="M18 14 8 20l10 6Z" fill="#0067b1" />
@@ -18,31 +17,26 @@ export function Brand({ compact = false, dark = false }: { compact?: boolean; da
 }
 
 export function ProductBrand({ compact = false, iconOnly = false, className = "" }: { compact?: boolean; iconOnly?: boolean; className?: string }) {
-  const height = compact ? 38 : 48;
   return (
-    <Link
-      href="/"
-      className={`inline-flex min-w-0 items-center ${className}`}
-      aria-label="Inicio Vivienda Match AI"
-    >
-      {iconOnly ? (
-        <Image
-          src="/brand/vivienda-match-ai-icon.png"
-          alt="Vivienda Match AI"
-          width={height}
-          height={height}
-          className="rounded-[12px] object-contain"
-          priority
-        />
-      ) : (
-        <Image
-          src="/brand/vivienda-match-ai-logo.png"
-          alt="Vivienda Match AI"
-          width={compact ? 210 : 255}
-          height={compact ? 78 : 94}
-          className={`${compact ? "h-9 w-auto" : "h-11 w-auto"} object-contain object-left`}
-          priority
-        />
+    <Link href="/" prefetch className={`inline-flex min-w-0 items-center gap-2.5 ${className}`} aria-label="Inicio Vivienda Match AI">
+      <svg
+        className={`${compact ? "h-9 w-9" : "h-11 w-11"} shrink-0`}
+        viewBox="0 0 52 52"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path d="M8 24.5 25.8 9 44 24.5v16.2H31.6L25 46l-6.4-5.3H8V24.5Z" fill="#fff" stroke="#0067b1" strokeWidth="4" strokeLinejoin="round" />
+        <path d="M8 24.5 25.8 9 44 24.5" stroke="#ffd000" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M35 9.5v8" stroke="#ffd000" strokeWidth="4" strokeLinecap="round" />
+        <path d="M18 27h5v5h-5zM27 27h5v5h-5z" fill="#0067b1" rx="1" />
+        <path d="m37.5 5 1.2 3.3L42 9.5l-3.3 1.2-1.2 3.3-1.2-3.3L33 9.5l3.3-1.2L37.5 5Z" fill="#ffd000" />
+        <circle cx="45" cy="7" r="2" fill="#0067b1" />
+      </svg>
+      {iconOnly ? null : (
+        <span className="min-w-0 leading-none">
+          <span className={`block truncate font-extrabold tracking-[-.055em] text-[#111820] ${compact ? "text-[17px]" : "text-xl"}`}>Vivienda Match</span>
+          <span className={`mt-1 block font-extrabold tracking-[.08em] text-[#0067b1] ${compact ? "text-[9px]" : "text-[10px]"}`}>INTELIGENCIA ARTIFICIAL</span>
+        </span>
       )}
     </Link>
   );

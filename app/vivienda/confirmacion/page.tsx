@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { PublicHeader } from "@/components/public-header";
 import { Icon } from "@/components/icon";
+import { AnimatedHeroBackground } from "@/components/animated-hero-background";
 
 export default function ConfirmacionPage() {
   return (
-    <div className="internal-shell">
-      <PublicHeader />
-      <main className="mx-auto grid min-h-[calc(100vh-76px)] max-w-[1120px] place-items-center px-5 py-10 sm:px-8 lg:px-12">
+    <main className="mx-auto grid min-h-[calc(100vh-76px)] max-w-[1120px] place-items-center px-5 py-10 sm:px-8 lg:px-12">
         <div className="flow-panel w-full overflow-hidden">
           <div className="grid lg:grid-cols-[minmax(0,1fr)_330px]">
             <section className="p-7 text-center sm:p-10 lg:p-12">
@@ -23,12 +21,11 @@ export default function ConfirmacionPage() {
             </section>
 
             <aside className="relative overflow-hidden border-t border-black/[.06] bg-[#111820] p-7 text-white lg:border-l lg:border-t-0 lg:p-8">
-              <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#ffd000]/20 blur-3xl" />
+              <AnimatedHeroBackground variant="dark" compact interactive={false} />
               <div className="relative"><div className="flex items-center justify-between"><div className="text-[9px] font-bold uppercase tracking-[.14em] text-[#ffd000]">Antes de la cita</div><Icon name="document" className="h-5 w-5 text-[#ffd000]" /></div><h2 className="mt-5 text-2xl font-bold tracking-[-.04em]">Prepárate para aprovecharla.</h2><div className="mt-6 space-y-4">{["Ten disponible tu documento de identidad.", "Confirma el saldo actualizado de cesantías.", "Revisa las características del proyecto.", "Prepara preguntas sobre financiación y subsidios."].map((item, index) => <div key={item} className="flex gap-3 text-[10px] leading-5 text-white/58"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white/[.08] text-[9px] font-bold text-[#ffd000]">{index + 1}</span>{item}</div>)}</div><div className="mt-8 rounded-[17px] border border-white/10 bg-white/[.055] p-4"><div className="flex gap-3"><Icon name="shield" className="mt-0.5 h-5 w-5 shrink-0 text-[#ffd000]" /><div><div className="text-xs font-bold">Tu perfil ya fue compartido</div><p className="mt-1 text-[9px] leading-4 text-white/42">La asesora verá únicamente la información necesaria para orientar la conversación.</p></div></div></div><Link href="/" className="mt-6 inline-flex items-center gap-2 text-[10px] font-bold text-white">Volver al inicio <Icon name="arrow" className="h-3.5 w-3.5" /></Link></div>
             </aside>
           </div>
         </div>
       </main>
-    </div>
   );
 }

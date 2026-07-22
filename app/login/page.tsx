@@ -4,13 +4,19 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ProductBrand } from "@/components/brand";
 import { Icon } from "@/components/icon";
+import { AnimatedHeroBackground } from "@/components/animated-hero-background";
+import { RoutePrefetcher } from "@/components/route-prefetcher";
+
+const loginRoutes = ["/asesor/dashboard"];
 
 export default function LoginPage() {
   const router = useRouter();
   const [show, setShow] = useState(false);
 
   return (
-    <main className="grid min-h-screen bg-[#f5f7f8] lg:grid-cols-[minmax(520px,.88fr)_1.12fr]">
+    <>
+      <RoutePrefetcher routes={loginRoutes} />
+      <main className="login-stage grid min-h-screen bg-[#f5f7f8] lg:grid-cols-[minmax(520px,.88fr)_1.12fr]">
       <section className="relative flex flex-col overflow-hidden bg-white p-6 sm:p-10 lg:p-12 xl:p-14">
         <div className="absolute -left-32 -top-36 h-80 w-80 rounded-full bg-[#ffd000]/12 blur-3xl" />
         <div className="relative z-10"><ProductBrand /></div>
@@ -33,10 +39,9 @@ export default function LoginPage() {
       </section>
 
       <section className="relative hidden overflow-hidden bg-[#111820] text-white lg:block">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(255,208,0,.30),transparent_28%),radial-gradient(circle_at_15%_88%,rgba(0,103,177,.45),transparent_32%)]" />
-        <div className="absolute -right-40 top-28 h-[520px] w-[520px] rounded-full border border-white/10" />
-        <div className="absolute -right-28 top-40 h-[380px] w-[380px] rounded-full border border-white/10" />
-        <div className="relative flex h-full flex-col justify-between p-12 xl:p-16">
+        <AnimatedHeroBackground variant="dark" />
+        <div className="login-liquid-rings" aria-hidden="true"><span /><span /></div>
+        <div className="relative z-10 flex h-full flex-col justify-between p-12 xl:p-16">
           <div className="flex items-center justify-between"><span className="rounded-full border border-white/12 bg-white/[.055] px-4 py-2 text-[10px] font-semibold text-white/65 backdrop-blur">Vivienda Match AI · Operación 2026</span><span className="grid h-11 w-11 place-items-center rounded-[15px] bg-[#ffd000] text-[#111820]"><Icon name="sparkles" className="h-5 w-5" /></span></div>
           <div className="max-w-3xl">
             <div className="text-[clamp(3.8rem,6vw,7rem)] font-semibold leading-[.83] tracking-[-.075em]">Cada lead llega con una historia lista para continuar.</div>
@@ -50,5 +55,6 @@ export default function LoginPage() {
         </div>
       </section>
     </main>
+    </>
   );
 }

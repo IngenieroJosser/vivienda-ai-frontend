@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { PublicHeader } from "@/components/public-header";
 import { Icon } from "@/components/icon";
+import { AnimatedHeroBackground } from "@/components/animated-hero-background";
 
 const cop = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 });
 
@@ -25,13 +25,12 @@ export default function SimuladorPage() {
   const healthy = result.ratio <= 30;
 
   return (
-    <div className="internal-shell">
-      <PublicHeader />
-      <main className="mx-auto max-w-[1400px] px-5 py-9 sm:px-8 lg:px-12 lg:py-12">
+    <main className="mx-auto max-w-[1400px] px-5 py-9 sm:px-8 lg:px-12 lg:py-12">
         <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
           <aside className="xl:sticky xl:top-28 xl:self-start">
-            <div className="rounded-[28px] bg-[#111820] p-7 text-white shadow-[0_20px_54px_rgba(17,24,32,.17)]">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/[.07] px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.14em] text-[#ffd000]"><Icon name="money" className="h-3.5 w-3.5" />Simulador financiero</div>
+            <div className="simulator-hero relative overflow-hidden rounded-[30px] bg-[#111820] p-7 text-white shadow-[0_20px_54px_rgba(17,24,32,.17)]">
+              <AnimatedHeroBackground variant="dark" compact interactive={false} />
+              <div className="relative z-10 inline-flex items-center gap-2 rounded-full bg-white/[.07] px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.14em] text-[#ffd000]"><Icon name="money" className="h-3.5 w-3.5" />Simulador financiero</div>
               <h1 className="mt-6 text-4xl font-bold leading-[.95] tracking-[-.055em]">Explora escenarios antes de decidir.</h1>
               <p className="mt-5 text-xs leading-6 text-white/48">Ajusta precio, cuota inicial, plazo y tasa de referencia. El cálculo es informativo y no corresponde a una oferta de crédito.</p>
               <div className="mt-7 rounded-[18px] bg-[#ffd000] p-5 text-[#111820]"><div className="flex items-start gap-3"><Icon name="sparkles" className="mt-0.5 h-5 w-5 shrink-0" /><div><div className="text-xs font-extrabold">Escenario recomendado</div><p className="mt-1 text-[10px] leading-5 text-black/58">Procura mantener la cuota por debajo del 30% de los ingresos mensuales del hogar.</p></div></div></div>
@@ -75,6 +74,5 @@ export default function SimuladorPage() {
           </section>
         </div>
       </main>
-    </div>
   );
 }

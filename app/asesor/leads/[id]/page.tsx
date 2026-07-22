@@ -5,6 +5,8 @@ import { Icon } from "@/components/icon";
 import { Pill, ProgressBar } from "@/components/ui";
 import { leads } from "@/lib/data";
 
+export const dynamicParams = false;
+
 export function generateStaticParams() { return leads.map((lead) => ({ id: lead.id })); }
 
 export default async function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {

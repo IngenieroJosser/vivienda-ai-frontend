@@ -17,15 +17,17 @@ Frontend integral para el reto de **perfilamiento inteligente de leads de vivien
 - Fondo: `#fafafa`
 - Texto y superficies oscuras: `#111820`
 
-La página principal se conservó con su composición original. El rediseño se aplicó a las pantallas internas mediante:
+La experiencia visual adopta un sistema de fondos líquidos amarillos inspirado en la referencia suministrada. El tratamiento se usa con mayor intensidad en la portada y de forma controlada en flujos, login y portales internos:
 
+- Fondo líquido animado con pliegues, luces, profundidad y movimiento orgánico.
 - Nueva identidad **Vivienda Match AI**.
 - Navegación pública diferenciada de la landing.
 - Flujo del afiliado con stepper, panel contextual y estados explicables.
 - Portal empresarial con sidebar claro, navegación por roles y jerarquía visual consistente.
-- Tarjetas, tablas, formularios, botones y estados interactivos refinados.
+- Tarjetas de alto contraste, sombras controladas, microinteracciones, tablas, formularios y botones refinados.
+- Variantes visuales claras para portada, flujo del afiliado, login y portales empresariales.
 - Diseño responsive para móvil, tableta y escritorio.
-- Construcción sin dependencia de Google Fonts en tiempo de compilación.
+- Tipografía autohospedada por Next.js mediante `next/font`.
 
 ## Marca y favicon
 
@@ -39,38 +41,33 @@ app/icon.png
 app/apple-icon.png
 ```
 
-Los recursos originales generados se conservan en:
-
-```text
-public/brand/source/
-```
 
 ## Ejecución
 
 Instalar dependencias:
 
 ```bash
-npm install
+yarn install
 ```
 
 Desarrollo:
 
 ```bash
-npm run dev
+yarn dev
 ```
 
 Producción:
 
 ```bash
-npm run build
-npm run start
+yarn build
+yarn start
 ```
 
 ## Pantallas incluidas
 
 ### Experiencia del afiliado
 
-- `/` — Landing de campaña, conservada visualmente.
+- `/` — Landing inmersiva con fondo líquido amarillo animado.
 - `/vivienda/inicio` — Identificación, consentimientos y seguridad.
 - `/vivienda/perfilamiento` — Perfilamiento conversacional adaptativo.
 - `/vivienda/documentos` — Carga, OCR y validación documental.
@@ -99,14 +96,59 @@ npm run start
 - `/admin/scoring` — Configuración versionada del scoring.
 - `/admin/auditoria` — Auditoría y trazabilidad.
 
-## Validaciones realizadas
+## Validación recomendada
 
-- ESLint sin errores ni advertencias.
-- TypeScript validado durante el build.
-- Compilación de producción correcta con Webpack.
-- Generación estática correcta de 34 rutas.
-- Validación HTTP `200` sobre rutas públicas, comerciales, marketing, administración y recursos de marca.
+Antes de desplegar:
+
+```bash
+yarn install --frozen-lockfile
+yarn lint
+yarn build
+```
+
+La animación respeta `prefers-reduced-motion` para no afectar a usuarios que reduzcan el movimiento del sistema.
 
 ## Alcance
 
 El proyecto es un frontend funcional para demo y hackathon. Los formularios, filtros, simulador, selección de citas, comparador, estados de campañas y configuración visual del scoring tienen interacción local. Para producción deben conectarse a APIs, autenticación corporativa, almacenamiento documental, CRM, motor de scoring, analítica y servicios de agenda.
+
+## Sistema visual animado v2
+
+El proyecto incorpora `components/animated-hero-background.tsx`, un fondo reutilizable y optimizado con:
+
+- movimiento orgánico mediante `transform` y `opacity`;
+- formas que aparecen, se transforman y desaparecen progresivamente;
+- movimiento autónomo sin listeners del cursor ni trabajo continuo en JavaScript;
+- variantes visuales para `vivienda`, `projects`, `asesor`, `marketing`, `admin`, `hero` y `dark`;
+- compatibilidad con `prefers-reduced-motion`;
+- reutilización en la página principal, el flujo de vivienda, proyectos, login y portales internos.
+
+Las pantallas de administración, asesoría, marketing, vivienda y proyectos comparten ahora un sistema coherente de superficies translúcidas, hero contextual, entradas escalonadas, tarjetas interactivas y fondos animados por dominio.
+
+## Optimización de rendimiento
+
+Esta versión incorpora una revisión específica de carga inicial y navegación:
+
+- `AnimatedHeroBackground` funciona únicamente con CSS y no registra listeners globales del puntero.
+- Las animaciones se limitan a `transform` y `opacity`; se eliminaron cambios continuos de `filter` y `border-radius`.
+- En móvil se reducen automáticamente capas, desenfoques, sombras y formas secundarias.
+- Los portales de asesoría, marketing y administración usan layouts persistentes: sidebar, encabezado y fondo no se reconstruyen al cambiar de pantalla.
+- El flujo de vivienda conserva el encabezado y el fondo entre rutas.
+- Las rutas siguientes se precargan durante tiempo ocioso para acelerar botones que usan `router.push`.
+- Se añadieron `loading.tsx` por dominio para ofrecer respuesta visual inmediata durante cualquier transición.
+- Los detalles de proyectos y leads conocidos se generan estáticamente con `generateStaticParams` y `dynamicParams = false`.
+- El logo visible se renderiza como SVG inline; no descarga una imagen PNG pesada en cada pantalla.
+- Se eliminó la descarga de una fuente web global y se usa la pila tipográfica nativa del sistema para acelerar el primer render.
+- Las ilustraciones SVG se sirven sin pasar por el optimizador de imágenes y declaran tamaños responsivos.
+- Los iconos PNG se cuantizaron sin modificar sus dimensiones, reduciendo significativamente su peso.
+- El contenido fuera del viewport usa `content-visibility: auto` cuando el navegador lo soporta.
+
+### Presupuesto recomendado
+
+Para conservar la experiencia rápida al conectar APIs reales:
+
+- Evitar consultas bloqueantes en layouts compartidos.
+- Paginar tablas y listas desde el backend.
+- Cargar gráficos avanzados mediante importación dinámica.
+- Mantener imágenes de proyectos por debajo de 180 KB en WebP o AVIF.
+- No añadir librerías de animación para efectos que puedan resolverse con CSS.

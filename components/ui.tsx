@@ -4,7 +4,7 @@ import { Icon } from "./icon";
 
 export function PrimaryLink({ href, children, className = "" }: { href: string; children: ReactNode; className?: string }) {
   return (
-    <Link href={href} className={`inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#111] px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#0067b1] ${className}`}>
+    <Link href={href} prefetch className={`liquid-button inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#111820] px-6 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(17,24,32,.16)] transition hover:-translate-y-1 hover:bg-[#0067b1] ${className}`}>
       {children}
       <Icon name="arrow" className="h-4 w-4" />
     </Link>
@@ -13,7 +13,7 @@ export function PrimaryLink({ href, children, className = "" }: { href: string; 
 
 export function SecondaryLink({ href, children, className = "" }: { href: string; children: ReactNode; className?: string }) {
   return (
-    <Link href={href} className={`inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-5 text-sm font-semibold text-[#111] transition hover:border-[#0067b1]/30 hover:bg-[#0067b1]/5 ${className}`}>
+    <Link href={href} prefetch className={`inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/10 bg-white/82 px-5 text-sm font-semibold text-[#111] shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-[#0067b1]/30 hover:bg-white ${className}`}>
       {children}
     </Link>
   );

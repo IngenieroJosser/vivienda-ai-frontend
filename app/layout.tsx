@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
-
 import "./globals.css";
 
 const manrope = Manrope({
@@ -126,7 +125,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       className={`${manrope.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col bg-[#fafafa] font-sans text-slate-950">
+      <body className="flex min-h-full flex-col bg-[#fafafa] text-slate-950">
         {children}
       </body>
     </html>
