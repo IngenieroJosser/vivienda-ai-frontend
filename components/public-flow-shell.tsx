@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Icon } from "./icon";
 
-const defaultSteps = ["Identificación", "Perfil", "Documentos", "Análisis", "Siguiente paso"];
+const defaultSteps = ["Origen y afiliación", "Perfil adaptativo", "Validación", "Decisión", "Ruta personalizada"];
 
 export function PublicFlowShell({
   eyebrow,
@@ -77,7 +77,7 @@ export function PublicFlowShell({
             <div className="flow-aside-card mt-4 p-5">
               <div className="flex items-start gap-3">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[13px] bg-[#0067b1] text-white shadow-[0_10px_24px_rgba(0,103,177,.17)]"><Icon name="shield" className="h-5 w-5" /></span>
-                <div><div className="text-sm font-bold">Información protegida</div><p className="mt-1.5 text-xs leading-5 text-black/48">Tus datos se usan únicamente para orientar el perfil y preparar la atención comercial.</p></div>
+                <div><div className="text-sm font-bold">Información protegida</div><p className="mt-1.5 text-xs leading-5 text-black/48">Tus datos se usan para perfilar, priorizar y definir la ruta de atención más adecuada.</p></div>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2 text-[10px] text-black/45">
                 <span className="rounded-xl bg-white px-3 py-2">Consentimiento</span>

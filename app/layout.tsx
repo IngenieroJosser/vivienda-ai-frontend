@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
+
 import "./globals.css";
 
 const manrope = Manrope({
@@ -9,7 +10,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://vivienda-ai.vercel.app"),
+  metadataBase: new URL("https://viviendamatch.colsubsidio.com"),
 
   applicationName: "Vivienda Match AI",
 
@@ -43,7 +44,6 @@ export const metadata: Metadata = {
 
   creator: "Colsubsidio",
   publisher: "Colsubsidio",
-
   category: "Vivienda",
 
   alternates: {
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     title: "Vivienda Match AI | Colsubsidio",
     description:
       "Encuentra proyectos de vivienda ajustados a tu perfil, capacidad de compra y preferencias.",
-    url: "https://vivienda-ai.vercel.app",
+    url: "https://viviendamatch.colsubsidio.com",
     siteName: "Vivienda Match AI",
     locale: "es_CO",
     type: "website",
@@ -125,7 +125,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       className={`${manrope.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col bg-[#fafafa] text-slate-950">
+      <body className="flex min-h-full flex-col bg-[#fafafa] font-sans text-slate-950">
         {children}
       </body>
     </html>

@@ -5,9 +5,9 @@ import { AnimatedHeroBackground } from "@/components/animated-hero-background";
 
 const steps = [
   { n: "01", title: "Cuéntanos sobre ti", text: "Un perfilamiento conversacional breve, claro y adaptativo." },
-  { n: "02", title: "Conoce tu capacidad", text: "Estimamos tu rango de compra sin prometer aprobaciones." },
-  { n: "03", title: "Encuentra tu proyecto", text: "Recibe opciones explicadas según presupuesto y preferencias." },
-  { n: "04", title: "Llega listo al asesor", text: "Agenda con un resumen estructurado para avanzar al cierre." },
+  { n: "02", title: "Conoce tu capacidad", text: "Estimamos capacidad y subsidios potenciales sin aprobar crédito." },
+  { n: "03", title: "Encuentra tu proyecto", text: "Mostramos máximo tres proyectos compatibles, no todo el catálogo." },
+  { n: "04", title: "Llega listo al asesor", text: "El asesor recibe un resumen listo para validar y agendar visita." },
 ];
 
 export default function Home() {
@@ -26,16 +26,16 @@ export default function Home() {
               </div>
 
               <h1 className="mt-7 max-w-[920px] text-[clamp(4.25rem,8.5vw,9.6rem)] font-medium leading-[.82] tracking-[-.078em] text-[#080b0d]">
-                Tu vivienda, diseñada alrededor de ti.
+                Leads pagos que llegan listos para cerrar.
               </h1>
 
               <p className="mt-8 max-w-2xl text-base font-medium leading-7 text-black/58 sm:text-lg lg:text-xl lg:leading-8">
-                Conoce tu capacidad estimada, descubre proyectos compatibles y llega al asesor con una historia lista para avanzar.
+                Perfilamos cada lead antes del asesor: distinguimos afiliación, estimamos capacidad, recomendamos proyectos y definimos si debe pasar a cierre o a una ruta de nutrición.
               </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link href="/vivienda/inicio" prefetch className="liquid-primary-button group inline-flex h-[52px] items-center justify-center gap-3 rounded-full bg-[#111820] px-7 text-sm font-bold text-white shadow-[0_18px_42px_rgba(17,24,32,.22)] transition hover:-translate-y-1 hover:bg-[#0067b1]">
-                  Comenzar mi perfil
+                  Perfilarme ahora
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-white/12 transition group-hover:translate-x-0.5"><Icon name="arrow" className="h-4 w-4" /></span>
                 </Link>
                 <Link href="/vivienda/proyectos" prefetch className="inline-flex h-[52px] items-center justify-center gap-2 rounded-full border border-black/12 bg-white/48 px-6 text-sm font-bold text-black/66 shadow-[0_14px_38px_rgba(17,24,32,.08)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/72 hover:text-[#0067b1]">
@@ -49,7 +49,7 @@ export default function Home() {
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <div className="text-[9px] font-extrabold uppercase tracking-[.16em] text-black/42">Experiencia guiada</div>
-                    <div className="mt-1 text-sm font-bold text-[#111820]">Perfil explicable en aproximadamente 5 minutos</div>
+                    <div className="mt-1 text-sm font-bold text-[#111820]">Afiliación, capacidad y ruta en aproximadamente 5 minutos</div>
                   </div>
                   <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[15px] bg-[#ffd000] text-[#111820] shadow-[0_12px_30px_rgba(255,208,0,.30)]"><Icon name="sparkles" className="h-5 w-5" /></span>
                 </div>
@@ -68,9 +68,9 @@ export default function Home() {
           <div className="relative grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
             <div>
               <div className="text-xs font-extrabold uppercase tracking-[.18em] text-[#0067b1]">Cómo funciona</div>
-              <h2 className="mt-5 max-w-lg text-5xl font-medium leading-[.94] tracking-[-.065em] sm:text-7xl">De un clic a una conversación de cierre.</h2>
+              <h2 className="mt-5 max-w-lg text-5xl font-medium leading-[.94] tracking-[-.065em] sm:text-7xl">De lead pago a oportunidad de cierre.</h2>
             </div>
-            <p className="max-w-xl self-end text-lg leading-8 text-black/48">El sistema convierte un lead digital en una oportunidad comercial contextualizada, trazable y priorizada.</p>
+            <p className="max-w-xl self-end text-lg leading-8 text-black/48">El sistema recibe leads multicanal, pregunta solo lo necesario y entrega al asesor únicamente los perfiles que están preparados para avanzar.</p>
           </div>
 
           <div className="relative mt-16 overflow-hidden rounded-[34px] border border-black/[.07] bg-white/72 shadow-[0_28px_90px_rgba(17,24,32,.07)] backdrop-blur-xl">
