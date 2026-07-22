@@ -9,7 +9,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://viviendamatch.colsubsidio.com"),
+  metadataBase: new URL("https://vivienda-ai.vercel.app"),
 
   applicationName: "Vivienda Match AI",
 
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     title: "Vivienda Match AI | Colsubsidio",
     description:
       "Encuentra proyectos de vivienda ajustados a tu perfil, capacidad de compra y preferencias.",
-    url: "https://viviendamatch.colsubsidio.com",
+    url: "https://vivienda-ai.vercel.app",
     siteName: "Vivienda Match AI",
     locale: "es_CO",
     type: "website",
