@@ -67,14 +67,13 @@ export function CommercialDashboard({ fullInbox = false }: { fullInbox?: boolean
         <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto]">
           <label className="relative">
             <span className="sr-only">Buscar oportunidades</span>
-            <Icon
-              name="search"
-              className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--vm-color-ink-muted)]"
-            />
+            <span className="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-12 items-center justify-center text-[color:var(--vm-color-ink-muted)]">
+              <Icon name="search" className="h-4 w-4" />
+            </span>
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              className="form-field pl-11"
+              className="form-field search-field pl-12"
               placeholder="Buscar por persona, campaña o proyecto"
             />
           </label>

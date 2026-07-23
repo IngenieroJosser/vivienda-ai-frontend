@@ -53,10 +53,9 @@ export function ProjectCatalog({ projects }: { projects: readonly HousingProject
 
           <label className="relative block w-full lg:max-w-[420px]">
             <span className="sr-only">Buscar proyectos</span>
-            <Icon
-              name="search"
-              className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[color:var(--vm-color-brand-blue)]"
-            />
+            <span className="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-12 items-center justify-center text-[color:var(--vm-color-brand-blue)]">
+              <Icon name="search" className="h-5 w-5" />
+            </span>
             <input
               type="search"
               value={query}
