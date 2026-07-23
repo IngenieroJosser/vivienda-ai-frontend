@@ -6,7 +6,7 @@ import { ProjectCatalog } from "@/components/project-catalog";
 export default function ProyectosPage() {
   return (
     <main className="mx-auto max-w-[1460px] px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
-      <section className="projects-hero relative overflow-hidden rounded-[34px] border border-[color:var(--vm-color-line)] bg-white/82 px-6 py-9 shadow-[var(--vm-shadow-low)] backdrop-blur sm:px-9 lg:px-11">
+      <section className="projects-hero surface-solid relative overflow-hidden px-6 py-9 sm:px-9 lg:px-11">
         <AnimatedHeroBackground variant="projects" compact interactive={false} />
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)]/[.06] px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
