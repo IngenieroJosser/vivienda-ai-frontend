@@ -1,15 +1,115 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa;
-  --foreground: #111820;
-  --yellow: #ffd000;
-  --blue: #0067b1;
-  --blue-deep: #004f8c;
-  --ink: #111820;
-  --muted: #66717d;
-  --line: rgba(17, 24, 32, 0.09);
-  --card: rgba(255, 255, 255, 0.96);
+  /* Vivienda Match AI v1: semantic color tokens. */
+  --vm-color-brand-yellow: #ffd000;
+  --vm-color-brand-blue: #0067b1;
+  --vm-color-brand-blue-deep: #004f8c;
+  --vm-color-ink: #111820;
+  --vm-color-ink-muted: #52606d;
+  --vm-color-canvas: #fafafa;
+  --vm-color-surface: #ffffff;
+  --vm-color-line: rgba(17, 24, 32, 0.09);
+  --vm-color-info: #0067b1;
+  --vm-color-success: #087a55;
+  --vm-color-warning: #8a6500;
+  --vm-color-error: #b4233a;
+  --vm-color-focus: #005fcc;
+  --vm-color-on-dark: #ffffff;
+
+  /* Surface, transparency and blur tokens. */
+  --vm-surface-solid: #ffffff;
+  --vm-glass-subtle-bg: rgba(255, 255, 255, 0.82);
+  --vm-glass-elevated-bg: rgba(255, 255, 255, 0.72);
+  --vm-glass-dark-bg: rgba(17, 24, 32, 0.88);
+  --vm-opacity-disabled: 0.48;
+  --vm-opacity-muted: 0.62;
+  --vm-opacity-solid: 0.98;
+  --vm-blur-none: 0px;
+  --vm-blur-subtle: 10px;
+  --vm-blur-elevated: 18px;
+  --vm-saturation-glass: 112%;
+
+  /* Border and elevation tokens. */
+  --vm-border-subtle: 1px solid rgba(17, 24, 32, 0.08);
+  --vm-border-glass: 1px solid rgba(255, 255, 255, 0.58);
+  --vm-border-active: 1px solid rgba(0, 103, 177, 0.52);
+  --vm-shadow-low: 0 8px 24px rgba(17, 24, 32, 0.06);
+  --vm-shadow-medium: 0 18px 54px rgba(17, 24, 32, 0.09);
+  --vm-shadow-high: 0 24px 70px rgba(17, 24, 32, 0.14);
+  --vm-shadow-focus: 0 0 0 3px rgba(0, 95, 204, 0.35);
+
+  /* Shape and spacing tokens. */
+  --vm-radius-control: 12px;
+  --vm-radius-card: 20px;
+  --vm-radius-elevated: 28px;
+  --vm-radius-pill: 999px;
+  --vm-space-1: 4px;
+  --vm-space-2: 8px;
+  --vm-space-3: 12px;
+  --vm-space-4: 16px;
+  --vm-space-5: 20px;
+  --vm-space-6: 24px;
+  --vm-space-8: 32px;
+  --vm-space-10: 40px;
+  --vm-space-12: 48px;
+  --vm-space-16: 64px;
+
+  /* Typography tokens. */
+  --vm-font-family: "Manrope", "Segoe UI", Arial, sans-serif;
+  --vm-type-display-size: clamp(2.25rem, 5vw, 4.75rem);
+  --vm-type-display-line: 0.98;
+  --vm-type-h1-size: clamp(2rem, 3vw, 2.75rem);
+  --vm-type-h1-line: 1.05;
+  --vm-type-h2-size: 1.5rem;
+  --vm-type-h2-line: 1.2;
+  --vm-type-h3-size: 1.125rem;
+  --vm-type-h3-line: 1.3;
+  --vm-type-body-size: 1rem;
+  --vm-type-body-line: 1.6;
+  --vm-type-body-compact-size: 0.875rem;
+  --vm-type-body-compact-line: 1.5;
+  --vm-type-label-size: 0.75rem;
+  --vm-type-label-line: 1.3;
+  --vm-type-caption-size: 0.6875rem;
+  --vm-type-caption-line: 1.4;
+  --vm-weight-regular: 400;
+  --vm-weight-medium: 550;
+  --vm-weight-semibold: 650;
+  --vm-weight-bold: 700;
+
+  /* Motion tokens. */
+  --vm-motion-instant: 80ms;
+  --vm-motion-fast: 140ms;
+  --vm-motion-normal: 220ms;
+  --vm-motion-slow: 360ms;
+  --vm-ease-standard: cubic-bezier(.2, .72, .24, 1);
+  --vm-ease-exit: cubic-bezier(.4, 0, 1, 1);
+
+  /* Guided and compact density tokens remain opt-in during migration. */
+  --vm-guided-control-height: 52px;
+  --vm-guided-control-padding-x: 20px;
+  --vm-guided-card-padding: 24px;
+  --vm-guided-stack-gap: 20px;
+  --vm-guided-page-gap: 32px;
+  --vm-guided-body-size: 16px;
+  --vm-compact-control-height: 40px;
+  --vm-compact-control-padding-x: 14px;
+  --vm-compact-card-padding: 16px;
+  --vm-compact-stack-gap: 12px;
+  --vm-compact-page-gap: 20px;
+  --vm-compact-body-size: 14px;
+
+  /* Temporary aliases keep existing screens stable during migration. */
+  --background: var(--vm-color-canvas);
+  --foreground: var(--vm-color-ink);
+  --yellow: var(--vm-color-brand-yellow);
+  --blue: var(--vm-color-brand-blue);
+  --blue-deep: var(--vm-color-brand-blue-deep);
+  --ink: var(--vm-color-ink);
+  --muted: var(--vm-color-ink-muted);
+  --line: var(--vm-color-line);
+  --card: var(--vm-surface-solid);
 }
 
 @theme inline {
@@ -23,7 +123,7 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: "Manrope", "Segoe UI", Arial, sans-serif;
+  font-family: var(--vm-font-family);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -31,7 +131,99 @@ button, input, select, textarea { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
-::selection { background: #ffd000; color: #0c1620; }
+::selection { background: var(--vm-color-brand-yellow); color: var(--vm-color-ink); }
+
+/*
+ * Authorized visual-system surfaces.
+ * The opaque declaration is the baseline and therefore the no-blur fallback.
+ * No legacy surface receives backdrop-filter through this block.
+ */
+.glass-subtle,
+[data-vm-glass="subtle"],
+.glass-elevated,
+[data-vm-glass="elevated"] {
+  border: var(--vm-border-subtle);
+  background: var(--vm-surface-solid);
+}
+
+.glass-subtle,
+[data-vm-glass="subtle"] {
+  --vm-component-blur: var(--vm-blur-subtle);
+  box-shadow: var(--vm-shadow-low);
+}
+
+.glass-elevated,
+[data-vm-glass="elevated"] {
+  --vm-component-blur: var(--vm-blur-elevated);
+  box-shadow: var(--vm-shadow-medium);
+}
+
+.surface-solid,
+[data-vm-surface="solid"] {
+  border: var(--vm-border-subtle);
+  background: var(--vm-surface-solid);
+  box-shadow: var(--vm-shadow-low);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .glass-subtle,
+  [data-vm-glass="subtle"],
+  .glass-elevated,
+  [data-vm-glass="elevated"] {
+    border: var(--vm-border-glass);
+  }
+
+  .glass-subtle,
+  [data-vm-glass="subtle"] {
+    background: var(--vm-glass-subtle-bg);
+  }
+
+  .glass-elevated,
+  [data-vm-glass="elevated"] {
+    background: var(--vm-glass-elevated-bg);
+  }
+
+  .glass-subtle,
+  [data-vm-glass="subtle"],
+  .glass-elevated,
+  [data-vm-glass="elevated"] {
+    -webkit-backdrop-filter:
+      blur(var(--vm-component-blur)) saturate(var(--vm-saturation-glass));
+    backdrop-filter:
+      blur(var(--vm-component-blur)) saturate(var(--vm-saturation-glass));
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --vm-blur-elevated: 12px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-subtle,
+  [data-vm-glass="subtle"],
+  .glass-elevated,
+  [data-vm-glass="elevated"] {
+    border: var(--vm-border-subtle);
+    background: var(--vm-surface-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+[data-vm-visual-budget="reduced"] .glass-subtle,
+[data-vm-visual-budget="reduced"] [data-vm-glass="subtle"],
+[data-vm-visual-budget="reduced"] .glass-elevated,
+[data-vm-visual-budget="reduced"] [data-vm-glass="elevated"] {
+  border: var(--vm-border-subtle);
+  background: var(--vm-surface-solid);
+  box-shadow: var(--vm-shadow-low);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
 
 /* Shared internal product surfaces. The homepage intentionally does not use these classes. */
 .surface-card {
@@ -54,8 +246,7 @@ button:disabled { cursor: not-allowed; }
 
 .glass-card {
   border: 1px solid rgba(255,255,255,.55);
-  background: rgba(255,255,255,.68);
-  backdrop-filter: blur(22px);
+  background: var(--vm-surface-solid);
 }
 
 .internal-shell {
@@ -87,7 +278,6 @@ button:disabled { cursor: not-allowed; }
   border-radius: 28px;
   background: rgba(255,255,255,.94);
   box-shadow: 0 24px 70px rgba(17,24,32,.075);
-  backdrop-filter: blur(18px);
 }
 
 .flow-aside-card {
@@ -218,6 +408,12 @@ button:disabled { cursor: not-allowed; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --vm-motion-instant: 1ms;
+    --vm-motion-fast: 1ms;
+    --vm-motion-normal: 1ms;
+    --vm-motion-slow: 1ms;
+  }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
@@ -308,12 +504,6 @@ button:disabled { cursor: not-allowed; }
 .login-liquid-rings span:nth-child(2) { inset: 19%; animation-direction: reverse; animation-duration: 20s; }
 
 /* Global quality pass for every internal screen. */
-.surface-card,
-.flow-panel,
-.flow-aside-card,
-.metric-card {
-  backdrop-filter: blur(24px) saturate(112%);
-}
 .surface-card {
   background: linear-gradient(145deg, rgba(255,255,255,.94), rgba(255,255,255,.78));
   border-color: rgba(255,255,255,.72);
@@ -340,7 +530,6 @@ button:disabled { cursor: not-allowed; }
 }
 .portal-sidebar {
   background: rgba(255,255,255,.88);
-  backdrop-filter: blur(30px) saturate(118%);
 }
 .portal-app { background: #f4f6f7; isolation: isolate; }
 .portal-app > main { position: relative; z-index: 2; }
@@ -368,7 +557,6 @@ button:disabled { cursor: not-allowed; }
 }
 .form-field {
   background: rgba(255,255,255,.82);
-  backdrop-filter: blur(14px);
 }
 .form-field:focus { transform: translateY(-1px); }
 .data-table tbody tr:hover td { background: rgba(255,248,209,.52); }
@@ -620,7 +808,6 @@ button:disabled { cursor: not-allowed; }
   isolation: isolate;
   min-height: 154px;
   background: linear-gradient(135deg, rgba(255,255,255,.84), rgba(255,255,255,.52));
-  backdrop-filter: blur(30px) saturate(120%);
 }
 .portal-hero::after {
   content: "";
@@ -752,17 +939,7 @@ button, a { transition-timing-function: cubic-bezier(.2,.72,.24,1); }
   .animated-hero-background__blob { opacity: .48; }
 }
 
-/* Performance pass: retain depth while avoiding expensive full-screen compositing. */
-.surface-card,
-.flow-panel,
-.flow-aside-card,
-.metric-card,
-.form-field,
-.portal-sidebar,
-.portal-hero {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
+/* Performance pass: legacy surfaces stay opaque until migrated explicitly. */
 .surface-card,
 .flow-panel { background: rgba(255,255,255,.97); }
 .flow-aside-card { background: linear-gradient(145deg, #fff, #eef8ff); }
