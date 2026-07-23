@@ -58,13 +58,13 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 <p className="text-[11px] font-bold uppercase tracking-[.09em] text-[color:var(--vm-color-brand-blue)]">Material oficial</p>
                 <h2 className="mt-2 text-xl font-bold">Conoce el proyecto con más detalle</h2>
                 <p className="mt-2 max-w-xl text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
-                  Consulta el brochure aprobado. Los precios, beneficios y fechas que aparezcan allí deben validarse antes de tomar una decisión.
+                  Consulta el folleto oficial para conocer los espacios, características y detalles del proyecto.
                 </p>
               </div>
               {project.brochureUrl ? (
                 <a href={project.brochureUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)] bg-white px-5 text-sm font-bold text-[color:var(--vm-color-brand-blue)] transition hover:bg-[color:var(--vm-color-brand-blue)]/[.05]">
                   <Icon name="document" className="h-4 w-4" />
-                  Ver brochure
+                  Ver folleto del proyecto
                 </a>
               ) : null}
             </div>
@@ -99,7 +99,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             </div>
           </section>
           <Link href={`/orientacion?utm_source=portal&utm_campaign=${project.id}_proyecto&utm_content=ficha`} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white"><Icon name="arrow" className="h-4 w-4" />Iniciar orientación</Link>
-          <section className="surface-solid p-5 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">El brochure describe el proyecto, pero no confirma inventario, fecha de entrega, financiación ni beneficios. Esos datos deben validarse antes de tomar una decisión.</section>
         </aside>
       </div>
     </main>

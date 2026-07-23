@@ -378,8 +378,8 @@ function buildProject(seed: ProjectSeed): HousingProject {
       id: brochureId,
       kind: "APPROVED_BROCHURE",
       title: seed.brochureUrl
-        ? `Brochure individual de ${seed.name}`
-        : `Brochure multiproyecto con ficha de ${seed.name}`,
+        ? `Folleto informativo de ${seed.name}`
+        : `Información oficial con la ficha de ${seed.name}`,
       url: seed.brochureUrl ?? MULTIPROJECT_URL,
       verifiedAt: VERIFIED_AT,
       materialStatus: "APPROVED",

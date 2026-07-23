@@ -216,7 +216,7 @@ function ProspectProject({ project, match }: { project: HousingProject; match: P
       </ul>
       <div className="mt-5 border-t border-[color:var(--vm-color-line)] pt-5">
         <div className="grid gap-2 sm:grid-cols-2">
-          {project.brochureUrl ? <a href={project.brochureUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center justify-between gap-2 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]">Ver brochure aprobado<Icon name="arrow" className="h-3.5 w-3.5" /></a> : null}
+          {project.brochureUrl ? <a href={project.brochureUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center justify-between gap-2 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]">Ver folleto del proyecto<Icon name="arrow" className="h-3.5 w-3.5" /></a> : null}
           {availableTours.map((tour) => <a key={tour.id} href={tour.url} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center justify-between gap-2 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]">{tour.label}<Icon name="arrow" className="h-3.5 w-3.5" /></a>)}
         </div>
       </div>
