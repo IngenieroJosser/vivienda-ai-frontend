@@ -3,7 +3,7 @@
 Estado: aprobado para implementación
 
 Alcance inicial: prospecto y asesor
-Fuera del alcance inicial: marketing y administración
+Fuera del producto activo del MVP: marketing y administración
 
 ## 1. Propósito
 
@@ -28,7 +28,7 @@ La regla de producto es:
 6. Las tablas, los bloques financieros, los historiales y los textos críticos usan superficies sólidas.
 7. El blur solo existe en componentes autorizados; no se activa mediante utilidades sueltas.
 8. La experiencia completa funciona sin blur, animación ni hover.
-9. Marketing y administración conservan su apariencia actual durante la primera migración.
+9. Marketing y administración no forman parte del árbol activo del MVP.
 
 ## 3. Tokens semánticos
 
@@ -309,13 +309,13 @@ La próxima mejor acción es sticky dentro del panel de contenido en escritorio 
 | `.flow-aside-card` | `GlassCard` subtle | Migrar después del shell del prospecto |
 | `.metric-card` / `StatCard` | `GlassCard density-compact` | Conservar métrica; retirar decoración no semántica |
 | `.portal-sidebar` / `PortalLayout` | `AdvisorSidebar` | Añadir Nutrición y renombrar Dashboard a Resumen |
-| `.portal-hero` / `PortalPage` | `ContextualHeader` | Mantener marketing/admin congelados mediante variante legacy |
+| `.portal-hero` / `PortalPage` | `ContextualHeader` | Migrar únicamente el portal del asesor |
 | `.form-field` | control base sólido | Nunca aplicar blur a cada input |
-| `.liquid-button` / `PrimaryLink` | `LiquidButton` | Unificar botón y enlace con la misma API visual |
+| `.liquid-button` | `LiquidButton` | Unificar botón y enlace con la misma API visual |
 | `Pill` | `StatusChip` | Separar estado, categoría y acción |
-| `EmptyState` | `feedback/EmptyState` | Añadir acción y semántica |
+| Estados vacíos locales | `feedback/EmptyState` | Extraer cuando exista más de un consumidor real |
 | stepper de `PublicFlowShell` | `JourneyStepper` | Cambiar pasos técnicos por etapas humanas |
-| `backdrop-blur*` directo | variante autorizada | Eliminar de prospecto/asesor; no reemplazar dentro de marketing/admin aún |
+| `backdrop-blur*` directo | variante autorizada | Eliminar de las rutas activas y reemplazar mediante tokens autorizados |
 | colores y sombras arbitrarios | tokens `--vm-*` | Migración por componente, no reemplazo global ciego |
 
 Durante la migración, los alias legacy no pueden adquirir nuevas variantes. Todo componente nuevo usa el sistema v1.
@@ -452,7 +452,7 @@ Tokens
 → accesibilidad y rendimiento
 ```
 
-Cada etapa debe cerrar lint, build, pruebas de componentes, axe y revisión responsive antes de comenzar la siguiente. Marketing y administración no se migran hasta completar los criterios del prospecto y asesor.
+Cada etapa debe cerrar lint, build, pruebas de componentes, axe y revisión responsive antes de comenzar la siguiente.
 
 ## 14. Definición de terminado del sistema v1
 
@@ -464,5 +464,5 @@ El sistema v1 se considera terminado cuando:
 4. El fallback sin blur conserva la jerarquía y pasa contraste AA.
 5. Las navegaciones objetivo funcionan con mouse, tacto y teclado.
 6. Los presupuestos de blur se cumplen en escritorio y móvil.
-7. No hay regresiones visuales intencionales en marketing ni administración.
+7. No se reintroducen rutas, estilos o variantes exclusivas de marketing y administración.
 8. Lint, build, axe y los recorridos E2E del MVP pasan.
