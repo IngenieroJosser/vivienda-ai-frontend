@@ -189,7 +189,7 @@ function OperationalSummary({
           </div>
           <Link
             href="/asesor/leads"
-            className="inline-flex min-h-10 items-center gap-2 text-xs font-bold text-[color:var(--vm-color-brand-blue)]"
+            className="inline-flex min-h-10 min-w-0 max-w-full items-center gap-2 text-xs font-bold text-[color:var(--vm-color-brand-blue)]"
           >
             Ver todas las oportunidades <Icon name="arrow" className="h-4 w-4" />
           </Link>
@@ -235,7 +235,7 @@ function OperationalSummary({
                   </div>
                   <Link
                     href={`/asesor/leads/${opportunity.lead.scenario.leadId}`}
-                    className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-4 text-xs font-bold text-white"
+                    className="inline-flex min-h-10 min-w-0 max-w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-4 text-center text-xs font-bold whitespace-normal text-white"
                   >
                     Gestionar <Icon name="arrow" className="h-4 w-4" />
                   </Link>

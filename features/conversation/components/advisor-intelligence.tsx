@@ -289,8 +289,8 @@ export function AdvisorIntelligence({
       ) : null}
 
       {activeTab === "PROJECTS" && projectMatches.length ? (
-        <div className="flex justify-end">
-          <Link href={`/asesor/comparador?leadId=${encodeURIComponent(leadId)}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-xs font-bold text-white"><Icon name="compare" className="h-4 w-4" />Comparar estas opciones</Link>
+        <div className="flex min-w-0 justify-end">
+          <Link href={`/asesor/comparador?leadId=${encodeURIComponent(leadId)}`} className="inline-flex min-h-11 min-w-0 max-w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-center text-xs font-bold whitespace-normal text-white"><Icon name="compare" className="h-4 w-4 shrink-0" />Comparar estas opciones</Link>
         </div>
       ) : null}
     </div>
