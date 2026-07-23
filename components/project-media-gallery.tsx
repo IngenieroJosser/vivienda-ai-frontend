@@ -124,19 +124,21 @@ export function ProjectMediaGallery({
             aria-pressed={index === activeIndex}
             aria-label={`Mostrar ${galleryImage.label}`}
           >
-            <Image
-              src={galleryImage.image}
-              alt=""
-              fill
-              sizes={
-                index === activeIndex
-                  ? "(max-width: 1200px) 75vw, 850px"
-                  : "120px"
-              }
-              priority={index === 0}
-              quality={95}
-              className="project-gallery__image"
-            />
+            <span className="project-gallery__media-frame">
+              <Image
+                src={galleryImage.image}
+                alt=""
+                fill
+                sizes={
+                  index === activeIndex
+                    ? "(max-width: 1200px) 75vw, 850px"
+                    : "120px"
+                }
+                priority={index === 0}
+                quality={95}
+                className="project-gallery__image"
+              />
+            </span>
             <span className="project-gallery__panel-shade" />
             <span className="project-gallery__panel-label">
               <small>
@@ -186,14 +188,16 @@ export function ProjectMediaGallery({
             aria-pressed={index === activeIndex}
             aria-label={`Seleccionar ${galleryImage.label}`}
           >
-            <Image
-              src={galleryImage.image}
-              alt=""
-              fill
-              sizes="88vw"
-              quality={93}
-              className="project-gallery__image"
-            />
+            <span className="project-gallery__media-frame">
+              <Image
+                src={galleryImage.image}
+                alt=""
+                fill
+                sizes="88vw"
+                quality={93}
+                className="project-gallery__image"
+              />
+            </span>
             <span className="project-gallery__panel-shade" />
             <span className="project-gallery__mobile-label">
               <small>
@@ -311,14 +315,16 @@ export function ProjectMediaGallery({
                   Cerrar
                 </button>
                 <div className="project-gallery-modal__image">
-                  <Image
-                    src={image.image}
-                    alt={`${image.label} de ${project.name}`}
-                    fill
-                    sizes="100vw"
-                    quality={100}
-                    className="object-contain"
-                  />
+                  <span className="project-gallery-modal__media-frame">
+                    <Image
+                      src={image.image}
+                      alt={`${image.label} de ${project.name}`}
+                      fill
+                      sizes="100vw"
+                      quality={100}
+                      className="object-contain"
+                    />
+                  </span>
                 </div>
                 <div className="project-gallery-modal__caption">
                   <span>
