@@ -419,7 +419,7 @@ function NurturingPlanDetail({
       <section className="mt-6 rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-brand-blue)]/15 bg-[linear-gradient(140deg,#eef8ff,#fffdf0)] p-5">
         <div className="flex items-start gap-3">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[color:var(--vm-color-brand-blue)] shadow-sm">
-            <Icon name="brain" className="h-4 w-4" />
+            <Icon name="chart" className="h-4 w-4" />
           </span>
           <div>
             <h4 className="text-sm font-semibold">Simular nueva evaluación</h4>

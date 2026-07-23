@@ -9,10 +9,10 @@ export type AgendaItem = {
   id: string;
   leadId: string;
   prospectName: string;
-  type: "FIRST_CONTACT" | "FOLLOW_UP";
+  type: "FIRST_CONTACT" | "FOLLOW_UP" | "NEXT_ACTION";
   title: string;
-  dueAt: string;
-  timing: "OVERDUE" | "TODAY" | "UPCOMING";
+  dueAt?: string;
+  timing: "OVERDUE" | "TODAY" | "TOMORROW" | "NEXT_7_DAYS" | "LATER" | "NO_DATE";
   priority: "HIGH" | "MEDIUM" | "LOW";
   commercialStatus: string;
   nextAction: string;
@@ -27,13 +27,17 @@ export function buildAgendaItems(
     .filter(({ state }) => !["WON", "DEFERRED", "NOT_VIABLE"].includes(state.status))
     .map(({ lead, state }) => {
       const followUp = state.followUpAt;
-      const dueAt =
-        followUp ??
-        lead.evaluation.followUpAt ??
-        lead.scenario.capturedAt;
       const type: AgendaItem["type"] = followUp
         ? "FOLLOW_UP"
-        : "FIRST_CONTACT";
+        : state.firstContactAt
+          ? "NEXT_ACTION"
+          : "FIRST_CONTACT";
+      const dueAt =
+        type === "NEXT_ACTION"
+          ? undefined
+          : followUp ??
+            lead.evaluation.followUpAt ??
+            lead.scenario.capturedAt;
       return {
         id: `${lead.scenario.leadId}-${type}`,
         leadId: lead.scenario.leadId,
@@ -42,28 +46,38 @@ export function buildAgendaItems(
         title:
           type === "FOLLOW_UP"
             ? "Seguimiento programado"
-            : "Primer contacto pendiente",
+            : type === "NEXT_ACTION"
+              ? "Siguiente acción sin fecha"
+              : "Primer contacto pendiente",
         dueAt,
-        timing: getTiming(dueAt, now),
+        timing: dueAt ? getTiming(dueAt, now) : "NO_DATE",
         priority: lead.evaluation.priority,
         commercialStatus: commercialStatusLabels[state.status],
         nextAction:
           type === "FOLLOW_UP"
             ? lead.evaluation.nextAction
-            : "Tomar la oportunidad y registrar el primer contacto",
+            : type === "NEXT_ACTION"
+              ? "Definir el resultado y programar el siguiente paso"
+              : "Tomar la oportunidad y registrar el primer contacto",
       };
     })
     .sort(
       (a, b) =>
         timingRank(a.timing) - timingRank(b.timing) ||
-        new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime(),
+        dateRank(a.dueAt) - dateRank(b.dueAt),
     );
 }
 
 function getTiming(value: string, now: Date): AgendaItem["timing"] {
   const due = new Date(value);
   if (sameLocalDate(due, now)) return "TODAY";
-  return due.getTime() < now.getTime() ? "OVERDUE" : "UPCOMING";
+  if (due.getTime() < now.getTime()) return "OVERDUE";
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  if (sameLocalDate(due, tomorrow)) return "TOMORROW";
+  const sevenDays = new Date(now);
+  sevenDays.setDate(now.getDate() + 7);
+  return due.getTime() <= sevenDays.getTime() ? "NEXT_7_DAYS" : "LATER";
 }
 
 function sameLocalDate(a: Date, b: Date): boolean {
@@ -75,5 +89,16 @@ function sameLocalDate(a: Date, b: Date): boolean {
 }
 
 function timingRank(value: AgendaItem["timing"]): number {
-  return value === "OVERDUE" ? 0 : value === "TODAY" ? 1 : 2;
+  return {
+    OVERDUE: 0,
+    TODAY: 1,
+    TOMORROW: 2,
+    NEXT_7_DAYS: 3,
+    LATER: 4,
+    NO_DATE: 5,
+  }[value];
+}
+
+function dateRank(value?: string): number {
+  return value ? new Date(value).getTime() : Number.MAX_SAFE_INTEGER;
 }

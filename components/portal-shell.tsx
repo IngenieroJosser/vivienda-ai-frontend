@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { ProductBrand } from "./brand";
 import { Icon } from "./icon";
-import { AnimatedHeroBackground } from "./animated-hero-background";
 
 type Role = "asesor";
 type NavItem = { label: string; href: string; icon: Parameters<typeof Icon>[0]["name"] };
@@ -19,7 +18,6 @@ const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[]
       { label: "Oportunidades", href: "/asesor/leads", icon: "users" },
       { label: "Agenda", href: "/asesor/agenda", icon: "calendar" },
       { label: "Nutrición", href: "/asesor/nutricion", icon: "heart" },
-      { label: "Comparador", href: "/asesor/comparador", icon: "compare" },
     ],
   },
 };
@@ -41,7 +39,7 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
             <div className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#0067b1]/65">Espacio actual</div>
             <div className="mt-1 truncate text-sm font-bold text-[#111820]">{config.label}</div>
           </div>
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[12px] bg-[#ffd000] text-[#111820] shadow-[0_8px_20px_rgba(255,208,0,.22)]"><Icon name="sparkles" className="h-4 w-4" /></span>
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[12px] bg-[#0067b1]/10 text-[#0067b1]"><Icon name="briefcase" className="h-4 w-4" /></span>
         </div>
       </div>
       <nav className="mt-5 space-y-1 px-2">
@@ -73,7 +71,6 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
   return (
     <PortalChromeContext.Provider value={role}>
       <div className={`portal-app portal-app--${role} text-[#111820]`}>
-        <AnimatedHeroBackground variant={role} className="fixed inset-0" />
         <aside className="portal-sidebar fixed inset-y-0 left-0 z-50 hidden w-[254px] border-r border-black/[.055] px-3 py-5 lg:flex lg:flex-col">{nav}</aside>
 
         {mobileOpen ? <button aria-label="Cerrar menú" className="fixed inset-0 z-40 bg-[#111820]/35 lg:hidden" onClick={() => setMobileOpen(false)} /> : null}
@@ -83,9 +80,8 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
         </aside>
 
         <main className="relative lg:pl-[254px]">
-          <div className="portal-content-grid pointer-events-none fixed inset-x-0 top-0 z-0 h-[360px] lg:left-[254px]" />
           <header className="sticky top-0 z-30 border-b border-black/[.055] bg-white/95">
-            <div className="flex h-[72px] items-center justify-between px-5 sm:px-8 lg:px-9">
+            <div className="flex h-[64px] items-center justify-between px-5 sm:px-8 lg:px-9">
               <div className="flex items-center gap-3">
                 <button onClick={() => setMobileOpen(true)} className="grid h-10 w-10 place-items-center rounded-[13px] border border-black/[.08] bg-white shadow-sm lg:hidden"><Icon name="menu" /></button>
                 <div className="hidden rounded-full border border-black/[.065] bg-white px-4 py-2.5 text-xs font-bold text-black/62 shadow-sm md:block">{config.label}</div>
@@ -99,7 +95,7 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
             </div>
           </header>
 
-          <div className="portal-page relative z-10 px-5 py-7 sm:px-8 lg:px-9 lg:py-8">{children}</div>
+          <div className="portal-page relative z-10 px-5 py-5 sm:px-8 lg:px-9 lg:py-6">{children}</div>
         </main>
       </div>
     </PortalChromeContext.Provider>
@@ -110,12 +106,12 @@ function PortalPage({ role, title, subtitle, actions, children }: { role: Role; 
   const config = roleConfig[role];
   return (
     <>
-      <section className={`portal-hero portal-hero--${role} mb-5 overflow-hidden rounded-[22px] border border-white/60 px-5 py-4 shadow-[0_12px_34px_rgba(17,24,32,.055)] sm:px-6 sm:py-5`}>
+      <section className={`portal-hero portal-hero--${role} mb-4 overflow-hidden rounded-[18px] border border-[color:var(--vm-color-line)] bg-white px-5 py-3.5 shadow-[var(--vm-shadow-low)] sm:px-6 sm:py-4`}>
         <div className="portal-hero__content relative z-10 flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
           <div>
-            <div className="mb-2 inline-flex items-center gap-2 text-[9px] font-extrabold uppercase tracking-[.15em] text-[#0067b1]"><span className="h-1.5 w-1.5 rounded-full bg-[#ffd000]" />{config.label}</div>
-            <h1 className="max-w-4xl text-2xl font-bold tracking-[-0.045em] text-[#101820] sm:text-3xl">{title}</h1>
-            {subtitle ? <p className="mt-2 max-w-3xl text-sm leading-5 text-black/52">{subtitle}</p> : null}
+            <div className="mb-1.5 inline-flex items-center gap-2 text-[9px] font-extrabold uppercase tracking-[.15em] text-[#0067b1]"><span className="h-1.5 w-1.5 rounded-full bg-[#ffd000]" />{config.label}</div>
+            <h1 className="max-w-4xl text-xl font-bold tracking-[-0.035em] text-[#101820] sm:text-2xl">{title}</h1>
+            {subtitle ? <p className="mt-1.5 max-w-3xl text-xs leading-5 text-black/52 sm:text-sm">{subtitle}</p> : null}
           </div>
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
             {actions ? <div className="flex flex-wrap gap-2.5">{actions}</div> : null}

@@ -38,8 +38,8 @@ export function CommercialNextStep({
   return (
     <section className="rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/20 bg-[linear-gradient(145deg,#eef8ff,#fffdf0)] p-6 shadow-[var(--vm-shadow-medium)]">
       <div className="flex items-center justify-between">
-        <div className="text-xs font-bold uppercase tracking-[.14em] text-[color:var(--vm-color-brand-blue)]">Próxima mejor acción</div>
-        <Icon name="sparkles" className="h-5 w-5 text-[color:var(--vm-color-brand-blue)]" />
+        <div className="text-xs font-bold uppercase tracking-[.14em] text-[color:var(--vm-color-brand-blue)]">Siguiente acción sugerida</div>
+        <Icon name="target" className="h-5 w-5 text-[color:var(--vm-color-brand-blue)]" />
       </div>
       <h3 className="mt-5 text-2xl font-semibold tracking-[-.04em]">{title}</h3>
       <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{description}</p>

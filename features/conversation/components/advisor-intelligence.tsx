@@ -29,9 +29,29 @@ const routeLabels: Record<EvaluationResult["route"], string> = {
   OPTED_OUT: "Sin contacto",
 };
 
-export function AdvisorIntelligence({ leadId }: { leadId: string }) {
+type DetailTab = "SUMMARY" | "PROJECTS" | "CONVERSATION" | "ACTIVITY";
+
+const detailTabs: Array<{
+  value: DetailTab;
+  label: string;
+  icon: Parameters<typeof Icon>[0]["name"];
+}> = [
+  { value: "SUMMARY", label: "Resumen", icon: "document" },
+  { value: "PROJECTS", label: "Proyectos", icon: "building" },
+  { value: "CONVERSATION", label: "Conversación", icon: "mail" },
+  { value: "ACTIVITY", label: "Actividad", icon: "history" },
+];
+
+export function AdvisorIntelligence({
+  leadId,
+  embedded = false,
+}: {
+  leadId: string;
+  embedded?: boolean;
+}) {
   const [qualifiedLead, setQualifiedLead] = useState<QualifiedLead | undefined>(() => getQualifiedScenarioLead(leadId));
   const [prospectSession, setProspectSession] = useState<ProspectSession>();
+  const [activeTab, setActiveTab] = useState<DetailTab>("SUMMARY");
   const scenario = qualifiedLead?.scenario;
   const evaluation = qualifiedLead?.evaluation;
 
@@ -62,9 +82,9 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
   const confidence = Math.round(evaluation.confidenceScore * 100);
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]">
+    <div className="space-y-4">
       <div className="space-y-5">
-        <section className="surface-solid p-6 sm:p-8">
+        <section className={`surface-solid ${embedded ? "p-5" : "p-6 sm:p-8"}`}>
           <div className="flex flex-wrap items-center gap-3">
             <span className="grid h-14 w-14 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)] font-bold text-white">{initials}</span>
             <div>
@@ -77,17 +97,40 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
             </div>
           </div>
 
-          <p className="mt-6 rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.04] p-4 text-sm font-semibold leading-6">{evaluation.commercialSummary}</p>
+          <p className="mt-5 rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.04] p-4 text-sm font-semibold leading-6">{evaluation.commercialSummary}</p>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            <Metric label="Propensión comercial" value={`${evaluation.readinessScore}/100`} accent />
-            <Metric label="Confianza del perfil" value={`${confidence}%`} />
-            <Metric label="Cuota máxima orientativa" value={evaluation.capacity.estimatedHousingPayment ? formatCop(evaluation.capacity.estimatedHousingPayment) : "Por completar"} />
-          </div>
-          <div className="mt-6"><ProgressBar value={evaluation.readinessScore} label="Preparación comercial" /></div>
+          {activeTab === "SUMMARY" ? (
+            <>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <Metric label="Preparación comercial" value={`${evaluation.readinessScore}/100`} accent />
+                <Metric label="Nivel de evidencia" value={`${confidence}%`} />
+                <Metric label="Cuota máxima orientativa" value={evaluation.capacity.estimatedHousingPayment ? formatCop(evaluation.capacity.estimatedHousingPayment) : "Por completar"} />
+              </div>
+              <div className="mt-5"><ProgressBar value={evaluation.readinessScore} label="Preparación comercial" /></div>
+            </>
+          ) : null}
+
+          <nav aria-label="Secciones de la oportunidad" className="-mx-1 mt-5 flex gap-1 overflow-x-auto border-t border-[color:var(--vm-color-line)] px-1 pt-4">
+            {detailTabs.map((tab) => (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => setActiveTab(tab.value)}
+                aria-pressed={activeTab === tab.value}
+                className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full px-3.5 text-xs font-bold transition ${
+                  activeTab === tab.value
+                    ? "bg-[color:var(--vm-color-brand-blue)] text-white"
+                    : "text-[color:var(--vm-color-ink-muted)] hover:bg-[color:var(--vm-color-brand-blue)]/[.05] hover:text-[color:var(--vm-color-brand-blue)]"
+                }`}
+              >
+                <Icon name={tab.icon} className="h-3.5 w-3.5" />
+                {tab.label}
+              </button>
+            ))}
+          </nav>
         </section>
 
-        {prospectSession ? (
+        {activeTab === "SUMMARY" && prospectSession ? (
           <section className="surface-solid p-6 sm:p-8">
             <h2 className="text-lg font-semibold">Lo que descubrió la conversación</h2>
             <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Contexto declarado por el prospecto, separado de los datos que Colsubsidio ya conocía.</p>
@@ -105,7 +148,7 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
           </section>
         ) : null}
 
-        {prospectSession?.turns.length ? (
+        {activeTab === "CONVERSATION" && prospectSession?.turns.length ? (
           <section className="surface-solid p-6 sm:p-8">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -129,7 +172,15 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
           </section>
         ) : null}
 
-        <section className="surface-solid p-6 sm:p-8">
+        {activeTab === "CONVERSATION" && !prospectSession?.turns.length ? (
+          <section className="surface-solid p-8 text-center">
+            <Icon name="mail" className="mx-auto h-6 w-6 text-[color:var(--vm-color-brand-blue)]" />
+            <h2 className="mt-3 font-semibold">No hay conversación disponible</h2>
+            <p className="mt-1 text-sm text-[color:var(--vm-color-ink-muted)]">Esta oportunidad conserva únicamente los datos de evaluación conocidos.</p>
+          </section>
+        ) : null}
+
+        {activeTab === "SUMMARY" ? <section className="surface-solid p-6 sm:p-8">
           <h2 className="text-lg font-semibold">Lo que sabemos del prospecto</h2>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <ProfileItem label="Sueño" value={getProfileValue(evaluation.profileSnapshot, "dreamGoal")} />
@@ -140,9 +191,9 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
             <ProfileItem label="Ahorro" value={getProfileValue(evaluation.profileSnapshot, "savings")} />
           </div>
           <div className="mt-5 text-xs text-[color:var(--vm-color-ink-muted)]">Datos conocidos utilizados: {evaluation.knownDataUsed.length ? evaluation.knownDataUsed.length : "ninguno"}. El resto fue declarado durante la conversación.</div>
-        </section>
+        </section> : null}
 
-        <section className="surface-solid p-6 sm:p-8">
+        {activeTab === "SUMMARY" ? <section className="surface-solid p-6 sm:p-8">
           <h2 className="text-lg font-semibold">Validación de capacidad 40 %</h2>
           <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">La estimación evita que obligaciones actuales y cuota de vivienda superen conjuntamente el 40 % del ingreso.</p>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -150,9 +201,9 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
             <ProfileItem label="Obligaciones" value={`${Math.round(evaluation.capacity.currentCommitmentRatio * 100)} %`} />
             <ProfileItem label="Margen vivienda" value={`${Math.round(evaluation.capacity.maximumHousingRatio * 100)} %`} />
           </div>
-        </section>
+        </section> : null}
 
-        <section className="surface-solid p-6 sm:p-8">
+        {activeTab === "SUMMARY" ? <section className="surface-solid p-6 sm:p-8">
           <h2 className="text-lg font-semibold">Beneficios y señales de comportamiento</h2>
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
             <div>
@@ -168,9 +219,9 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
             <div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">Comportamiento conocido</div>
             <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2">{scenario.engagementSignals.map((item) => <li key={item}>• {item}</li>)}</ul>
           </div>
-        </section>
+        </section> : null}
 
-        {projectMatches.length ? (
+        {activeTab === "PROJECTS" && projectMatches.length ? (
           <section className="surface-solid p-6 sm:p-8">
             <h2 className="text-lg font-semibold">Proyectos y evidencia utilizados</h2>
             <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Es la misma recomendación que recibió el prospecto, sin recalcular el ranking en el portal.</p>
@@ -203,24 +254,27 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
               })}
             </div>
           </section>
+        ) : activeTab === "PROJECTS" ? (
+          <section className="surface-solid p-8 text-center">
+            <Icon name="building" className="mx-auto h-6 w-6 text-[color:var(--vm-color-brand-blue)]" />
+            <h2 className="mt-3 font-semibold">No hay proyectos compatibles</h2>
+            <p className="mt-1 text-sm text-[color:var(--vm-color-ink-muted)]">La evaluación no produjo coincidencias verificables para esta oportunidad.</p>
+          </section>
         ) : null}
       </div>
 
-      <aside className="space-y-5 xl:sticky xl:top-24 xl:self-start">
-        <CommercialActions leadId={leadId} />
-        <CommercialNextStep leadId={leadId} evaluation={evaluation} />
+      {activeTab === "ACTIVITY" ? (
+        <div className="grid gap-4 xl:grid-cols-[1.1fr_.9fr]">
+          <CommercialActions leadId={leadId} />
+          <CommercialNextStep leadId={leadId} evaluation={evaluation} />
+        </div>
+      ) : null}
 
-        {projectMatches.length ? (
-          <section className="surface-solid p-6">
-            <h3 className="text-lg font-semibold">Recomendación compartida</h3>
-            <ol className="mt-4 space-y-2 text-sm">
-              {projectMatches.map(({ project }, index) => <li key={project.id} className="flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-xs font-bold text-[color:var(--vm-color-brand-blue)]">{index + 1}</span><span className="font-semibold">{project.name}</span></li>)}
-            </ol>
-            <p className="mt-3 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">Máximo tres opciones; precio, inventario y entrega conservan su vigencia del catálogo.</p>
-            <Link href={`/asesor/comparador?leadId=${encodeURIComponent(leadId)}`} className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/15 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]"><Icon name="compare" className="h-4 w-4" />Abrir comparador</Link>
-          </section>
-        ) : null}
-      </aside>
+      {activeTab === "PROJECTS" && projectMatches.length ? (
+        <div className="flex justify-end">
+          <Link href={`/asesor/comparador?leadId=${encodeURIComponent(leadId)}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-xs font-bold text-white"><Icon name="compare" className="h-4 w-4" />Comparar estas opciones</Link>
+        </div>
+      ) : null}
     </div>
   );
 }

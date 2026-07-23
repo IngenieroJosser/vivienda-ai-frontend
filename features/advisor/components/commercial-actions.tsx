@@ -197,21 +197,26 @@ export function CommercialActions({ leadId }: { leadId: string }) {
       <button
         type="button"
         onClick={recordContact}
-        disabled={!isAssigned}
+        disabled={!isAssigned || hasFirstContact}
         className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/20 bg-white text-xs font-bold text-[color:var(--vm-color-brand-blue)] disabled:cursor-not-allowed disabled:opacity-40"
       >
-        <Icon name="check" className="h-4 w-4" /> Registrar contacto realizado
+        <Icon name="check" className="h-4 w-4" /> {hasFirstContact ? "Primer contacto registrado" : "Registrar primer contacto"}
       </button>
 
       <label className="mt-5 block">
-        <span className="text-xs font-semibold">Estado comercial</span>
+        <span className="text-xs font-semibold">Resultado del contacto</span>
         <select
           value={state.status}
           onChange={(event) => changeStatus(event.target.value as CommercialStatus)}
-          disabled={!isAssigned}
+          disabled={!hasFirstContact}
           className="mt-2 h-11 w-full rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {Object.entries(commercialStatusLabels).map(([value, label]) => (
+          {(hasFirstContact
+            ? Object.entries(commercialStatusLabels).filter(
+                ([value]) => value !== "NEW" && value !== "ASSIGNED",
+              )
+            : [[state.status, commercialStatusLabels[state.status]]]
+          ).map(([value, label]) => (
             <option key={value} value={value}>{label}</option>
           ))}
         </select>
@@ -243,7 +248,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
         <ValidationCheck
           label="Requiere validar subsidio"
           checked={state.subsidyValidationRequired}
-          disabled={!isAssigned}
+          disabled={!hasFirstContact}
           onChange={(checked) =>
             toggleValidation("subsidyValidationRequired", checked)
           }
@@ -251,7 +256,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
         <ValidationCheck
           label="Requiere validar financiación"
           checked={state.financingValidationRequired}
-          disabled={!isAssigned}
+          disabled={!hasFirstContact}
           onChange={(checked) =>
             toggleValidation("financingValidationRequired", checked)
           }

@@ -41,7 +41,7 @@ describe("commercial agenda", () => {
 
     expect(lauraItems).toHaveLength(1);
     expect(lauraItems[0].type).toBe("FOLLOW_UP");
-    expect(lauraItems[0].timing).toBe("UPCOMING");
+    expect(lauraItems[0].timing).toBe("TOMORROW");
   });
 
   it("orders overdue activities before today and upcoming activities", () => {

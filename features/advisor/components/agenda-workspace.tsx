@@ -34,7 +34,7 @@ export function AgendaWorkspace() {
       <section className="grid gap-3 sm:grid-cols-3">
         <AgendaMetric label="Vencidos" value={items.filter((item) => item.timing === "OVERDUE").length} tone="red" />
         <AgendaMetric label="Para hoy" value={items.filter((item) => item.timing === "TODAY").length} tone="blue" />
-        <AgendaMetric label="Próximos" value={items.filter((item) => item.timing === "UPCOMING").length} tone="green" />
+        <AgendaMetric label="Próximos" value={items.filter((item) => ["TOMORROW", "NEXT_7_DAYS", "LATER"].includes(item.timing)).length} tone="green" />
       </section>
 
       <section className="surface-solid overflow-hidden">
@@ -44,7 +44,7 @@ export function AgendaWorkspace() {
             <p className="mt-1 text-sm text-[color:var(--vm-color-ink-muted)]">Primeros contactos y seguimientos derivados del estado local de cada oportunidad.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {([["ALL", "Todas"], ["OVERDUE", "Vencidas"], ["TODAY", "Hoy"], ["UPCOMING", "Próximas"]] as const).map(([value, label]) => (
+            {([["ALL", "Todas"], ["OVERDUE", "Vencidas"], ["TODAY", "Hoy"], ["TOMORROW", "Mañana"], ["NEXT_7_DAYS", "Próximos 7 días"], ["NO_DATE", "Sin fecha"]] as const).map(([value, label]) => (
               <button key={value} type="button" onClick={() => setFilter(value)} aria-pressed={filter === value} className={`min-h-10 rounded-full px-4 text-xs font-bold ${filter === value ? "bg-[color:var(--vm-color-brand-blue)] text-white" : "border border-[color:var(--vm-color-line)] bg-white"}`}>{label}</button>
             ))}
           </div>
@@ -70,10 +70,10 @@ function AgendaRow({ item }: { item: AgendaItem }) {
   return (
     <article className="advisor-row-enter grid gap-4 p-5 sm:p-6 lg:grid-cols-[150px_1fr_180px_auto] lg:items-center">
       <div>
-        <Pill tone={item.timing === "OVERDUE" ? "red" : item.timing === "TODAY" ? "blue" : "green"}>
-          {item.timing === "OVERDUE" ? "Vencido" : item.timing === "TODAY" ? "Hoy" : "Próximo"}
+        <Pill tone={item.timing === "OVERDUE" ? "red" : item.timing === "TODAY" ? "blue" : item.timing === "NO_DATE" ? "yellow" : "green"}>
+          {timingLabel(item.timing)}
         </Pill>
-        <time className="mt-2 block text-xs font-semibold">{formatDateTime(item.dueAt)}</time>
+        {item.dueAt ? <time className="mt-2 block text-xs font-semibold">{formatDateTime(item.dueAt)}</time> : <span className="mt-2 block text-xs font-semibold">Fecha por definir</span>}
       </div>
       <div>
         <h3 className="font-semibold">{item.prospectName}</h3>
@@ -110,4 +110,15 @@ function formatDateTime(value: string): string {
 
 function priorityLabel(value: AgendaItem["priority"]): string {
   return value === "HIGH" ? "alta" : value === "MEDIUM" ? "media" : "baja";
+}
+
+function timingLabel(value: AgendaItem["timing"]): string {
+  return {
+    OVERDUE: "Vencido",
+    TODAY: "Hoy",
+    TOMORROW: "Mañana",
+    NEXT_7_DAYS: "Próximos 7 días",
+    LATER: "Más adelante",
+    NO_DATE: "Sin fecha",
+  }[value];
 }

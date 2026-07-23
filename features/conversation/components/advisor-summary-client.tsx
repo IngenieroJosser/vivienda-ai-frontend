@@ -83,7 +83,7 @@ export function AdvisorSummaryClient() {
         </div>
 
         <aside className="rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/15 bg-[linear-gradient(145deg,#eef8ff,#fffdf1)] p-6 sm:p-8">
-          <Icon name="brain" className="h-7 w-7 text-[color:var(--vm-color-brand-blue)]" />
+          <Icon name="chart" className="h-7 w-7 text-[color:var(--vm-color-brand-blue)]" />
           <h2 className="mt-5 text-2xl font-semibold tracking-[-.035em]">Una sola decisión explicable.</h2>
           <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Resumen, bandeja, detalle y nutrición leen la misma evaluación. Cambiar de vista no modifica la prioridad ni recalcula la capacidad.</p>
         </aside>
