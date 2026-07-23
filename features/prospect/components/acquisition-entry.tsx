@@ -2,6 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  HousingWindow,
+  OrientationHeader,
+  OrientationTrustStrip,
+} from "@/components/orientation-visuals";
+import { Icon } from "@/components/icon";
 import { createFunnelEvent, trackFunnelEvent } from "../analytics";
 import type { AcquisitionContext, CampaignExperience } from "../domain";
 import { createProspectSession } from "../engine";
@@ -77,12 +83,32 @@ export function AcquisitionEntry({
   }, [acquisition, campaign, router]);
 
   return (
-    <main className="grid min-h-screen place-items-center bg-[color:var(--vm-color-canvas)] px-5 text-[color:var(--vm-color-ink)]">
-      <section className="max-w-md text-center" aria-live="polite">
-        <div className="text-sm font-bold text-[color:var(--vm-color-brand-blue)]">Vivienda Colsubsidio</div>
-        <h1 className="mt-3 text-2xl font-semibold">Preparando tu orientación…</h1>
-        <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{error || "Enseguida podrás conversar sobre lo que buscas."}</p>
-      </section>
-    </main>
+    <div className="orientation-experience">
+      <OrientationHeader status="Preparando orientación" />
+      <main className="mx-auto grid min-h-[calc(100vh-72px)] max-w-[1180px] items-center gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(360px,.82fr)] lg:gap-16 lg:py-16">
+        <section className="max-w-2xl" aria-live="polite">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-yellow)]/25 px-3 py-2 text-[11px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue-deep)]">
+            <Icon name="home" className="h-4 w-4" />
+            Orientación personalizada
+          </div>
+          <h1 className="mt-6 text-[clamp(2.8rem,7vw,5.8rem)] font-semibold leading-[.92] tracking-[-.065em]">
+            Estamos abriendo una conversación para ti.
+          </h1>
+          <p className="mt-6 max-w-xl text-base leading-8 text-[color:var(--vm-color-ink-muted)] sm:text-lg">
+            {error ||
+              "Recuperamos el contexto disponible y preparamos el siguiente paso sin hacerte repetir información innecesaria."}
+          </p>
+          <div className="mt-8 h-1.5 max-w-md overflow-hidden rounded-full bg-[color:var(--vm-color-brand-blue)]/10">
+            <span className="orientation-loading-line block h-full w-1/2 rounded-full bg-[linear-gradient(90deg,var(--vm-color-brand-yellow),var(--vm-color-brand-blue))]" />
+          </div>
+          <div className="mt-8">
+            <OrientationTrustStrip />
+          </div>
+        </section>
+        <div className="hidden lg:block">
+          <HousingWindow label="Una orientación clara para avanzar con confianza" />
+        </div>
+      </main>
+    </div>
   );
 }

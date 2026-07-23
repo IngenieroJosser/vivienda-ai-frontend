@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Icon } from "@/components/icon";
+import {
+  HousingWindow,
+  OrientationHeader,
+} from "@/components/orientation-visuals";
 import type {
   EvaluationResult,
   ProfileField,
@@ -90,6 +95,9 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
 
   const evaluation = session.evaluation!;
   const capacityRange = getCapacityRange(evaluation.capacity.estimatedHousingPayment);
+  const capacityDisplay = capacityRange
+    ? `${formatCop(capacityRange.minimum)} – ${formatCop(capacityRange.maximum)}`
+    : "Por completar";
   const matchedProjects = resolveProjectMatches(evaluation.projectMatches);
   const readyForAdvisor = evaluation.route === "ADVISOR_NOW" || evaluation.route === "NON_AFFILIATE_PRIORITY";
   const actionHref = readyForAdvisor
@@ -112,33 +120,47 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-[color:var(--vm-color-canvas)] text-[color:var(--vm-color-ink)]">
-      <header className="border-b border-[color:var(--vm-color-line)] bg-white">
-        <div className="mx-auto flex min-h-[64px] max-w-[980px] items-center justify-between px-5 sm:px-8">
-          <div className="inline-flex items-center gap-2 text-sm font-bold text-[color:var(--vm-color-brand-blue)]"><Icon name="home" className="h-4 w-4" /> Vivienda Colsubsidio</div>
-          <span className="inline-flex items-center gap-2 text-xs font-semibold text-[color:var(--vm-color-success)]"><Icon name="check" className="h-4 w-4" /> Orientación lista</span>
-        </div>
-      </header>
+    <div className="orientation-experience">
+      <OrientationHeader status="Orientación lista" statusTone="success" />
 
-      <main className="mx-auto max-w-[980px] px-5 py-8 sm:px-8 lg:py-12">
-        <section className="result-reveal result-reveal--1 overflow-hidden border-b border-[color:var(--vm-color-line)] pb-8 sm:pb-10">
+      <main className="mx-auto max-w-[1120px] px-5 py-8 sm:px-8 lg:py-12">
+        <section className="orientation-result-hero result-reveal result-reveal--1 grid gap-8 p-7 sm:p-10 lg:grid-cols-[minmax(0,1.25fr)_minmax(280px,.75fr)] lg:items-end lg:p-12">
           <div className="max-w-3xl">
             <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-success)]">
               {session.firstName ? `Tu orientación, ${session.firstName}` : "Tu orientación personalizada"}
             </div>
-            <h1 className="mt-4 text-4xl font-semibold leading-[1.04] tracking-[-.04em] sm:text-5xl">
+            <h1 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-.055em] sm:text-6xl">
               {readyForAdvisor ? "Tu perfil parece listo para avanzar." : preparationTitle(evaluation.route)}
             </h1>
-            <p className="result-reveal result-reveal--2 mt-5 max-w-2xl text-base leading-7 text-[color:var(--vm-color-ink-muted)]">
-              {capacityRange
-                ? `Estimamos que podrías destinar entre ${formatCop(capacityRange.minimum)} y ${formatCop(capacityRange.maximum)} al mes para vivienda.`
-                : "Todavía necesitamos fortalecer o completar información antes de estimar una cuota responsable."}
+            <p className="mt-6 max-w-2xl text-base leading-7 text-[color:var(--vm-color-ink-muted)] sm:text-lg sm:leading-8">
+              Organizamos lo que entendimos de tu búsqueda y lo convertimos en
+              una ruta clara para tu momento actual.
             </p>
-            <p className="mt-4 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">El rango es orientativo y no constituye aprobación de crédito, subsidio o disponibilidad.</p>
+          </div>
+          <div className="orientation-capacity-card p-6 sm:p-7">
+            <div className="flex items-center justify-between gap-4">
+              <div className="text-[10px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
+                Cuota mensual orientativa
+              </div>
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-[color:var(--vm-color-brand-yellow)]/30 text-[color:var(--vm-color-brand-blue)]">
+                <Icon name="money" className="h-5 w-5" />
+              </span>
+            </div>
+            <div className="mt-5 text-2xl font-semibold leading-tight tracking-[-.045em] sm:text-3xl">
+              {capacityDisplay}
+            </div>
+            <p className="mt-3 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
+              {capacityRange
+                ? "Rango prudente estimado a partir de la información disponible."
+                : "Completa o fortalece la información financiera para estimar un rango."}
+            </p>
+            <div className="mt-5 border-t border-[color:var(--vm-color-line)] pt-4 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">
+              No constituye aprobación de crédito, subsidio o disponibilidad.
+            </div>
           </div>
         </section>
 
-        <section className="result-reveal result-reveal--2 mt-8 border-b border-[color:var(--vm-color-line)] pb-8 sm:pb-10">
+        <section className="orientation-section result-reveal result-reveal--2 mt-6 p-6 sm:p-8">
           <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Lo que entendimos</div>
           <h2 className="mt-2 text-2xl font-semibold">Este es tu punto de partida.</h2>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -146,7 +168,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
           </div>
         </section>
 
-        <section className="result-reveal result-reveal--3 mt-8 border-b border-[color:var(--vm-color-line)] pb-8 sm:pb-10">
+        <section className="orientation-section result-reveal result-reveal--3 mt-6 p-6 sm:p-8">
           <h2 className="text-2xl font-semibold">Beneficios con total claridad</h2>
           <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Separamos lo que ya está confirmado de aquello que todavía requiere una revisión.</p>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -156,18 +178,18 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
         </section>
 
         {matchedProjects.length ? (
-          <section className="result-reveal result-reveal--3 mt-8">
+          <section className="result-reveal result-reveal--3 mt-10">
             <div className="max-w-2xl">
               <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Proyectos para explorar</div>
               <h2 className="mt-3 text-3xl font-semibold tracking-[-.035em]">Opciones que responden a lo que nos contaste.</h2>
               <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Mostramos máximo tres coincidencias y explicamos cada una. Los datos sin vigencia aparecen como “por confirmar”.</p>
             </div>
-            <div className="mt-6 grid gap-5 md:grid-cols-2">{matchedProjects.map(({ project, match }) => <ProspectProject key={project.id} project={project} match={match} />)}</div>
+            <div className="mt-7 grid gap-6 md:grid-cols-2">{matchedProjects.map(({ project, match }) => <ProspectProject key={project.id} project={project} match={match} />)}</div>
           </section>
         ) : null}
 
         {!readyForAdvisor ? (
-          <section id="plan-preparacion" className="result-reveal result-reveal--3 mt-8 scroll-mt-6 border-t border-[color:var(--vm-color-line)] pt-8">
+          <section id="plan-preparacion" className="orientation-section result-reveal result-reveal--3 mt-8 scroll-mt-6 p-6 sm:p-8">
             <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-warning)]">Tu plan de preparación</div>
             <h2 className="mt-2 text-3xl font-semibold tracking-[-.035em]">Avanza con una meta concreta.</h2>
             <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -178,7 +200,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
           </section>
         ) : null}
 
-        <section className="result-reveal result-reveal--4 mt-10 rounded-[var(--vm-radius-elevated)] bg-[linear-gradient(135deg,#fff7bd,#eef8ff)] p-7 shadow-[var(--vm-shadow-medium)] sm:flex sm:items-end sm:justify-between sm:gap-8 sm:p-10">
+        <section className="result-reveal result-reveal--4 mt-8 overflow-hidden rounded-[32px] bg-[linear-gradient(125deg,var(--vm-color-brand-yellow),var(--vm-color-brand-yellow-soft)_48%,var(--vm-color-orientation-wash))] p-7 shadow-[0_26px_76px_rgba(0,79,140,.13)] sm:flex sm:items-end sm:justify-between sm:gap-8 sm:p-10">
           <div>
             <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
               {contactRequest ? "Solicitud en proceso" : "Tu siguiente acción"}
@@ -213,20 +235,11 @@ function ServiceGuidanceResult({
   guidance: ServiceGuidance;
 }) {
   return (
-    <div className="min-h-screen bg-[color:var(--vm-color-canvas)] text-[color:var(--vm-color-ink)]">
-      <header className="border-b border-[color:var(--vm-color-line)] bg-white">
-        <div className="mx-auto flex min-h-[64px] max-w-[980px] items-center justify-between px-5 sm:px-8">
-          <div className="inline-flex items-center gap-2 text-sm font-bold text-[color:var(--vm-color-brand-blue)]">
-            <Icon name="home" className="h-4 w-4" /> Vivienda Colsubsidio
-          </div>
-          <span className="inline-flex items-center gap-2 text-xs font-semibold text-[color:var(--vm-color-success)]">
-            <Icon name="check" className="h-4 w-4" /> Ruta identificada
-          </span>
-        </div>
-      </header>
+    <div className="orientation-experience">
+      <OrientationHeader status="Ruta identificada" statusTone="success" />
 
-      <main className="mx-auto max-w-[980px] px-5 py-8 sm:px-8 lg:py-12">
-        <section className="result-reveal result-reveal--1 border-b border-[color:var(--vm-color-line)] pb-8 sm:pb-10">
+      <main className="mx-auto max-w-[1120px] px-5 py-8 sm:px-8 lg:py-12">
+        <section className="orientation-result-hero result-reveal result-reveal--1 p-7 sm:p-10 lg:p-12">
           <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-success)]">
             {firstName ? `Tu orientación, ${firstName}` : "Tu orientación"}
           </div>
@@ -238,7 +251,7 @@ function ServiceGuidanceResult({
           </p>
         </section>
 
-        <section className="result-reveal result-reveal--2 mt-8 border-b border-[color:var(--vm-color-line)] pb-8 sm:pb-10">
+        <section className="orientation-section result-reveal result-reveal--2 mt-6 p-6 sm:p-8">
           <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
             Información reconocida
           </div>
@@ -257,7 +270,7 @@ function ServiceGuidanceResult({
           </div>
         </section>
 
-        <section className="result-reveal result-reveal--3 mt-8 grid gap-4 md:grid-cols-3">
+        <section className="result-reveal result-reveal--3 mt-6 grid gap-4 md:grid-cols-3">
           <GuidanceSummary
             icon="money"
             label="Capacidad preliminar"
@@ -275,7 +288,7 @@ function ServiceGuidanceResult({
           />
         </section>
 
-        <section className="result-reveal result-reveal--4 mt-8 rounded-[var(--vm-radius-elevated)] bg-[linear-gradient(135deg,#fff7bd,#eef8ff)] p-7 shadow-[var(--vm-shadow-medium)] sm:p-10">
+        <section className="result-reveal result-reveal--4 mt-8 rounded-[32px] bg-[linear-gradient(125deg,var(--vm-color-brand-yellow),var(--vm-color-brand-yellow-soft)_48%,var(--vm-color-orientation-wash))] p-7 shadow-[0_26px_76px_rgba(0,79,140,.13)] sm:p-10">
           <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
             Siguiente paso
           </div>
@@ -318,12 +331,21 @@ function GuidanceSummary({
 
 function ResultTransition() {
   return (
-    <div className="grid min-h-screen place-items-center bg-[linear-gradient(145deg,#fffef8,#eef8ff)] px-5 text-[color:var(--vm-color-ink)]">
-      <section className="result-transition text-center" role="status" aria-live="polite">
-        <span className="mx-auto block h-2 w-2 rounded-full bg-[color:var(--vm-color-brand-yellow)]" />
-        <h1 className="mt-5 max-w-xl text-3xl font-semibold leading-tight tracking-[-.04em] sm:text-4xl">
+    <div className="orientation-experience grid min-h-screen place-items-center px-5">
+      <section className="result-transition max-w-2xl text-center" role="status" aria-live="polite">
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-white shadow-[var(--vm-shadow-medium)]">
+          <span className="block h-3 w-3 rounded-full bg-[color:var(--vm-color-brand-yellow)] shadow-[0_0_0_8px_rgba(255,208,0,.18)]" />
+        </div>
+        <div className="mt-7 text-[11px] font-bold uppercase tracking-[.14em] text-[color:var(--vm-color-brand-blue)]">
+          Construyendo tu ruta
+        </div>
+        <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-[-.055em] sm:text-5xl">
           Ya tenemos suficiente información para orientarte.
         </h1>
+        <p className="mx-auto mt-5 max-w-lg text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+          Estamos organizando capacidad, beneficios y proyectos en un siguiente
+          paso fácil de entender.
+        </p>
       </section>
     </div>
   );
@@ -356,27 +378,118 @@ function ProspectProject({ project, match }: { project: HousingProject; match: P
   const priceSource = getProjectEvidence(project, project.priceFromCop)[0];
   const availableTours = project.tours.filter(({ availability }) => availability === "AVAILABLE");
   return (
-    <article className="surface-solid overflow-hidden p-6">
-      <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">{project.location.city} · {project.location.department}</div>
-      <h3 className="mt-2 text-2xl font-semibold">{project.name}</h3>
-      <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-        <div><span className="block text-xs text-[color:var(--vm-color-ink-muted)]">Precio desde</span><strong>{project.priceFromCop.validity === "CURRENT" ? formatProjectPrice(project) : "Por confirmar"}</strong></div>
-        <div><span className="block text-xs text-[color:var(--vm-color-ink-muted)]">Área construida</span><strong>{formatProjectAreaRange(project)}</strong></div>
-        <div><span className="block text-xs text-[color:var(--vm-color-ink-muted)]">Inventario</span><strong>Por confirmar</strong></div>
-        <div><span className="block text-xs text-[color:var(--vm-color-ink-muted)]">Entrega</span><strong>{project.deliveryDate.validity === "CURRENT" && project.deliveryDate.value ? project.deliveryDate.value : "Por confirmar"}</strong></div>
-      </div>
-      <p className="mt-3 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">{priceSource?.title ?? "Material comercial aprobado"} · verificado {formatVerificationDate(project.priceFromCop.verifiedAt)}.</p>
-      <div className="mt-5 text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-success)]">Por qué te lo mostramos</div>
-      <ul className="mt-2 space-y-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
-        {match.reasons.map((reason) => <li key={reason} className="flex gap-2"><Icon name="check" className="mt-1 h-4 w-4 shrink-0 text-[color:var(--vm-color-success)]" />{reason}</li>)}
-      </ul>
-      <div className="mt-5 border-t border-[color:var(--vm-color-line)] pt-5">
-        <div className="grid gap-2 sm:grid-cols-2">
-          {project.brochureUrl ? <a href={project.brochureUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center justify-between gap-2 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]">Ver folleto del proyecto<Icon name="arrow" className="h-3.5 w-3.5" /></a> : null}
-          {availableTours.map((tour) => <a key={tour.id} href={tour.url} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center justify-between gap-2 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]">{tour.label}<Icon name="arrow" className="h-3.5 w-3.5" /></a>)}
+    <article className="orientation-project-card surface-solid overflow-hidden">
+      <div className="orientation-project-image relative h-56 overflow-hidden">
+        <Image
+          src={project.image}
+          alt={`Proyecto residencial ${project.name} de Colsubsidio`}
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className="object-cover transition duration-500 hover:scale-[1.025]"
+        />
+        <div className="absolute inset-x-5 bottom-5 z-10 flex items-end justify-between gap-4 text-white">
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-[.12em] text-white/80">
+              {project.location.city} · {project.location.department}
+            </div>
+            <h3 className="mt-1 text-2xl font-semibold tracking-[-.035em]">
+              {project.name}
+            </h3>
+          </div>
+          <span className="rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold text-[color:var(--vm-color-brand-blue)]">
+            Recomendado
+          </span>
         </div>
       </div>
-      <Link href={`/vivienda/proyectos/${project.id}`} className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[color:var(--vm-color-brand-blue)]">Conocer el proyecto <Icon name="arrow" className="h-4 w-4" /></Link>
+      <div className="p-6">
+        <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <span className="block text-xs text-[color:var(--vm-color-ink-muted)]">
+              Precio desde
+            </span>
+            <strong>
+              {project.priceFromCop.validity === "CURRENT"
+                ? formatProjectPrice(project)
+                : "Por confirmar"}
+            </strong>
+          </div>
+          <div>
+            <span className="block text-xs text-[color:var(--vm-color-ink-muted)]">
+              Área construida
+            </span>
+            <strong>{formatProjectAreaRange(project)}</strong>
+          </div>
+          <div>
+            <span className="block text-xs text-[color:var(--vm-color-ink-muted)]">
+              Inventario
+            </span>
+            <strong>Por confirmar</strong>
+          </div>
+          <div>
+            <span className="block text-xs text-[color:var(--vm-color-ink-muted)]">
+              Entrega
+            </span>
+            <strong>
+              {project.deliveryDate.validity === "CURRENT" &&
+              project.deliveryDate.value
+                ? project.deliveryDate.value
+                : "Por confirmar"}
+            </strong>
+          </div>
+        </div>
+        <p className="mt-3 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">
+          {priceSource?.title ?? "Material comercial aprobado"} · verificado{" "}
+          {formatVerificationDate(project.priceFromCop.verifiedAt)}.
+        </p>
+        <div className="mt-5 text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-success)]">
+          Por qué te lo mostramos
+        </div>
+        <ul className="mt-2 space-y-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+          {match.reasons.map((reason) => (
+            <li key={reason} className="flex gap-2">
+              <Icon
+                name="check"
+                className="mt-1 h-4 w-4 shrink-0 text-[color:var(--vm-color-success)]"
+              />
+              {reason}
+            </li>
+          ))}
+        </ul>
+        <div className="mt-5 border-t border-[color:var(--vm-color-line)] pt-5">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {project.brochureUrl ? (
+              <a
+                href={project.brochureUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-10 items-center justify-between gap-2 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]"
+              >
+                Ver folleto del proyecto
+                <Icon name="arrow" className="h-3.5 w-3.5" />
+              </a>
+            ) : null}
+            {availableTours.map((tour) => (
+              <a
+                key={tour.id}
+                href={tour.url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-10 items-center justify-between gap-2 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]"
+              >
+                {tour.label}
+                <Icon name="arrow" className="h-3.5 w-3.5" />
+              </a>
+            ))}
+          </div>
+        </div>
+        <Link
+          href={`/vivienda/proyectos/${project.id}`}
+          className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[color:var(--vm-color-brand-blue)]"
+        >
+          Conocer el proyecto
+          <Icon name="arrow" className="h-4 w-4" />
+        </Link>
+      </div>
     </article>
   );
 }
@@ -414,6 +527,43 @@ function publicNextAction(route: EvaluationResult["route"]): string {
   return labels[route] ?? "Revisa tu orientación y elige cuándo continuar.";
 }
 
-function ResultState({ title, description, action }: { title: string; description: string; action?: { label: string; href: string } }) {
-  return <div className="grid min-h-screen place-items-center bg-[color:var(--vm-color-canvas)] px-5"><section className="surface-solid max-w-lg p-8 text-center"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]"><Icon name="home" /></span><h1 className="mt-5 text-2xl font-semibold">{title}</h1><p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{description}</p>{action ? <Link href={action.href} className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-6 text-sm font-bold text-white">{action.label}<Icon name="arrow" className="h-4 w-4" /></Link> : null}</section></div>;
+function ResultState({
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description: string;
+  action?: { label: string; href: string };
+}) {
+  return (
+    <div className="orientation-experience">
+      <OrientationHeader status="Orientación" />
+      <main className="mx-auto grid min-h-[calc(100vh-72px)] max-w-[980px] place-items-center gap-8 px-5 py-10 lg:grid-cols-[.8fr_1.2fr]">
+        <div className="hidden w-full lg:block">
+          <HousingWindow compact />
+        </div>
+        <section className="orientation-result-hero max-w-lg p-8 text-center sm:p-10">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]">
+            <Icon name="home" />
+          </span>
+          <h1 className="mt-5 text-3xl font-semibold tracking-[-.04em]">
+            {title}
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+            {description}
+          </p>
+          {action ? (
+            <Link
+              href={action.href}
+              className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-6 text-sm font-bold text-white"
+            >
+              {action.label}
+              <Icon name="arrow" className="h-4 w-4" />
+            </Link>
+          ) : null}
+        </section>
+      </main>
+    </div>
+  );
 }

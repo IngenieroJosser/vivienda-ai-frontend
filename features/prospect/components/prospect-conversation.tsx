@@ -10,6 +10,11 @@ import {
   useState,
 } from "react";
 import { Icon } from "@/components/icon";
+import {
+  HousingWindow,
+  OrientationHeader,
+  OrientationTrustStrip,
+} from "@/components/orientation-visuals";
 import { createFunnelEvent, trackFunnelEvent } from "../analytics";
 import {
   canSubmitChatMessage,
@@ -46,13 +51,13 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
   const [consentChecked, setConsentChecked] = useState(false);
   const [chatState, dispatch] = useReducer(chatReducer, initialChatState);
   const [animatedTurnId, setAnimatedTurnId] = useState("");
-  const [isScrolled, setIsScrolled] = useState(false);
   const [hasNewMessages, setHasNewMessages] = useState(false);
   const completedRef = useRef(false);
   const composingRef = useRef(false);
   const nearEndRef = useRef(true);
   const reducedMotionRef = useRef(false);
   const sessionRef = useRef<ProspectSession | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const conversationEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -202,24 +207,26 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
   }, [chatState.phase, scrollToLatest, session?.turns.length]);
 
   useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
     const onScroll = () => {
-      setIsScrolled(window.scrollY > 12);
       const nearEnd = isNearConversationEnd({
-        scrollTop: window.scrollY,
-        viewportHeight: window.innerHeight,
-        contentHeight: document.documentElement.scrollHeight,
+        scrollTop: scrollContainer.scrollTop,
+        viewportHeight: scrollContainer.clientHeight,
+        contentHeight: scrollContainer.scrollHeight,
       });
       nearEndRef.current = nearEnd;
       if (nearEnd) setHasNewMessages(false);
     };
     onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
+    scrollContainer.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      scrollContainer.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, []);
+  }, [loadStatus]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -360,79 +367,102 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
   const showCounter = shouldShowCharacterCounter(message.length);
 
   return (
-    <div className="min-h-screen bg-[color:var(--vm-color-canvas)] text-[color:var(--vm-color-ink)]">
-      <header
-        className={`prospect-chat-header sticky top-0 z-20 border-b border-[color:var(--vm-color-line)] ${
-          isScrolled
-            ? "glass-subtle prospect-chat-header--scrolled"
-            : "bg-white"
-        }`}
+    <div className="orientation-experience orientation-chat flex h-[100dvh] flex-col overflow-hidden">
+      <OrientationHeader
+        status={
+          chatState.phase === "typing"
+            ? "Preparando respuesta"
+            : "Conversación protegida"
+        }
+      />
+
+      <div
+        ref={scrollContainerRef}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
       >
-        <div className="mx-auto flex min-h-[62px] max-w-[760px] items-center gap-3 px-4 sm:px-6">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]">
-            <Icon name="home" className="h-5 w-5" />
-          </span>
-          <div className="min-w-0">
-            <div className="text-sm font-bold text-[color:var(--vm-color-brand-blue)]">
-              Vivienda Colsubsidio
-            </div>
-            <div className="truncate text-[11px] text-[color:var(--vm-color-ink-muted)]">
-              {chatState.phase === "typing"
-                ? "Preparando respuesta…"
-                : "Asistente virtual de vivienda · A tu ritmo"}
+      <div className="mx-auto grid max-w-[1120px] gap-10 px-4 pb-10 pt-7 sm:px-6 lg:grid-cols-[240px_minmax(0,760px)] lg:px-8 lg:pt-10">
+        <aside className="hidden lg:block">
+          <div className="sticky top-3">
+            <HousingWindow compact />
+            <div className="mt-6">
+              <div className="text-[11px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
+                Tu espacio de orientación
+              </div>
+              <h1 className="mt-3 text-2xl font-semibold leading-tight tracking-[-.04em]">
+                No hay respuestas correctas. Solo tu historia.
+              </h1>
+              <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+                Escribe con naturalidad. Confirmaremos únicamente lo necesario
+                para darte un siguiente paso responsable.
+              </p>
+              <div className="mt-5 border-t border-[color:var(--vm-color-line)] pt-5">
+                <OrientationTrustStrip />
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </aside>
 
-      <main className="mx-auto max-w-[760px] px-4 pb-48 pt-6 sm:px-6 sm:pb-44">
-        <div className="mb-5 flex items-center gap-2 text-xs font-semibold text-[color:var(--vm-color-ink-muted)]">
-          <span className="h-2 w-2 rounded-full bg-[color:var(--vm-color-success)]" />
-          Puedes escribir con tus propias palabras
-        </div>
-
-        <section
-          className="space-y-4"
-          aria-label="Conversación de orientación"
-          aria-live="polite"
-        >
-          <AssistantMessage animate>
-            {getInitialMessage(session)}
-          </AssistantMessage>
-          {session.turns.map((turn) => (
-            <div key={turn.id} className="space-y-4">
-              <UserMessage>{turn.userText}</UserMessage>
-              <AssistantMessage animate={turn.id === animatedTurnId}>
-                {turn.assistantText}
-              </AssistantMessage>
+        <main className="min-w-0">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
+                Orientación en curso
+              </div>
+              <div className="mt-1 text-sm text-[color:var(--vm-color-ink-muted)]">
+                Puedes escribir con tus propias palabras
+              </div>
             </div>
-          ))}
-          {outgoing ? (
-            <PendingUserMessage
-              message={outgoing.text}
-              delivery={outgoing.delivery}
-              error={chatState.phase === "failed" ? chatState.error : undefined}
-              onRetry={() => dispatch({ type: "RETRY" })}
-            />
-          ) : null}
-          {chatState.phase === "typing" ? <TypingIndicator /> : null}
-          <div ref={conversationEndRef} />
-        </section>
-      </main>
+            <span className="hidden items-center gap-2 rounded-full bg-white px-3 py-2 text-[10px] font-bold text-[color:var(--vm-color-success)] shadow-[var(--vm-shadow-low)] sm:inline-flex">
+              <span className="h-2 w-2 rounded-full bg-[color:var(--vm-color-success)]" />
+              Guardado local
+            </span>
+          </div>
 
-      {hasNewMessages ? (
-        <button
-          type="button"
-          onClick={() => scrollToLatest("smooth")}
-          className="fixed bottom-[142px] left-1/2 z-30 -translate-x-1/2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-4 py-2 text-xs font-bold text-white shadow-[var(--vm-shadow-medium)]"
-        >
-          Nuevos mensajes ↓
-        </button>
-      ) : null}
+          <section
+            className="orientation-thread space-y-5"
+            aria-label="Conversación de orientación"
+            aria-live="polite"
+          >
+            <AssistantMessage animate>
+              {getInitialMessage(session)}
+            </AssistantMessage>
+            {session.turns.map((turn) => (
+              <div key={turn.id} className="space-y-5">
+                <UserMessage>{turn.userText}</UserMessage>
+                <AssistantMessage animate={turn.id === animatedTurnId}>
+                  {turn.assistantText}
+                </AssistantMessage>
+              </div>
+            ))}
+            {outgoing ? (
+              <PendingUserMessage
+                message={outgoing.text}
+                delivery={outgoing.delivery}
+                error={chatState.phase === "failed" ? chatState.error : undefined}
+                onRetry={() => dispatch({ type: "RETRY" })}
+              />
+            ) : null}
+            {chatState.phase === "typing" ? <TypingIndicator /> : null}
+            <div ref={conversationEndRef} />
+          </section>
+        </main>
+      </div>
+      </div>
 
       {session.status === "ACTIVE" ? (
-      <div className="prospect-chat-composer fixed inset-x-0 bottom-0 z-20 border-t border-[color:var(--vm-color-line)] bg-white">
-        <div className="mx-auto max-w-[760px] px-4 py-4 sm:px-6">
+      <div className="prospect-chat-composer orientation-composer relative z-20 flex-none border-t border-[color:var(--vm-color-line)]">
+        {hasNewMessages ? (
+          <button
+            type="button"
+            onClick={() => scrollToLatest("smooth")}
+            className="absolute bottom-full left-1/2 mb-3 -translate-x-1/2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-4 py-2 text-xs font-bold text-white shadow-[var(--vm-shadow-medium)]"
+          >
+            Nuevos mensajes ↓
+          </button>
+        ) : null}
+        <div className="mx-auto grid max-w-[1120px] gap-10 px-4 py-4 sm:px-6 lg:grid-cols-[240px_minmax(0,760px)] lg:px-8">
+          <div className="hidden lg:block" aria-hidden="true" />
+          <div>
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -475,7 +505,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
                     ? "Escribe un mensaje…"
                     : "Espera la respuesta…"
                 }
-                className="form-field prospect-textarea min-h-[52px] resize-none rounded-[18px] py-3 disabled:opacity-70"
+                className="orientation-textarea prospect-textarea min-h-[56px] resize-none rounded-[20px] border-0 bg-transparent px-4 py-3.5 text-base outline-none disabled:opacity-70"
               />
               <div className="mt-1 min-h-4 px-2 text-right text-[10px]">
                 {chatState.phase === "idle" &&
@@ -502,7 +532,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
               type="submit"
               disabled={!canSubmit}
               aria-label="Enviar respuesta"
-              className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition duration-150 focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)] ${
+              className={`grid h-13 w-13 shrink-0 place-items-center rounded-full transition duration-150 focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)] ${
                 canSubmit
                   ? "bg-[color:var(--vm-color-brand-blue)] text-white shadow-[var(--vm-shadow-low)] hover:-translate-y-0.5 hover:bg-[color:var(--vm-color-brand-blue-deep)] active:translate-y-0"
                   : "bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]/40"
@@ -516,6 +546,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
               La orientación es preliminar y no constituye aprobación.
             </span>
             <span className="shrink-0">Guardado en este dispositivo</span>
+          </div>
           </div>
         </div>
       </div>
@@ -545,25 +576,47 @@ function ConsentLayer({
   onDecline: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[color:var(--vm-color-brand-blue-deep)]/20 px-4 py-8">
+    <div className="orientation-consent fixed inset-0 z-50 grid place-items-center overflow-y-auto px-4 py-8">
+      <div className="grid w-full max-w-[980px] items-center gap-8 lg:grid-cols-[.82fr_1.18fr]">
+        <div className="hidden lg:block">
+          <HousingWindow label="Comencemos con claridad y confianza" />
+          <p className="mt-5 px-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+            Tu orientación se construye con lo que ya conocemos y lo que decidas
+            contarnos. Tú mantienes el control.
+          </p>
+        </div>
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="consent-title"
-        className="surface-solid w-full max-w-lg p-6 shadow-[var(--vm-shadow-high)] sm:p-8"
+        className="orientation-consent-card w-full rounded-[32px] bg-white p-6 shadow-[var(--vm-shadow-high)] sm:p-9"
       >
-        <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
+        <div className="inline-flex items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-yellow)]/25 px-3 py-2 text-[10px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue-deep)]">
+          <Icon name="shield" className="h-4 w-4" />
           Antes de conversar
         </div>
-        <h1 id="consent-title" className="mt-3 text-2xl font-semibold">
-          Tu información se usará para orientarte.
+        <h1 id="consent-title" className="mt-5 text-3xl font-semibold leading-tight tracking-[-.045em] sm:text-4xl">
+          Tu información convierte preguntas en una orientación útil.
         </h1>
         <p className="mt-4 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
           Usaremos tus respuestas y la información básica asociada al contacto
           para comprender tu búsqueda, estimar un rango orientativo y recomendar
           un siguiente paso. El avance se guardará en este dispositivo.
         </p>
-        <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] p-4">
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          {[
+            ["heart", "Comprender", "Tu búsqueda y motivación"],
+            ["money", "Estimar", "Un rango responsable"],
+            ["target", "Orientar", "Tu siguiente paso"],
+          ].map(([icon, title, detail]) => (
+            <div key={title} className="rounded-[18px] bg-[color:var(--vm-color-brand-blue)]/[.045] p-4">
+              <Icon name={icon as Parameters<typeof Icon>[0]["name"]} className="h-4 w-4 text-[color:var(--vm-color-brand-blue)]" />
+              <div className="mt-3 text-xs font-bold">{title}</div>
+              <div className="mt-1 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">{detail}</div>
+            </div>
+          ))}
+        </div>
+        <label className={`mt-5 flex cursor-pointer items-start gap-3 rounded-[18px] border p-4 transition ${checked ? "border-[color:var(--vm-color-brand-blue)] bg-[color:var(--vm-color-brand-blue)]/[.045]" : "border-[color:var(--vm-color-line)]"}`}>
           <input
             type="checkbox"
             checked={checked}
@@ -601,6 +654,7 @@ function ConsentLayer({
           </button>
         </div>
       </section>
+      </div>
     </div>
   );
 }
@@ -613,11 +667,14 @@ function AssistantMessage({
   animate?: boolean;
 }) {
   return (
-    <div className={`max-w-[610px] ${animate ? "prospect-message-left" : ""}`}>
-      <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">
-        Vivienda Colsubsidio
+    <div className={`max-w-[640px] ${animate ? "prospect-message-left" : ""}`}>
+      <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
+        <span className="grid h-6 w-6 place-items-center rounded-full bg-[color:var(--vm-color-brand-yellow)]/30">
+          <Icon name="home" className="h-3.5 w-3.5" />
+        </span>
+        Asistente de vivienda
       </div>
-      <div className="whitespace-pre-line rounded-[18px_18px_18px_5px] border border-[color:var(--vm-color-line)] bg-white px-4 py-3 text-sm leading-6 shadow-sm">
+      <div className="orientation-assistant-bubble whitespace-pre-line px-5 py-4 text-[15px] leading-7">
         {children}
       </div>
     </div>
@@ -626,7 +683,7 @@ function AssistantMessage({
 
 function UserMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="ml-auto max-w-[520px] whitespace-pre-line rounded-[18px_18px_5px_18px] bg-[color:var(--vm-color-brand-blue)] px-4 py-3 text-sm font-semibold leading-6 text-white">
+    <div className="orientation-user-bubble ml-auto max-w-[560px] whitespace-pre-line px-5 py-4 text-[15px] font-semibold leading-7 text-white">
       {children}
     </div>
   );
@@ -646,7 +703,7 @@ function PendingUserMessage({
   return (
     <div className="prospect-message-right ml-auto max-w-[520px]">
       <div
-        className={`whitespace-pre-line rounded-[18px_18px_5px_18px] px-4 py-3 text-sm font-semibold leading-6 text-white ${
+        className={`orientation-user-bubble whitespace-pre-line px-5 py-4 text-[15px] font-semibold leading-7 text-white ${
           delivery === "failed"
             ? "bg-rose-700"
             : "bg-[color:var(--vm-color-brand-blue)]"
@@ -706,13 +763,18 @@ function ConversationLoading() {
     <div
       aria-live="polite"
       aria-busy="true"
-      className="min-h-screen bg-[color:var(--vm-color-canvas)]"
+      className="orientation-experience"
     >
-      <div className="h-[62px] border-b border-[color:var(--vm-color-line)] bg-white" />
-      <main className="mx-auto max-w-[760px] space-y-5 px-4 py-7 sm:px-6">
-        <div className="h-20 w-[78%] animate-pulse rounded-[18px] bg-white" />
-        <div className="ml-auto h-16 w-[62%] animate-pulse rounded-[18px] bg-[color:var(--vm-color-brand-blue)]/10" />
-        <div className="h-24 w-[82%] animate-pulse rounded-[18px] bg-white" />
+      <OrientationHeader status="Recuperando conversación" />
+      <main className="mx-auto grid max-w-[1120px] gap-10 px-4 py-8 sm:px-6 lg:grid-cols-[240px_minmax(0,760px)] lg:px-8 lg:py-10">
+        <div className="hidden lg:block">
+          <HousingWindow compact />
+        </div>
+        <div className="space-y-5">
+          <div className="h-24 w-[82%] animate-pulse rounded-[8px_24px_24px_24px] bg-white" />
+          <div className="ml-auto h-20 w-[66%] animate-pulse rounded-[24px_8px_24px_24px] bg-[color:var(--vm-color-brand-blue)]/12" />
+          <div className="h-28 w-[88%] animate-pulse rounded-[8px_24px_24px_24px] bg-white" />
+        </div>
       </main>
       <span className="sr-only">Recuperando tu conversación</span>
     </div>
@@ -733,8 +795,15 @@ function PublicState({
   tone?: "default" | "error";
 }) {
   return (
-    <div className="grid min-h-screen place-items-center bg-[color:var(--vm-color-canvas)] px-5">
-      <section className="surface-solid max-w-lg p-8 text-center">
+    <div className="orientation-experience">
+      <OrientationHeader
+        status={tone === "error" ? "Requiere atención" : "Orientación"}
+      />
+      <main className="mx-auto grid min-h-[calc(100vh-72px)] max-w-[980px] place-items-center gap-8 px-5 py-10 lg:grid-cols-[.8fr_1.2fr]">
+        <div className="hidden w-full lg:block">
+          <HousingWindow compact />
+        </div>
+      <section className="orientation-result-hero w-full max-w-xl p-8 text-center sm:p-10">
         <span
           className={`mx-auto grid h-12 w-12 place-items-center rounded-full ${
             tone === "error"
@@ -767,6 +836,7 @@ function PublicState({
           </button>
         ) : null}
       </section>
+      </main>
     </div>
   );
 }
