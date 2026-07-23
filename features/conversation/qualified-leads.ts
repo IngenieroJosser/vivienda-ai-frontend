@@ -1,6 +1,6 @@
 import type { EvaluationResult, Scenario } from "./domain";
 import { evaluateProfile } from "./engine";
-import { demoAnswers, scenarios } from "./scenarios";
+import { demoAnswers, scenarios, type ScenarioId } from "./scenarios";
 
 export type QualifiedLead = {
   scenario: Scenario;
@@ -10,7 +10,7 @@ export type QualifiedLead = {
 export function getDemoQualifiedLeads(): QualifiedLead[] {
   return Object.values(scenarios).map((scenario) => ({
     scenario,
-    evaluation: evaluateProfile(scenario, "USE_KNOWN_DATA", demoAnswers[scenario.id]),
+    evaluation: evaluateProfile(scenario, "USE_KNOWN_DATA", demoAnswers[scenario.id as ScenarioId]),
   }));
 }
 

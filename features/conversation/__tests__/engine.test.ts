@@ -85,6 +85,23 @@ describe("adaptive question selection", () => {
     expect(nonAffiliate.route).toBe("NON_AFFILIATE_PRIORITY");
   });
 
+  it("does not hide a compatible project because the prospect is not affiliated", () => {
+    const result = evaluateProfile(
+      { ...scenarios.laura, knownProfile: { affiliation: "NON_AFFILIATE", location: "SOACHA" } },
+      "USE_KNOWN_DATA",
+      {
+        dreamGoal: "BUY_THIS_YEAR",
+        horizon: "0_3",
+        incomeRange: "HIGH",
+        obligations: "LOW",
+        savings: "READY",
+      },
+    );
+
+    expect(result.route).toBe("NON_AFFILIATE_PRIORITY");
+    expect(result.projectIds).toEqual(["versalles"]);
+  });
+
   it("creates, advances and completes a recoverable session", () => {
     let session = createConversationSession(scenarios.jonathan, "session-1", "2026-07-22T00:00:00.000Z");
     session = answerCurrentQuestion(session, scenarios.jonathan, "USE_KNOWN_DATA", "2026-07-22T00:00:01.000Z");

@@ -80,13 +80,16 @@ export function evaluateProfile(
   const confidenceScore = Math.min(0.95, Number((0.45 + availableSignals * 0.06).toFixed(2)));
 
   const route = selectRoute(readinessScore, profile);
-  const projectIds = route === "ADVISOR_NOW" && profile.location === "SOACHA" ? ["versalles"] : [];
+  const commercialRoute = route === "ADVISOR_NOW" || route === "NON_AFFILIATE_PRIORITY";
+  const projectIds = commercialRoute && profile.location === "SOACHA" ? ["versalles"] : [];
   const benefitSignals = {
     confirmed: profile.subsidyInterest === "HAS"
       ? ["Beneficio reportado por el prospecto; requiere verificación documental"]
       : [],
-    potential: consent === "USE_KNOWN_DATA"
+    potential: consent === "USE_KNOWN_DATA" && scenario.knownBenefits.length
       ? scenario.knownBenefits
+      : profile.affiliation === "AFFILIATE"
+        ? ["Subsidio familiar de vivienda por validar", "Acompañamiento Pertenecer"]
       : profile.subsidyInterest === "WANTS_REVIEW"
         ? ["Subsidio familiar de vivienda por validar"]
         : [],

@@ -16,7 +16,7 @@ export type ProfileField =
 export type ProfileAnswers = Partial<Record<ProfileField, string>>;
 
 export type Scenario = {
-  id: "jonathan" | "laura" | "camila";
+  id: string;
   leadId: `lead-${string}`;
   displayName: string;
   leadSource: "META" | "ORGANIC";
