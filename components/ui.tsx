@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 
-export function Pill({ children, tone = "blue" }: { children: ReactNode; tone?: "blue" | "yellow" | "green" | "gray" | "red" }) {
+export function Pill({ children, tone = "blue" }: { children: ReactNode; tone?: "blue" | "yellow" | "green" | "gray" | "red" | "image-overlay" }) {
   const classes = {
     blue: "bg-[#0067b1]/10 text-[#0067b1]",
     yellow: "bg-[#ffd000]/22 text-[#7a6100]",
     green: "bg-emerald-50 text-emerald-700",
     gray: "bg-black/[.05] text-black/60",
     red: "bg-rose-50 text-rose-700",
+    "image-overlay": "border border-[color:var(--vm-color-brand-blue)]/15 bg-[color:var(--vm-surface-solid)] text-[color:var(--vm-color-brand-blue-deep)] shadow-[var(--vm-shadow-medium)]",
   }[tone];
 
   return <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${classes}`}>{children}</span>;

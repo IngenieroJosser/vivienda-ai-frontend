@@ -17,9 +17,9 @@ export function ProjectCard({ project, compact = false }: { project: HousingProj
         <Image src={project.image} alt={`Vista del proyecto ${project.name}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" loading="lazy" quality={76} unoptimized={project.image.endsWith(".svg")} className="object-cover transition duration-500 ease-out group-hover:scale-[1.04]" />
         <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--vm-color-brand-blue-deep)]/55 via-transparent to-white/5" />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-          <Pill tone="yellow">{getHousingTypeLabel(project.housingType)}</Pill>
+          <Pill tone="image-overlay">{getHousingTypeLabel(project.housingType)}</Pill>
           {project.tours.some(({ availability }) => availability === "AVAILABLE") ? (
-            <span className="rounded-full bg-white/92 px-3 py-1.5 text-[11px] font-bold text-[color:var(--vm-color-brand-blue)] shadow-sm">
+            <span className="rounded-full border border-[color:var(--vm-color-brand-blue)]/15 bg-[color:var(--vm-surface-solid)] px-3 py-1.5 text-[11px] font-bold text-[color:var(--vm-color-brand-blue)] shadow-[var(--vm-shadow-medium)]">
               Recorrido virtual
             </span>
           ) : null}
