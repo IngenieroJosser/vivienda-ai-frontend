@@ -1,3 +1,6 @@
+import { evaluateProfile } from "@/features/conversation/engine";
+import { demoAnswers, scenarios } from "@/features/conversation/scenarios";
+
 export const projects = [
   {
     id: "versalles",
@@ -22,68 +25,56 @@ export const projects = [
   },
 ] as const;
 
-export const leads = [
-  {
-    id: "lead-jonathan",
-    name: "Jonathan",
-    initials: "JO",
-    score: 82,
-    confidence: 0.84,
-    capacity: "$145 M",
-    project: "Versalles",
-    source: "Meta",
-    state: "Listo para asesor",
-    priority: "Alta",
+const routeLabels = {
+  ADVISOR_NOW: "Asesor ahora",
+  NON_AFFILIATE_PRIORITY: "Prioridad no afiliado",
+  NURTURE_FINANCIAL: "Nutrición financiera",
+  NURTURE_BENEFITS: "Nutrición de beneficios",
+  NURTURE_LONG_TERM: "Nutrición a largo plazo",
+  NEEDS_DATA: "Información pendiente",
+  OPTED_OUT: "Sin contacto",
+} as const;
+
+const horizonLabels: Record<string, string> = {
+  "0_3": "0–3 meses",
+  "3_6": "3–6 meses",
+  "6_12": "6–12 meses",
+  "12_PLUS": "Más de 12 meses",
+};
+
+const goalLabels: Record<string, string> = {
+  BUY_THIS_YEAR: "Comprar vivienda este año",
+  FIND_MATCHES: "Encontrar proyectos compatibles",
+  PREPARE: "Prepararse para comprar",
+  BENEFITS: "Conocer beneficios y subsidios",
+};
+
+export const leads = Object.values(scenarios).map((scenario) => {
+  const evaluation = evaluateProfile(scenario, "USE_KNOWN_DATA", demoAnswers[scenario.id]);
+  const project = projects.find((item) => evaluation.projectIds.includes(item.id));
+  const profile = evaluation.profileSnapshot;
+
+  return {
+    id: scenario.leadId,
+    name: scenario.displayName,
+    initials: scenario.displayName.slice(0, 2).toUpperCase(),
+    score: evaluation.readinessScore,
+    confidence: evaluation.confidenceScore,
+    capacity: evaluation.capacity.estimatedHousingPayment
+      ? new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(evaluation.capacity.estimatedHousingPayment)
+      : "Por completar",
+    project: project?.name ?? "Sin asignar",
+    source: scenario.leadSource === "META" ? "Meta" : "Canal propio",
+    state: evaluation.route === "ADVISOR_NOW" || evaluation.route === "NON_AFFILIATE_PRIORITY" ? "Listo para asesor" : "Nutrición activa",
+    priority: evaluation.priority === "HIGH" ? "Alta" : evaluation.priority === "MEDIUM" ? "Media" : "Baja",
     phone: "Dato protegido",
     email: "Dato protegido",
-    affiliate: "Afiliado verificado",
-    route: "Asesor ahora",
-    horizon: "4 meses",
-    goal: "Comprar vivienda para su familia",
-    location: "Soacha",
-    blocker: "Validar financiación y beneficios potenciales",
-    nextAction: "Agendar una visita y validar financiación",
-  },
-  {
-    id: "lead-laura",
-    name: "Laura",
-    initials: "LA",
-    score: 79,
-    confidence: 0.78,
-    capacity: "Capacidad alta",
-    project: "Por definir",
-    source: "Canal propio",
-    state: "Ruta no afiliado",
-    priority: "Alta",
-    phone: "Dato protegido",
-    email: "Dato protegido",
-    affiliate: "No afiliada",
-    route: "Prioridad no afiliado",
-    horizon: "Corto plazo",
-    goal: "Encontrar una vivienda ajustada a su capacidad",
-    location: "Por confirmar",
-    blocker: "Gestionar la ruta regulatoria del 10%",
-    nextAction: "Validar intención y asignar atención comercial",
-  },
-  {
-    id: "lead-camila",
-    name: "Camila",
-    initials: "CA",
-    score: 48,
-    confidence: 0.81,
-    capacity: "En preparación",
-    project: "Sin asignar",
-    source: "Canal propio",
-    state: "Nutrición activa",
-    priority: "Media",
-    phone: "Dato protegido",
-    email: "Dato protegido",
-    affiliate: "Afiliada",
-    route: "Nutrición financiera",
-    horizon: "12 meses",
-    goal: "Prepararse para comprar más adelante",
-    location: "Por confirmar",
-    blocker: "Ahorro insuficiente y beneficios por revisar",
-    nextAction: "Definir meta de ahorro y revisión en tres meses",
-  },
-] as const;
+    affiliate: profile.affiliation === "AFFILIATE" ? "Afiliado verificado" : profile.affiliation === "NON_AFFILIATE" ? "No afiliado" : "Por confirmar",
+    route: routeLabels[evaluation.route],
+    horizon: horizonLabels[profile.horizon ?? ""] ?? "Por confirmar",
+    goal: goalLabels[profile.dreamGoal ?? ""] ?? "Por confirmar",
+    location: profile.location === "SOACHA" ? "Soacha" : profile.location === "BOGOTA" ? "Bogotá" : "Por confirmar",
+    blocker: evaluation.blockers[0] ?? "Sin bloqueo principal",
+    nextAction: evaluation.nextAction,
+  };
+});

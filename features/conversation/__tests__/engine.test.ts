@@ -16,7 +16,7 @@ describe("adaptive question selection", () => {
     const laura = selectQuestions(scenarios.laura, "USE_KNOWN_DATA").map((question) => question.id);
     const camila = selectQuestions(scenarios.camila, "USE_KNOWN_DATA").map((question) => question.id);
 
-    expect(jonathan).toEqual(["dreamGoal", "location", "horizon", "savings"]);
+    expect(jonathan).toEqual(["dreamGoal", "horizon", "location", "obligations", "savings"]);
     expect(laura).toEqual(["dreamGoal", "horizon", "incomeRange", "savings", "obligations"]);
     expect(camila).toEqual(["mainConcern", "incomeRange", "obligations", "subsidyInterest", "visitIntent"]);
     expect(Math.max(jonathan.length, laura.length, camila.length) + 1).toBeLessThanOrEqual(6);
@@ -34,8 +34,9 @@ describe("adaptive question selection", () => {
   it("routes Jonathan, Laura and Camila through three deterministic outcomes", () => {
     const jonathan = evaluateProfile(scenarios.jonathan, "USE_KNOWN_DATA", {
       dreamGoal: "BUY_THIS_YEAR",
-      location: "SOACHA",
       horizon: "3_6",
+      location: "SOACHA",
+      obligations: "LOW",
       savings: "READY",
     });
     const laura = evaluateProfile(scenarios.laura, "USE_KNOWN_DATA", {
@@ -58,6 +59,8 @@ describe("adaptive question selection", () => {
     expect(camila.route).toBe("NURTURE_FINANCIAL");
     expect(jonathan.projectIds).toEqual(["versalles"]);
     expect(camila.projectIds).toEqual([]);
+    expect(jonathan.capacity.maximumHousingRatio).toBeCloseTo(0.3);
+    expect(jonathan.capacity.estimatedHousingPayment).toBe(1_200_000);
   });
 
   it("does not penalize readiness because a prospect is not affiliated", () => {
@@ -85,13 +88,27 @@ describe("adaptive question selection", () => {
     let session = createConversationSession(scenarios.jonathan, "session-1", "2026-07-22T00:00:00.000Z");
     session = answerCurrentQuestion(session, scenarios.jonathan, "USE_KNOWN_DATA", "2026-07-22T00:00:01.000Z");
 
-    expect(session.questionIds).toEqual(["dreamGoal", "location", "horizon", "savings"]);
+    expect(session.questionIds).toEqual(["dreamGoal", "horizon", "location", "obligations", "savings"]);
 
-    for (const value of ["BUY_THIS_YEAR", "SOACHA", "3_6", "READY"]) {
+    for (const value of ["BUY_THIS_YEAR", "3_6", "SOACHA", "LOW", "READY"]) {
       session = answerCurrentQuestion(session, scenarios.jonathan, value, "2026-07-22T00:00:02.000Z");
     }
 
     expect(session.status).toBe("COMPLETED");
     expect(session.evaluation?.route).toBe("ADVISOR_NOW");
+  });
+
+  it("never allocates more than forty percent of income to obligations and housing", () => {
+    const result = evaluateProfile(scenarios.laura, "USE_KNOWN_DATA", {
+      dreamGoal: "BUY_THIS_YEAR",
+      horizon: "0_3",
+      incomeRange: "HIGH",
+      obligations: "HIGH",
+      savings: "READY",
+    });
+
+    expect(result.capacity.currentCommitmentRatio + result.capacity.maximumHousingRatio).toBeLessThanOrEqual(0.4);
+    expect(result.capacity.estimatedHousingPayment).toBe(300_000);
+    expect(result.capacity.status).toBe("LIMITED");
   });
 });

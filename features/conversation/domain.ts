@@ -19,9 +19,12 @@ export type Scenario = {
   id: "jonathan" | "laura" | "camila";
   leadId: `lead-${string}`;
   displayName: string;
+  leadSource: "META" | "ORGANIC";
   routeLabel: string;
   description: string;
   knownProfile: ProfileAnswers;
+  knownBenefits: string[];
+  engagementSignals: string[];
   requiredFields: ProfileField[];
 };
 
@@ -50,17 +53,32 @@ export type EvaluationResult = {
   leadId: Scenario["leadId"];
   readinessScore: number;
   confidenceScore: number;
+  priority: "HIGH" | "MEDIUM" | "LOW";
   route: EvaluationRoute;
   projectIds: string[];
+  capacity: {
+    monthlyIncomeEstimate: number;
+    currentCommitmentRatio: number;
+    maximumHousingRatio: number;
+    estimatedHousingPayment: number;
+    status: "STRONG" | "MODERATE" | "LIMITED" | "UNKNOWN";
+  };
+  benefitSignals: {
+    confirmed: string[];
+    potential: string[];
+  };
+  profileSnapshot: ProfileAnswers;
+  knownDataUsed: ProfileField[];
   factors: string[];
   blockers: string[];
+  commercialSummary: string;
   nextAction: string;
 };
 
 export type ConversationStatus = "ACTIVE" | "COMPLETED" | "OPTED_OUT";
 
 export type ConversationSession = {
-  version: 1;
+  version: 2;
   id: string;
   demoMode: true;
   scenarioId: Scenario["id"];

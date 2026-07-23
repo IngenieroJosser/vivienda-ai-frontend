@@ -1,7 +1,7 @@
 import type { ConversationSession } from "./domain";
 
-const SESSIONS_KEY = "vivienda-match-ai:demo-sessions:v1";
-const CURRENT_SESSION_KEY = "vivienda-match-ai:current-session:v1";
+const SESSIONS_KEY = "vivienda-match-ai:demo-sessions:v2";
+const CURRENT_SESSION_KEY = "vivienda-match-ai:current-session:v2";
 
 function readSessions(): ConversationSession[] {
   if (typeof window === "undefined") return [];

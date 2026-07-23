@@ -84,7 +84,8 @@ export const questionBank: Record<ProfileField, Question> = {
   },
   obligations: {
     id: "obligations",
-    prompt: "¿Qué parte de tus ingresos está comprometida en otras cuotas?",
+    prompt: "Para estimar una cuota responsable, ¿qué parte de tus ingresos ya está comprometida en otras obligaciones?",
+    explanation: "La suma de obligaciones y una futura cuota de vivienda no debería superar el 40 % de los ingresos del hogar.",
     options: [
       { value: "LOW", label: "Menos del 15%" },
       { value: "MEDIUM", label: "Entre 15% y 30%" },

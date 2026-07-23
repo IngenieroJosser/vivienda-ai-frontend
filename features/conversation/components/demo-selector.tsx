@@ -62,6 +62,10 @@ export function DemoSelector({ scenarios }: { scenarios: Scenario[] }) {
               <div className="mt-5 text-[10px] font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">{scenario.routeLabel}</div>
               <h2 className="mt-2 text-2xl font-semibold tracking-[-.035em]">{scenario.displayName}</h2>
               <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{scenario.description}</p>
+              <div className="mt-5 flex items-center gap-2 border-t border-[color:var(--vm-color-line)] pt-4 text-xs font-semibold text-[color:var(--vm-color-ink-muted)]">
+                <Icon name={scenario.leadSource === "META" ? "campaign" : "home"} className="h-4 w-4 text-[color:var(--vm-color-brand-blue)]" />
+                {scenario.leadSource === "META" ? "Pauta de Meta" : "Canal orgánico"}
+              </div>
             </button>
           );
         })}
@@ -75,10 +79,10 @@ export function DemoSelector({ scenarios }: { scenarios: Scenario[] }) {
               <h2 className="mt-2 text-2xl font-semibold">
                 {scenarios.find((scenario) => scenario.id === selectedId)?.displayName}
               </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">La sesión se guardará únicamente en este navegador para que puedas recuperarla.</p>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">A partir de aquí verás la experiencia del prospecto. En un flujo real, esta identificación ocurre automáticamente desde el lead capturado.</p>
             </div>
             <button type="button" onClick={startConversation} disabled={isCreating} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-6 text-sm font-bold text-white transition hover:bg-[color:var(--vm-color-brand-blue-deep)] disabled:cursor-wait disabled:opacity-[var(--vm-opacity-disabled)]">
-              {isCreating ? "Creando sesión…" : "Comenzar conversación"} <Icon name="arrow" className="h-4 w-4" />
+              {isCreating ? "Identificando lead…" : "Simular contacto por WhatsApp"} <Icon name="arrow" className="h-4 w-4" />
             </button>
           </div>
           {error ? <p role="alert" className="mt-4 text-sm font-semibold text-[color:var(--vm-color-error)]">{error}</p> : null}
