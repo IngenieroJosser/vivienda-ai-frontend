@@ -32,7 +32,12 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
 
   const nav = (
     <>
-      <div className="px-3"><ProductBrand compact /></div>
+      <div className="flex flex-col items-center border-b border-black/[.055] px-3 pb-5 text-center">
+        <ProductBrand compact iconOnly className="w-full justify-center" />
+        <span className="mt-1 text-sm font-bold tracking-[-.025em] text-[color:var(--vm-color-brand-blue-deep)]">
+          Vivienda
+        </span>
+      </div>
       <div className="mx-2 mt-7 rounded-[18px] border border-[#0067b1]/10 bg-gradient-to-br from-[#f7fbff] to-white p-3.5">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
