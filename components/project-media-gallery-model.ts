@@ -1,11 +1,9 @@
-import type { HousingProject } from "../lib/housing-catalog";
+import type {
+  HousingProject,
+  ProjectGalleryMedia,
+} from "../lib/housing-catalog";
 
-export type ProjectGalleryImage = {
-  id: string;
-  label: string;
-  description: string;
-  image: string;
-};
+export type ProjectGalleryImage = ProjectGalleryMedia;
 
 export type ProjectResource = {
   id: string;
@@ -18,14 +16,7 @@ export type ProjectResource = {
 export function createProjectGalleryImages(
   project: HousingProject,
 ): ProjectGalleryImage[] {
-  return [
-    {
-      id: `${project.id}-main-photo`,
-      label: "Vista principal",
-      description: `Imagen oficial disponible del proyecto ${project.name}.`,
-      image: project.image,
-    },
-  ];
+  return [...project.gallery];
 }
 
 export function createProjectResources(

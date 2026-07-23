@@ -11,6 +11,7 @@ export type {
   EvidenceBackedFact,
   EvidenceSource,
   HousingProject,
+  ProjectGalleryMedia,
   VirtualTour,
 } from "./types";
 

@@ -40,6 +40,16 @@ export type VirtualTour = {
   verifiedAt: string;
 };
 
+export type ProjectGalleryMedia = {
+  id: string;
+  kind: "PROJECT_VIEW" | "BROCHURE_PLAN" | "BROCHURE_SPACE";
+  label: string;
+  description: string;
+  image: string;
+  sourceId: string;
+  sourcePage: number | null;
+};
+
 export type HousingProject = {
   id: string;
   name: string;
@@ -51,6 +61,7 @@ export type HousingProject = {
   catalogStatus: "COMMERCIAL_MATERIAL_APPROVED";
   housingType: "VIS" | "NO_VIS" | null;
   image: string;
+  gallery: readonly ProjectGalleryMedia[];
   brochureUrl: string | null;
   summary: string;
   totalUnits: EvidenceBackedFact<number | null>;

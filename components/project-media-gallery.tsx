@@ -1,7 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "./icon";
 import {
@@ -17,19 +24,44 @@ export function ProjectMediaGallery({
 }) {
   const images = useMemo(() => createProjectGalleryImages(project), [project]);
   const resources = useMemo(() => createProjectResources(project), [project]);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const fullscreenTriggerRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const image = images[0];
+  const modalRef = useRef<HTMLDivElement>(null);
+  const modalTitleId = useId();
+  const modalDescriptionId = useId();
+  const image = images[activeIndex] ?? images[0];
+  const showPrevious = useCallback(() => {
+    setActiveIndex((current) => (current - 1 + images.length) % images.length);
+  }, [images.length]);
+  const showNext = useCallback(() => {
+    setActiveIndex((current) => (current + 1) % images.length);
+  }, [images.length]);
 
   useEffect(() => {
     if (!fullscreenOpen) return;
     const fullscreenTrigger = fullscreenTriggerRef.current;
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") setFullscreenOpen(false);
+      if (event.key === "ArrowLeft") showPrevious();
+      if (event.key === "ArrowRight") showNext();
       if (event.key === "Tab") {
-        event.preventDefault();
-        closeButtonRef.current?.focus();
+        const focusable = Array.from(
+          modalRef.current?.querySelectorAll<HTMLElement>(
+            "button:not([disabled]), a[href]",
+          ) ?? [],
+        );
+        const first = focusable[0];
+        const last = focusable.at(-1);
+        if (!first || !last) return;
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     };
     const previousBodyOverflow = document.body.style.overflow;
@@ -45,7 +77,7 @@ export function ProjectMediaGallery({
       window.removeEventListener("keydown", onKeyDown);
       fullscreenTrigger?.focus();
     };
-  }, [fullscreenOpen]);
+  }, [fullscreenOpen, showNext, showPrevious]);
 
   return (
     <section className="project-gallery" aria-labelledby="project-gallery-title">
@@ -53,30 +85,36 @@ export function ProjectMediaGallery({
         <div>
           <div className="project-gallery__eyebrow">
             <Icon name="camera" className="h-4 w-4" />
-            Imagen del proyecto
+            Galería del proyecto
           </div>
           <h2 id="project-gallery-title">
-            Una vista real para conocer su propuesta.
+            Explora sus espacios y distribución.
           </h2>
+        </div>
+        <div className="project-gallery__counter" aria-label={`${images.length} vistas disponibles`}>
+          <strong>{images.length}</strong>
+          <span>vistas verificadas</span>
         </div>
       </div>
 
-      <div className="project-gallery__real-image">
+      <div
+        className="project-gallery__real-image"
+        data-media-kind={image.kind}
+      >
         <Image
           src={image.image}
-          alt={`Vista principal del proyecto ${project.name}`}
+          alt={`${image.label} de ${project.name}`}
           fill
           sizes="(max-width: 768px) 100vw, 90vw"
-          priority
+          priority={activeIndex === 0}
           quality={88}
-          className="object-cover"
+          className={
+            image.kind === "PROJECT_VIEW" ? "object-cover" : "object-contain"
+          }
         />
-        <span className="project-gallery__panel-shade" />
-        <div className="project-gallery__real-image-label">
-          <small>Fotografía del proyecto</small>
-          <strong>{image.label}</strong>
-          <span>{project.location.development}</span>
-        </div>
+        {image.kind === "PROJECT_VIEW" ? (
+          <span className="project-gallery__panel-shade" />
+        ) : null}
         <button
           ref={fullscreenTriggerRef}
           type="button"
@@ -88,14 +126,70 @@ export function ProjectMediaGallery({
         </button>
       </div>
 
+      <div className="project-gallery__details">
+        <div className="project-gallery__active-copy">
+          <small>
+            {image.sourcePage
+              ? `Contenido del folleto oficial · Página ${image.sourcePage}`
+              : "Imagen oficial del proyecto"}
+          </small>
+          <strong>{image.label}</strong>
+          <p>{image.description}</p>
+        </div>
+        <div className="project-gallery__actions">
+          <span className="project-gallery__position">
+            {activeIndex + 1} de {images.length}
+          </span>
+          <div className="project-gallery__arrows">
+            <button
+              type="button"
+              onClick={showPrevious}
+              aria-label="Ver imagen anterior"
+            >
+              <Icon name="arrow" className="h-4 w-4 rotate-180" />
+            </button>
+            <button
+              type="button"
+              onClick={showNext}
+              aria-label="Ver imagen siguiente"
+            >
+              <Icon name="arrow" className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="project-gallery__thumbnails" aria-label="Seleccionar vista">
+        {images.map((galleryImage, index) => (
+          <button
+            key={galleryImage.id}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+            className="project-gallery__thumbnail"
+            aria-current={index === activeIndex}
+            aria-label={`Mostrar ${galleryImage.label}`}
+          >
+            <span className="project-gallery__thumbnail-image">
+              <Image
+                src={galleryImage.image}
+                alt=""
+                fill
+                sizes="38px"
+                className="object-cover"
+              />
+            </span>
+            <span>{galleryImage.label}</span>
+          </button>
+        ))}
+      </div>
+
       {resources.length ? (
         <div className="project-gallery__resource-list">
           <div className="project-gallery__resource-intro">
             <small>Recursos adicionales</small>
             <strong>Información para explorar por separado</strong>
             <p>
-              Estos enlaces no son fotografías ni planos. Se abren como
-              material externo del proyecto.
+              Consulta el folleto completo o recorre el proyecto en 360°.
             </p>
           </div>
           <div className="project-gallery__resource-links">
@@ -127,11 +221,12 @@ export function ProjectMediaGallery({
       {fullscreenOpen
         ? createPortal(
             <div
+              ref={modalRef}
               className="project-gallery-modal"
               role="dialog"
               aria-modal="true"
-              aria-labelledby="project-gallery-modal-title"
-              aria-describedby="project-gallery-modal-description"
+              aria-labelledby={modalTitleId}
+              aria-describedby={modalDescriptionId}
               onMouseDown={(event) => {
                 if (event.target === event.currentTarget) {
                   setFullscreenOpen(false);
@@ -152,7 +247,7 @@ export function ProjectMediaGallery({
                 <div className="project-gallery-modal__image">
                   <Image
                     src={image.image}
-                    alt={`Vista principal del proyecto ${project.name}`}
+                    alt={`${image.label} de ${project.name}`}
                     fill
                     sizes="100vw"
                     quality={92}
@@ -160,11 +255,26 @@ export function ProjectMediaGallery({
                   />
                 </div>
                 <div className="project-gallery-modal__caption">
-                  <strong id="project-gallery-modal-title">
-                    {project.name}
-                  </strong>
-                  <span id="project-gallery-modal-description">
-                    {image.label}
+                  <span>
+                    <strong id={modalTitleId}>{project.name}</strong>
+                    <span id={modalDescriptionId}>{image.label}</span>
+                  </span>
+                  <span className="project-gallery-modal__navigation">
+                    <button
+                      type="button"
+                      onClick={showPrevious}
+                      aria-label="Ver imagen anterior"
+                    >
+                      <Icon name="arrow" className="h-4 w-4 rotate-180" />
+                    </button>
+                    <span>{activeIndex + 1} de {images.length}</span>
+                    <button
+                      type="button"
+                      onClick={showNext}
+                      aria-label="Ver imagen siguiente"
+                    >
+                      <Icon name="arrow" className="h-4 w-4" />
+                    </button>
                   </span>
                 </div>
               </div>
