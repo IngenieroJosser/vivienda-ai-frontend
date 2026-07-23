@@ -11,12 +11,13 @@ import {
 import type { EvaluationResult } from "../domain";
 import { resolveProjectMatches } from "../matching";
 import { formatCop, getProfileValue } from "../profile-copy";
-import { getQualifiedScenarioLead, isCommercialOpportunity, type QualifiedLead } from "../qualified-leads";
+import { getQualifiedScenarioLead, type QualifiedLead } from "../qualified-leads";
 import { findSessionByLeadId } from "../storage";
 import { buildPublicScenario } from "@/features/prospect/engine";
 import type { ProspectSession } from "@/features/prospect/domain";
 import { findProspectSessionByLeadId } from "@/features/prospect/storage";
 import { CommercialActions } from "@/features/advisor/components/commercial-actions";
+import { CommercialNextStep } from "@/features/advisor/components/commercial-next-step";
 
 const routeLabels: Record<EvaluationResult["route"], string> = {
   ADVISOR_NOW: "Oportunidad comercial",
@@ -207,17 +208,7 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
 
       <aside className="space-y-5 xl:sticky xl:top-24 xl:self-start">
         <CommercialActions leadId={leadId} />
-        <section className="rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/20 bg-[linear-gradient(145deg,#eef8ff,#fffdf0)] p-6 shadow-[var(--vm-shadow-medium)]">
-          <div className="flex items-center justify-between">
-            <div className="text-xs font-bold uppercase tracking-[.14em] text-[color:var(--vm-color-brand-blue)]">Próxima mejor acción</div>
-            <Icon name="sparkles" className="h-5 w-5 text-[color:var(--vm-color-brand-blue)]" />
-          </div>
-          <h3 className="mt-5 text-2xl font-semibold tracking-[-.04em]">{evaluation.nextAction}</h3>
-          <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{evaluation.blockers[0] ?? "No se identificaron bloqueos principales."}</p>
-          <Link href={isCommercialOpportunity(evaluation) ? "/asesor/agenda" : "/asesor/nutricion"} className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white">
-            {isCommercialOpportunity(evaluation) ? "Abrir agenda" : "Abrir acompañamiento"} <Icon name={isCommercialOpportunity(evaluation) ? "calendar" : "heart"} className="h-4 w-4" />
-          </Link>
-        </section>
+        <CommercialNextStep leadId={leadId} evaluation={evaluation} />
 
         {projectMatches.length ? (
           <section className="surface-solid p-6">
@@ -226,7 +217,7 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
               {projectMatches.map(({ project }, index) => <li key={project.id} className="flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-xs font-bold text-[color:var(--vm-color-brand-blue)]">{index + 1}</span><span className="font-semibold">{project.name}</span></li>)}
             </ol>
             <p className="mt-3 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">Máximo tres opciones; precio, inventario y entrega conservan su vigencia del catálogo.</p>
-            <Link href="/asesor/comparador" className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/15 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]"><Icon name="compare" className="h-4 w-4" />Abrir comparador</Link>
+            <Link href={`/asesor/comparador?leadId=${encodeURIComponent(leadId)}`} className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/15 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]"><Icon name="compare" className="h-4 w-4" />Abrir comparador</Link>
           </section>
         ) : null}
       </aside>

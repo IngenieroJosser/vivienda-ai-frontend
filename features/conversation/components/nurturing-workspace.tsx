@@ -107,7 +107,7 @@ export function NurturingWorkspace() {
               </p>
             </div>
             <div
-              className="flex gap-2 overflow-x-auto pb-1"
+              className="flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible"
               aria-label="Filtrar por barrera principal"
             >
               <FilterButton
@@ -132,8 +132,8 @@ export function NurturingWorkspace() {
         </div>
 
         {filtered.length ? (
-          <div className="grid xl:grid-cols-[minmax(0,1.05fr)_minmax(380px,.95fr)]">
-            <div className="divide-y divide-[color:var(--vm-color-line)] xl:border-r xl:border-[color:var(--vm-color-line)]">
+          <div>
+            <div className="grid divide-y divide-[color:var(--vm-color-line)] lg:grid-cols-2 lg:divide-x lg:divide-y-0">
               {filtered.map((plan) => (
                 <NurturingLeadRow
                   key={plan.lead.scenario.leadId}
@@ -149,19 +149,21 @@ export function NurturingWorkspace() {
               ))}
             </div>
             {selectedPlan ? (
-              <NurturingPlanDetail
-                plan={selectedPlan}
-                simulation={
-                  simulations[selectedPlan.lead.scenario.leadId]
-                }
-                onSave={save}
-                onSimulation={(result) =>
-                  setSimulations((current) => ({
-                    ...current,
-                    [selectedPlan.lead.scenario.leadId]: result,
-                  }))
-                }
-              />
+              <div className="border-t border-[color:var(--vm-color-line)]">
+                <NurturingPlanDetail
+                  plan={selectedPlan}
+                  simulation={
+                    simulations[selectedPlan.lead.scenario.leadId]
+                  }
+                  onSave={save}
+                  onSimulation={(result) =>
+                    setSimulations((current) => ({
+                      ...current,
+                      [selectedPlan.lead.scenario.leadId]: result,
+                    }))
+                  }
+                />
+              </div>
             ) : null}
           </div>
         ) : (

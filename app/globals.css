@@ -122,7 +122,10 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 92px;
+}
 body {
   margin: 0;
   background: var(--background);
@@ -736,6 +739,9 @@ button:disabled { cursor: not-allowed; }
 
 .flow-shell-content,
 .portal-page { isolation: isolate; }
+.portal-page :where([id], button, input, select, textarea, a) {
+  scroll-margin-top: 92px;
+}
 .flow-intro-card__glow {
   position: absolute;
   right: -20%;
@@ -1058,7 +1064,7 @@ button:disabled { cursor: not-allowed; }
 .portal-hero {
   position: relative;
   isolation: isolate;
-  min-height: 154px;
+  min-height: 104px;
   background: linear-gradient(135deg, rgba(255,255,255,.84), rgba(255,255,255,.52));
 }
 .portal-hero::after {
@@ -1071,15 +1077,17 @@ button:disabled { cursor: not-allowed; }
   box-shadow: inset 0 1px rgba(255,255,255,.92);
 }
 .portal-hero--asesor { background: linear-gradient(130deg, rgba(242,250,255,.92), rgba(255,248,201,.64)); }
-.portal-hero__content { animation: portalHeroContent .7s cubic-bezier(.2,.72,.24,1) both; }
+.portal-hero__content { animation: portalHeroContent .28s cubic-bezier(.2,.72,.24,1) both; }
 .portal-app--asesor .metric-card::before { background: linear-gradient(90deg, #0067b1, #78c8ff, #ffd000); }
 .portal-page-reveal > * {
-  animation: animatedContentReveal .62s cubic-bezier(.2,.72,.24,1) both;
+  animation: animatedContentReveal .28s cubic-bezier(.2,.72,.24,1) both;
 }
 .portal-page-reveal > *:nth-child(2) { animation-delay: .07s; }
 .portal-page-reveal > *:nth-child(3) { animation-delay: .13s; }
 .portal-page-reveal > *:nth-child(4) { animation-delay: .19s; }
 .portal-page-reveal > *:nth-child(5) { animation-delay: .25s; }
+.advisor-row-enter { animation: animatedContentReveal .22s cubic-bezier(.2,.72,.24,1) both; }
+.advisor-toast { animation: animatedContentReveal .18s cubic-bezier(.2,.72,.24,1) both; }
 .portal-page-reveal .surface-card,
 .portal-page-reveal .metric-card,
 .flow-page-reveal .surface-card,
@@ -1166,19 +1174,21 @@ button, a { transition-timing-function: cubic-bezier(.2,.72,.24,1); }
 @media (max-width: 1024px) {
   .animated-hero-background__blob--one { width: 88%; }
   .animated-hero-background__blob--three { width: 98%; }
-  .portal-hero { min-height: 148px; }
+  .portal-hero { min-height: 104px; }
 }
 @media (max-width: 640px) {
   .animated-hero-background__base { inset: -15% -56%; }
   .animated-hero-background__blob--one { left: -52%; width: 138%; height: 76%; }
   .animated-hero-background__blob--two { right: -66%; width: 128%; }
   .animated-hero-background__blob--three { right: -72%; width: 142%; height: 70%; }
-  .portal-hero { border-radius: 24px; padding: 22px; }
+  .portal-hero { min-height: auto; border-radius: 20px; padding: 18px; }
   .projects-hero { min-height: 320px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .animated-hero-background > *,
   .portal-page-reveal > *,
+  .advisor-row-enter,
+  .advisor-toast,
   .flow-page-reveal > *,
   .projects-grid > * { animation: none !important; }
   .animated-hero-background__blob { opacity: .48; }

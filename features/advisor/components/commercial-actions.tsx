@@ -31,6 +31,8 @@ export function CommercialActions({ leadId }: { leadId: string }) {
   const state =
     states[leadId] ??
     createCommercialState(leadId, qualifiedLead.scenario.capturedAt);
+  const isAssigned = Boolean(state.assignedTo);
+  const hasFirstContact = Boolean(state.firstContactAt);
 
   function persist(
     type: CommercialActivityType,
@@ -162,6 +164,13 @@ export function CommercialActions({ leadId }: { leadId: string }) {
         </button>
       ) : null}
 
+      {!isAssigned ? (
+        <p className="mt-3 rounded-[var(--vm-radius-control)] bg-white/75 p-3 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
+          Toma la oportunidad para habilitar contacto, estado, validaciones,
+          notas y seguimiento.
+        </p>
+      ) : null}
+
       <div className="mt-4 grid grid-cols-2 gap-2">
         <button
           type="button"
@@ -188,7 +197,8 @@ export function CommercialActions({ leadId }: { leadId: string }) {
       <button
         type="button"
         onClick={recordContact}
-        className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/20 bg-white text-xs font-bold text-[color:var(--vm-color-brand-blue)]"
+        disabled={!isAssigned}
+        className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/20 bg-white text-xs font-bold text-[color:var(--vm-color-brand-blue)] disabled:cursor-not-allowed disabled:opacity-40"
       >
         <Icon name="check" className="h-4 w-4" /> Registrar contacto realizado
       </button>
@@ -198,7 +208,8 @@ export function CommercialActions({ leadId }: { leadId: string }) {
         <select
           value={state.status}
           onChange={(event) => changeStatus(event.target.value as CommercialStatus)}
-          className="mt-2 h-11 w-full rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white px-3 text-xs font-semibold"
+          disabled={!isAssigned}
+          className="mt-2 h-11 w-full rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
         >
           {Object.entries(commercialStatusLabels).map(([value, label]) => (
             <option key={value} value={value}>{label}</option>
@@ -213,12 +224,13 @@ export function CommercialActions({ leadId }: { leadId: string }) {
             type="datetime-local"
             value={followUpAt}
             onChange={(event) => setFollowUpAt(event.target.value)}
-            className="min-w-0 flex-1 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white px-3 text-xs"
+            disabled={!hasFirstContact}
+            className="min-w-0 flex-1 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white px-3 text-xs disabled:cursor-not-allowed disabled:opacity-50"
           />
           <button
             type="button"
             onClick={scheduleFollowUp}
-            disabled={!followUpAt}
+            disabled={!hasFirstContact || !followUpAt}
             aria-label="Guardar seguimiento"
             className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)] text-white disabled:opacity-40"
           >
@@ -231,6 +243,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
         <ValidationCheck
           label="Requiere validar subsidio"
           checked={state.subsidyValidationRequired}
+          disabled={!isAssigned}
           onChange={(checked) =>
             toggleValidation("subsidyValidationRequired", checked)
           }
@@ -238,6 +251,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
         <ValidationCheck
           label="Requiere validar financiación"
           checked={state.financingValidationRequired}
+          disabled={!isAssigned}
           onChange={(checked) =>
             toggleValidation("financingValidationRequired", checked)
           }
@@ -251,21 +265,22 @@ export function CommercialActions({ leadId }: { leadId: string }) {
           onChange={(event) => setNote(event.target.value)}
           rows={3}
           maxLength={500}
+          disabled={!isAssigned}
           placeholder="Registra contexto útil para el siguiente contacto"
-          className="mt-2 w-full resize-y rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white p-3 text-xs leading-5"
+          className="mt-2 w-full resize-y rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white p-3 text-xs leading-5 disabled:cursor-not-allowed disabled:opacity-50"
         />
       </label>
       <button
         type="button"
         onClick={addNote}
-        disabled={!note.trim()}
+        disabled={!isAssigned || !note.trim()}
         className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/20 bg-white text-xs font-bold text-[color:var(--vm-color-brand-blue)] disabled:opacity-40"
       >
         <Icon name="plus" className="h-4 w-4" /> Añadir nota
       </button>
 
       {feedback ? (
-        <div role="status" className="mt-3 rounded-[var(--vm-radius-control)] bg-white/80 p-3 text-xs text-[color:var(--vm-color-success)]">
+        <div role="status" className="advisor-toast mt-3 rounded-[var(--vm-radius-control)] bg-white/80 p-3 text-xs text-[color:var(--vm-color-success)]">
           {feedback}
         </div>
       ) : null}
@@ -299,17 +314,20 @@ export function CommercialActions({ leadId }: { leadId: string }) {
 function ValidationCheck({
   label,
   checked,
+  disabled,
   onChange,
 }: {
   label: string;
   checked: boolean;
+  disabled?: boolean;
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className="flex min-h-10 items-center gap-3 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white px-3 text-xs font-semibold">
+    <label className={`flex min-h-10 items-center gap-3 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white px-3 text-xs font-semibold ${disabled ? "cursor-not-allowed opacity-50" : ""}`}>
       <input
         type="checkbox"
         checked={checked}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}
         className="h-4 w-4 accent-[color:var(--vm-color-brand-blue)]"
       />

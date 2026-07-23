@@ -110,13 +110,12 @@ function PortalPage({ role, title, subtitle, actions, children }: { role: Role; 
   const config = roleConfig[role];
   return (
     <>
-      <section className={`portal-hero portal-hero--${role} mb-7 overflow-hidden rounded-[30px] border border-white/60 px-6 py-6 shadow-[0_18px_54px_rgba(17,24,32,.065)] sm:px-8 sm:py-7`}>
-        <AnimatedHeroBackground variant={role} compact interactive={false} />
-        <div className="portal-hero__content relative z-10 flex flex-col justify-between gap-6 xl:flex-row xl:items-end">
+      <section className={`portal-hero portal-hero--${role} mb-5 overflow-hidden rounded-[22px] border border-white/60 px-5 py-4 shadow-[0_12px_34px_rgba(17,24,32,.055)] sm:px-6 sm:py-5`}>
+        <div className="portal-hero__content relative z-10 flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/55 bg-white/72 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[.15em] text-[#0067b1] shadow-sm"><span className="h-1.5 w-1.5 rounded-full bg-[#ffd000] shadow-[0_0_0_5px_rgba(255,208,0,.14)]" />{config.label}</div>
-            <h1 className="max-w-4xl text-3xl font-bold tracking-[-0.052em] text-[#101820] sm:text-4xl lg:text-[2.75rem]">{title}</h1>
-            {subtitle ? <p className="mt-3 max-w-3xl text-sm leading-6 text-black/52">{subtitle}</p> : null}
+            <div className="mb-2 inline-flex items-center gap-2 text-[9px] font-extrabold uppercase tracking-[.15em] text-[#0067b1]"><span className="h-1.5 w-1.5 rounded-full bg-[#ffd000]" />{config.label}</div>
+            <h1 className="max-w-4xl text-2xl font-bold tracking-[-0.045em] text-[#101820] sm:text-3xl">{title}</h1>
+            {subtitle ? <p className="mt-2 max-w-3xl text-sm leading-5 text-black/52">{subtitle}</p> : null}
           </div>
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
             {actions ? <div className="flex flex-wrap gap-2.5">{actions}</div> : null}
