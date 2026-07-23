@@ -1,9 +1,9 @@
 # Sistema Visual Vivienda Match AI v1
 
-Estado: aprobado para implementación
+Estado: vigente e implementado de forma incremental
 
 Alcance inicial: prospecto y asesor
-Fuera del producto activo del MVP: marketing y administración
+Fuera del producto activo del MVP: marketing y administración independientes
 
 ## 1. Propósito
 
@@ -21,7 +21,7 @@ La regla de producto es:
 ## 2. Principios no negociables
 
 1. La afiliación modifica beneficios y rutas, nunca la calidad visual ni el trato.
-2. Cada pantalla del prospecto tiene una decisión principal.
+2. Cada estado del recorrido del prospecto tiene una acción principal.
 3. Cada vista del asesor responde qué requiere atención, por qué, qué se conoce y qué debe hacerse.
 4. La próxima mejor acción permanece visible en el detalle del lead.
 5. Los recursos confirmados y los beneficios por validar nunca comparten el mismo tratamiento visual.
@@ -156,7 +156,7 @@ La densidad no modifica colores ni significado; solo espacio, tamaño y cantidad
 
 ### `glass-subtle`
 
-Uso: navegación, toolbar, filtros, respuestas rápidas y controles flotantes.
+Uso: navegación, toolbar, filtros, compositores y controles flotantes.
 
 - Fondo `--vm-glass-subtle-bg`.
 - Blur `--vm-blur-subtle`.
@@ -185,9 +185,9 @@ Uso: tablas, formularios largos, finanzas, historiales, auditoría y mensajes cr
 
 ### `density-guided`
 
-Uso: inicio, consentimiento, conversación, evaluación, resultado y siguiente paso.
+Uso: inicio, consentimiento, conversación libre, evaluación, resultado y siguiente paso.
 
-- Una acción primaria por viewport.
+- Una acción primaria por estado del recorrido.
 - Objetivos táctiles mínimos de 44 × 44 px.
 - Texto base de 16 px.
 - Máximo recomendado de 72 caracteres por línea.
@@ -218,13 +218,13 @@ Todos los componentes interactivos implementan los siguientes estados:
 
 Los estados `loading`, `error` y `success` no cambian el ancho o alto externo del control.
 
-## 6. Navegación objetivo
+## 6. Navegación vigente
 
 ### 6.1 Prospecto
 
 ```text
-Inicio
-→ consentimiento e identificación
+Entrada pública o campaña
+→ orientación y consentimiento
 → conversación adaptativa
 → evaluación
 → resultado personalizado
@@ -235,13 +235,16 @@ Rutas objetivo:
 
 | Etapa | Ruta |
 |---|---|
-| Selector de demostración | `/demo` |
-| Inicio o recuperación | `/conversacion/[sessionId]` |
+| Entrada pública | `/` |
+| Inicio de orientación | `/orientacion` |
+| Conversación o recuperación | `/orientacion/[sessionId]` |
 | Evaluación | Estado dentro de la sesión; no exige una nueva ruta |
-| Resultado | `/resultado/[leadId]` |
-| Agendamiento o nutrición | Acción contextual desde el resultado |
+| Resultado | `/orientacion/resultado/[sessionId]` |
+| Catálogo | `/vivienda/proyectos` |
+| Detalle de proyecto | `/vivienda/proyectos/[id]` |
+| Preferencia de agendamiento | `/vivienda/agendar` |
 
-En móvil se muestra etapa y progreso, no número de preguntas. Volver nunca elimina respuestas. La recuperación de sesión debe indicar la última actualización.
+La experiencia pública no muestra un selector de personajes, un contador de preguntas ni alternativas predefinidas. El prospecto conversa mediante texto libre y la sesión finaliza cuando existe evidencia suficiente para orientar. Volver o recargar no elimina los mensajes conservados.
 
 ### 6.2 Asesor
 
@@ -281,7 +284,29 @@ Resumen ejecutivo
 
 La próxima mejor acción es sticky dentro del panel de contenido en escritorio y aparece como barra sólida inferior en móvil. No puede tapar el último elemento enfocable.
 
-## 7. Componentes base y aceptación
+## 7. Arquitectura visual y funcional
+
+La aplicación concentra cada responsabilidad en un módulo reconocible:
+
+| Módulo | Responsabilidad | Interface pública |
+|---|---|---|
+| `features/prospect` | Entrada desde campaña, consentimiento, conversación libre, sesión y resultado público | Sesión `ProspectSession` y funciones puras de avance |
+| `features/conversation` | Evaluación determinística y proyección para el asesor | `evaluateProfile` y `EvaluationResult` |
+| `lib/housing-catalog` | Catálogo respaldado por evidencia, formatos y consultas de proyectos | `HousingProject` y selectores exportados por `index.ts` |
+| `components/brand.tsx` | Identidad oficial de Colsubsidio en todos los recorridos | `Brand` y `ProductBrand`, ambos sobre el mismo lockup |
+| `components` | Presentación compartida y navegación | Propiedades visuales; no contiene reglas de calificación |
+
+Reglas de arquitectura:
+
+- La conversación pública puede reutilizar la evaluación, pero la evaluación no depende de componentes React, almacenamiento ni navegación.
+- La UI nunca calcula capacidad, prioridad, beneficios ni proyectos compatibles.
+- Catálogo, resultado y asesor consumen los mismos identificadores de proyecto.
+- Los datos de campaña y escenarios alimentan el motor; no se renderizan como selectores públicos.
+- Los cuestionarios estructurados de `features/conversation` existen únicamente como harness interno para escenarios y pruebas. No forman parte del recorrido público.
+- Los adaptadores de `localStorage` permanecen detrás de los módulos de almacenamiento y deberán reemplazarse por persistencia backend sin cambiar el dominio.
+- Ningún componente incorpora una segunda identidad gráfica ni reproduce valores comerciales del catálogo.
+
+## 8. Contratos de componentes y aceptación
 
 | Componente | Variante inicial | Criterios de aceptación |
 |---|---|---|
@@ -299,7 +324,7 @@ La próxima mejor acción es sticky dentro del panel de contenido en escritorio 
 | `AdvisorSidebar` | subtle | Cinco opciones objetivo; estado activo inequívoco; drawer accesible |
 | `ContextualHeader` | subtle/solid | Título, contexto y acción principal; no oculta foco ni contenido |
 
-## 8. Matriz de migración
+## 9. Matriz de migración
 
 | Actual | Destino | Acción |
 |---|---|---|
@@ -314,15 +339,15 @@ La próxima mejor acción es sticky dentro del panel de contenido en escritorio 
 | `.liquid-button` | `LiquidButton` | Unificar botón y enlace con la misma API visual |
 | `Pill` | `StatusChip` | Separar estado, categoría y acción |
 | Estados vacíos locales | `feedback/EmptyState` | Extraer cuando exista más de un consumidor real |
-| stepper de `PublicFlowShell` | `JourneyStepper` | Cambiar pasos técnicos por etapas humanas |
+| stepper de `PublicFlowShell` | etapa contextual | No mostrar cantidad de preguntas ni prometer una longitud fija |
 | `backdrop-blur*` directo | variante autorizada | Eliminar de las rutas activas y reemplazar mediante tokens autorizados |
 | colores y sombras arbitrarios | tokens `--vm-*` | Migración por componente, no reemplazo global ciego |
 
 Durante la migración, los alias legacy no pueden adquirir nuevas variantes. Todo componente nuevo usa el sistema v1.
 
-## 9. Primer refactor de `app/globals.css`
+## 10. Refactor aplicado en `app/globals.css`
 
-La primera modificación técnica implementará este orden:
+La habilitación selectiva mantiene este contrato:
 
 1. Añadir tokens `--vm-*` sin cambiar estilos actuales.
 2. Retirar declaraciones directas de `backdrop-filter` en superficies legacy, que permanecen opacas hasta su migración.
@@ -348,7 +373,7 @@ La primera modificación técnica implementará este orden:
 
 No se cambia la regla global por una habilitación general de Tailwind `backdrop-blur-*`.
 
-## 10. Accesibilidad verificable
+## 11. Accesibilidad verificable
 
 Objetivo: WCAG 2.2 nivel AA.
 
@@ -381,7 +406,7 @@ ESLint
 → fallback sin backdrop-filter
 ```
 
-## 11. Presupuesto de rendimiento
+## 12. Presupuesto de rendimiento
 
 ### Escritorio
 
@@ -416,15 +441,16 @@ Reglas globales:
 - La conversación virtualiza o pagina historiales extensos.
 - El presupuesto se verifica en un dispositivo móvil de gama media/baja, no solo en escritorio.
 
-## 12. Criterios de aceptación por experiencia
+## 13. Criterios de aceptación por experiencia
 
 ### Prospecto
 
 - Existe una sola acción primaria evidente por pantalla.
 - La conversación funciona a 320 px y con teclado.
-- Las respuestas rápidas tienen etiqueta completa y estado seleccionado.
-- El progreso expresa etapa, no cantidad total de preguntas.
-- Volver o recargar recupera la sesión sin repetir datos confirmados.
+- El compositor acepta texto libre, crece sin ocultar el último mensaje y conserva una etiqueta accesible.
+- Las únicas burbujas son mensajes enviados entre el prospecto y Vivienda Colsubsidio.
+- No se muestra cantidad de preguntas ni una duración fija de la conversación.
+- Volver o recargar recupera la sesión sin repetir datos confirmados ni duplicar mensajes.
 - Beneficios potenciales incluyen “por validar”; recursos confirmados incluyen fuente y vigencia.
 - Un no afiliado recibe el mismo nivel visual y lenguaje respetuoso.
 - Loading, error, desconexión y recuperación tienen diseño explícito.
@@ -440,21 +466,20 @@ Reglas globales:
 - Tablas y finanzas usan superficies sólidas.
 - Estados vacíos, de carga, error y desconexión indican la siguiente acción.
 
-## 13. Orden de implementación
+## 14. Orden de evolución
 
 ```text
-Tokens
-→ componentes base
-→ navegación del prospecto
+Tokens y superficies
+→ entrada y navegación pública
 → conversación y resultado
-→ navegación del asesor
-→ bandeja y detalle del lead
-→ accesibilidad y rendimiento
+→ catálogo respaldado por evidencia
+→ navegación y espacios del asesor
+→ accesibilidad, rendimiento y persistencia
 ```
 
 Cada etapa debe cerrar lint, build, pruebas de componentes, axe y revisión responsive antes de comenzar la siguiente.
 
-## 14. Definición de terminado del sistema v1
+## 15. Definición de terminado del sistema v1
 
 El sistema v1 se considera terminado cuando:
 
@@ -466,3 +491,5 @@ El sistema v1 se considera terminado cuando:
 6. Los presupuestos de blur se cumplen en escritorio y móvil.
 7. No se reintroducen rutas, estilos o variantes exclusivas de marketing y administración.
 8. Lint, build, axe y los recorridos E2E del MVP pasan.
+9. La identidad gráfica se obtiene del recurso oficial versionado y no de símbolos dibujados localmente.
+10. La documentación de rutas y comportamiento coincide con el árbol activo de `app/`.
