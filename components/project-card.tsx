@@ -13,8 +13,7 @@ export function ProjectCard({ project, compact = false }: { project: Project; co
       <div className={`relative overflow-hidden ${compact ? "h-44" : "h-56"}`}>
         <Image src={project.image} alt={project.name} fill sizes="(max-width: 1024px) 100vw, 33vw" loading="lazy" quality={68} unoptimized={project.image.endsWith(".svg")} className="object-cover transition duration-500 ease-out group-hover:scale-[1.04]" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#111820]/52 via-transparent to-white/5" />
-        <div className="absolute left-4 top-4"><Pill tone={project.status.includes("Últimas") ? "yellow" : "green"}>{project.status}</Pill></div>
-        <button aria-label={`Guardar ${project.name}`} className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full border border-white/55 bg-white/88 text-black/55 shadow-sm backdrop-blur transition hover:text-[#0067b1]"><Icon name="heart" className="h-4 w-4" /></button>
+        <div className="absolute left-4 top-4"><Pill tone="yellow">{project.status}</Pill></div>
         <div className="project-card__match absolute bottom-4 left-4 rounded-full border border-white/55 bg-white/90 px-3 py-1.5 text-[10px] font-extrabold text-[#0067b1] shadow-sm backdrop-blur">{project.compatibility}% compatible</div>
       </div>
       <div className="p-5 sm:p-6">
@@ -25,7 +24,7 @@ export function ProjectCard({ project, compact = false }: { project: Project; co
         <div className="mt-5 grid grid-cols-3 divide-x divide-black/[.07] rounded-[16px] border border-black/[.055] bg-[#f7f8f8] py-3 text-center">
           <div><div className="text-xs font-bold">{project.area}</div><div className="mt-1 text-[9px] text-black/38">Área</div></div>
           <div><div className="text-xs font-bold">{project.rooms}</div><div className="mt-1 text-[9px] text-black/38">Habitaciones</div></div>
-          <div><div className="text-xs font-bold">{project.units}</div><div className="mt-1 text-[9px] text-black/38">Unidades</div></div>
+          <div><div className="text-xs font-bold">{project.units || "Por validar"}</div><div className="mt-1 text-[9px] text-black/38">Unidades</div></div>
         </div>
         <p className="mt-5 min-h-12 text-xs leading-5 text-black/48">{project.reason}</p>
         <div className="mt-5"><ProgressBar value={project.compatibility} label="Afinidad con tu perfil" /></div>

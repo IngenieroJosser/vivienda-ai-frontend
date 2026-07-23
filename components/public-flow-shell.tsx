@@ -87,8 +87,7 @@ export function PublicFlowShell({
 
             <div className="mt-4 hidden rounded-[22px] bg-[#111820] p-5 text-white xl:block">
               <div className="flex items-center justify-between"><span className="text-[10px] font-bold uppercase tracking-[.14em] text-[#ffd000]">Asistencia</span><Icon name="phone" className="h-4 w-4 text-white/55" /></div>
-              <p className="mt-3 text-xs leading-5 text-white/52">¿Tienes dudas durante el proceso? Un asesor puede ayudarte sin perder tu progreso.</p>
-              <button className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-white">Contactar asesor <Icon name="arrow" className="h-3.5 w-3.5" /></button>
+              <p className="mt-3 text-xs leading-5 text-white/52">Los canales de asistencia se habilitarán cuando exista una integración comercial real.</p>
             </div>
           </aside>
 

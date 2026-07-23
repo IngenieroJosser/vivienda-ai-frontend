@@ -10,13 +10,11 @@ import { AnimatedHeroBackground } from "./animated-hero-background";
 type Role = "asesor";
 type NavItem = { label: string; href: string; icon: Parameters<typeof Icon>[0]["name"] };
 
-const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[]; insight: string }> = {
+const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[] }> = {
   asesor: {
     label: "Portal comercial",
     userRole: "Asesora senior",
-    insight: "Tienes 7 oportunidades de alta prioridad pendientes de contacto.",
     nav: [
-      { label: "Dashboard", href: "/asesor/dashboard", icon: "grid" },
       { label: "Leads", href: "/asesor/leads", icon: "users" },
       { label: "Agenda", href: "/asesor/agenda", icon: "calendar" },
       { label: "Comparador", href: "/asesor/comparador", icon: "compare" },
@@ -63,11 +61,6 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
         })}
       </nav>
       <div className="mt-auto px-2 pb-1">
-        <div className="rounded-[18px] bg-[#111820] p-4 text-white shadow-[0_14px_36px_rgba(17,24,32,.13)]">
-          <div className="flex items-center justify-between"><div className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#ffd000]">Insight del día</div><Icon name="brain" className="h-4 w-4 text-[#ffd000]" /></div>
-          <p className="mt-3 text-[11px] leading-5 text-white/58">{config.insight}</p>
-          <Link href="/asesor/leads" prefetch className="mt-4 inline-flex items-center gap-2 text-[11px] font-bold text-white">Ver detalle <Icon name="arrow" className="h-3.5 w-3.5" /></Link>
-        </div>
         <Link href="/login" prefetch className="mt-3 flex items-center gap-3 rounded-[15px] px-3.5 py-3 text-xs font-semibold text-black/40 transition hover:bg-black/[.035] hover:text-black"><Icon name="logout" className="h-4 w-4" />Cerrar sesión</Link>
       </div>
     </>
@@ -94,12 +87,9 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
                 <div className="hidden rounded-full border border-black/[.065] bg-white px-4 py-2.5 text-xs font-bold text-black/62 shadow-sm md:block">{config.label}</div>
               </div>
               <div className="flex items-center gap-2.5">
-                <button className="relative grid h-10 w-10 place-items-center rounded-[13px] border border-black/[.065] bg-white shadow-sm"><Icon name="search" className="h-4 w-4 text-black/52" /></button>
-                <button className="relative grid h-10 w-10 place-items-center rounded-[13px] border border-black/[.065] bg-white shadow-sm"><Icon name="alert" className="h-4 w-4 text-black/52" /><span className="absolute right-1.5 top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#0067b1] px-1 text-[8px] font-black text-white ring-2 ring-white">3</span></button>
                 <div className="flex items-center gap-3 rounded-full border border-black/[.065] bg-white py-1.5 pl-1.5 pr-3 shadow-sm">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-[#0067b1] to-[#004f8c] text-[10px] font-extrabold text-white">LC</span>
-                  <div className="hidden text-left sm:block"><div className="text-[11px] font-bold">Laura Cárdenas</div><div className="text-[9px] text-black/40">{config.userRole}</div></div>
-                  <Icon name="chevron" className="hidden h-3 w-3 text-black/35 sm:block" />
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-[#0067b1] to-[#004f8c] text-[10px] font-extrabold text-white">AS</span>
+                  <div className="hidden text-left sm:block"><div className="text-[11px] font-bold">Sesión de asesor</div><div className="text-[9px] text-black/40">{config.userRole}</div></div>
                 </div>
               </div>
             </div>
@@ -125,10 +115,6 @@ function PortalPage({ role, title, subtitle, actions, children }: { role: Role; 
             {subtitle ? <p className="mt-3 max-w-3xl text-sm leading-6 text-black/52">{subtitle}</p> : null}
           </div>
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-            <div className="portal-hero__signal hidden rounded-[18px] border border-white/55 bg-white/70 px-4 py-3 md:block">
-              <div className="text-[9px] font-extrabold uppercase tracking-[.13em] text-black/38">Sistema en línea</div>
-              <div className="mt-1 flex items-center gap-2 text-[11px] font-bold"><span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,.12)]" />Datos actualizados</div>
-            </div>
             {actions ? <div className="flex flex-wrap gap-2.5">{actions}</div> : null}
           </div>
         </div>
