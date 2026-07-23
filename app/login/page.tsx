@@ -156,12 +156,13 @@ export default function LoginPage() {
 
       <section className="relative hidden min-h-screen overflow-hidden bg-[color:var(--vm-color-brand-blue-deep)] text-white lg:block">
         <Image
-          src="/images/projects/los-nogales.webp"
-          alt="Proyecto residencial Los Nogales de Colsubsidio en Bogotá"
+          src="/images/projects/versalles.webp"
+          alt="Proyecto residencial Versalles de Colsubsidio"
           fill
           priority
+          unoptimized
           sizes="55vw"
-          className="object-cover"
+          className="object-cover object-center"
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,103,177,.08)_0%,rgba(0,65,112,.62)_55%,rgba(0,65,112,.96)_100%)]" />
         <div className="relative z-10 flex h-full flex-col justify-end p-10 xl:p-14">
@@ -184,7 +185,7 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-8 border-t border-white/20 pt-4 text-[11px] text-white/70">
-              Imagen de proyecto: Los Nogales · Bogotá
+              Imagen de proyecto: Versalles · Soacha
             </div>
           </div>
         </div>
