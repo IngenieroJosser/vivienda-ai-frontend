@@ -9,8 +9,8 @@ export function Brand({ compact = false, dark = false }: { compact?: boolean; da
       </svg>
       <span className="flex items-center gap-1.5 sm:gap-2">
         <span className={`font-extrabold tracking-[-0.04em] ${compact ? "text-sm sm:text-lg" : "text-xl"} ${dark ? "text-white" : "text-[#0067b1]"}`}>Colsubsidio</span>
-        <span className={dark ? "text-white/40" : "text-black/25"}>×</span>
-        <span className={`font-black tracking-[-0.045em] ${compact ? "text-xs sm:text-base" : "text-lg"} ${dark ? "text-white" : "text-[#111]"}`}>Vivienda Match AI</span>
+        <span className={dark ? "text-white/40" : "text-[#0067b1]/35"}>×</span>
+        <span className={`font-black tracking-[-0.045em] ${compact ? "text-xs sm:text-base" : "text-lg"} ${dark ? "text-white" : "text-[#004f8c]"}`}>Vivienda Match AI</span>
       </span>
     </Link>
   );

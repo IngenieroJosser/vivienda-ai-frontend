@@ -153,6 +153,13 @@ button:disabled { cursor: not-allowed; }
     linear-gradient(135deg, #fffef8 0%, #f7fbfd 52%, #fff8cf 100%);
 }
 
+.home-page,
+.public-experience {
+  --vm-color-ink: #124b70;
+  --vm-color-ink-muted: #49697e;
+  --vm-color-line: rgba(0, 103, 177, 0.12);
+}
+
 .prospect-hero__glow {
   position: absolute;
   inset: auto -8% -30% auto;
