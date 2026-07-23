@@ -146,7 +146,7 @@ const seeds: readonly ProjectSeed[] = [
     city: "Soacha",
     development: "Ciudadela Colsubsidio Maiporé",
     housingType: "VIS",
-    image: "/images/versalles-porteria-hero.webp",
+    image: "/images/projects/versalles.webp",
     brochureUrl: "https://heyzine.com/flip-book/be784b0d5c.html",
     summary: "Proyecto VIS con tres tipologías, amplias zonas recreativas y certificación de construcción sostenible.",
     totalUnits: 560,

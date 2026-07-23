@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { PublicHeader } from "@/components/public-header";
 import { Icon } from "@/components/icon";
+import { FeaturedProjectsShowcase } from "@/components/featured-projects-showcase";
 import { LandingConversationComposer } from "@/features/prospect/components/landing-conversation-composer";
 
 export default function Home() {
@@ -35,36 +35,13 @@ export default function Home() {
                 Conversación privada
               </span>
               <span>No necesitas documentos para comenzar</span>
-              <Link href="/vivienda/proyectos/versalles" className="font-bold text-[color:var(--vm-color-brand-blue)] underline-offset-4 hover:underline">
-                Conocer Versalles
+              <Link href="/vivienda/proyectos" className="font-bold text-[color:var(--vm-color-brand-blue)] underline-offset-4 hover:underline">
+                Explorar todos los proyectos
               </Link>
             </div>
           </div>
 
-          <figure className="motion-rise motion-delay-2 relative min-h-[300px] overflow-hidden rounded-[var(--vm-radius-elevated)] shadow-[var(--vm-shadow-high)] sm:min-h-[420px] lg:h-[min(76svh,760px)]">
-            <Image
-              src="/images/versalles-porteria-hero.webp"
-              alt="Fachada y portería del proyecto de vivienda Versalles en Ciudadela Maiporé, Soacha"
-              fill
-              preload
-              sizes="(min-width: 1024px) 54vw, 100vw"
-              className="object-cover object-center"
-            />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,79,140,.02),rgba(0,79,140,.42))]" aria-hidden="true" />
-            <figcaption className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8">
-              <p className="max-w-md text-2xl font-semibold leading-tight tracking-[-.035em] sm:text-3xl">
-                Primero entendemos tu sueño. Después encontramos la ruta.
-              </p>
-              <a
-                href="https://www.colsubsidio.com/vivienda/proyectos/soacha/versalles"
-                target="_blank"
-                rel="noreferrer"
-                className="mt-4 inline-flex text-[10px] font-semibold tracking-[.02em] text-white/80 underline-offset-4 hover:underline"
-              >
-                Proyecto Versalles · Vivienda Colsubsidio
-              </a>
-            </figcaption>
-          </figure>
+          <FeaturedProjectsShowcase />
         </section>
       </main>
     </div>

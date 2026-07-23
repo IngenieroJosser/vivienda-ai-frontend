@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Icon } from "./icon";
 
 const mobileLinks = [
-  ["Proyecto Versalles", "/vivienda/proyectos/versalles"],
+  ["Explorar todos los proyectos", "/vivienda/proyectos"],
 ] as const;
 
 export function PublicMobileNavigation() {

@@ -4,7 +4,7 @@ import { Icon } from "./icon";
 import { PublicMobileNavigation } from "./public-mobile-navigation";
 
 const links = [
-  ["Proyecto Versalles", "/vivienda/proyectos/versalles"],
+  ["Explorar proyectos", "/vivienda/proyectos"],
 ] as const;
 
 export function PublicHeader() {
