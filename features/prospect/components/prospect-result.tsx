@@ -27,6 +27,10 @@ import type { ProspectSession, ServiceGuidance } from "../domain";
 import type { ProspectContactRequest } from "../handoff";
 import { loadContactRequest } from "../handoff-storage";
 import { getCapacityRange } from "../capacity";
+import {
+  PROJECT_REFERENCE_NOTICE,
+  PROJECT_VALIDITY_NOTICE,
+} from "../result-copy";
 import { loadProspectSession } from "../storage";
 
 export function ProspectResult({ sessionId }: { sessionId: string }) {
@@ -387,8 +391,8 @@ function ProjectRecommendations({
         <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
           {readyForAdvisor
             ? "Mostramos máximo tres coincidencias y explicamos cada una."
-            : "Estas opciones ayudan a definir una meta; no representan reserva, aprobación ni disponibilidad confirmada."}{" "}
-          Los datos sin vigencia aparecen como “por confirmar”.
+            : PROJECT_REFERENCE_NOTICE}{" "}
+          {PROJECT_VALIDITY_NOTICE}
         </p>
       </div>
       <div className="mt-7 grid gap-6 md:grid-cols-2">

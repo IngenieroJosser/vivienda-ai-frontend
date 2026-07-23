@@ -112,14 +112,14 @@ function extractIncome(profile: ProfileAnswers, text: string): void {
   if (/(mas de 4 salarios|superior a 4 salarios)/.test(text)) profile.incomeRange = "HIGH";
   else if (/(entre 2 y 4 salarios|2 a 4 salarios|dos a cuatro salarios)/.test(text)) profile.incomeRange = "MID";
   else if (/(hasta 2 salarios|menos de 2 salarios|uno o dos salarios)/.test(text)) profile.incomeRange = "LOW";
-  else if (/(prefiero.{0,15}despues|no se.{0,15}ingreso)/.test(text)) profile.incomeRange = "UNKNOWN";
+  else if (/(prefiero.{0,15}despues|no se.{0,35}ingreso)/.test(text)) profile.incomeRange = "UNKNOWN";
 }
 
 function extractObligations(profile: ProfileAnswers, text: string): void {
   if (/(no tengo (deudas|obligaciones)|sin (deudas|obligaciones)|menos del 15)/.test(text)) profile.obligations = "LOW";
   else if (/(algunas deudas|entre 15.{0,10}30|deudas moderadas)/.test(text)) profile.obligations = "MEDIUM";
   else if (/(muchas deudas|mas del 30|muy endeudad)/.test(text)) profile.obligations = "HIGH";
-  else if (/(no se.{0,15}(deudas|obligaciones)|no tengo claro.{0,15}(deudas|obligaciones))/.test(text)) profile.obligations = "UNKNOWN";
+  else if (/(no se.{0,35}(deudas|obligaciones)|no tengo claro.{0,35}(deudas|obligaciones))/.test(text)) profile.obligations = "UNKNOWN";
 }
 
 function extractSavings(profile: ProfileAnswers, text: string): void {
