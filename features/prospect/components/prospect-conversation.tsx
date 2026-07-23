@@ -370,8 +370,9 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
     : "Este espacio es para escucharte.";
 
   return (
-    <div className="orientation-experience orientation-chat flex h-[100dvh] flex-col overflow-hidden">
+    <div className="orientation-experience orientation-chat grid h-[100dvh] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
       <OrientationHeader
+        sticky={false}
         status={
           chatState.phase === "typing"
             ? "Respondiendo"
@@ -504,12 +505,12 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
       </div>
 
       {session.status === "ACTIVE" ? (
-      <div className="prospect-chat-composer orientation-composer relative z-20 flex-none border-t border-[color:var(--vm-color-line)]">
+      <div className="prospect-chat-composer orientation-composer border-t border-[color:var(--vm-color-line)]">
         {hasNewMessages ? (
           <button
             type="button"
             onClick={() => scrollToLatest("smooth")}
-            className="absolute bottom-full left-1/2 mb-3 -translate-x-1/2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-4 py-2 text-xs font-bold text-white shadow-[var(--vm-shadow-medium)]"
+            className="mx-auto mt-2 flex min-h-9 items-center rounded-full bg-[color:var(--vm-color-brand-blue)] px-4 text-xs font-bold text-white shadow-[var(--vm-shadow-low)]"
           >
             Nuevos mensajes ↓
           </button>

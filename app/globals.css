@@ -311,6 +311,12 @@ button:disabled { cursor: not-allowed; }
   box-shadow: 0 8px 30px rgba(0, 79, 140, 0.045);
 }
 
+.orientation-header--static {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+}
+
 .orientation-status {
   display: inline-flex;
   min-height: 34px;
@@ -549,6 +555,12 @@ button:disabled { cursor: not-allowed; }
       var(--vm-color-orientation-canvas) 44%,
       var(--vm-color-orientation-wash)
     );
+}
+
+.orientation-chat > .orientation-header,
+.orientation-chat > .orientation-composer {
+  background: var(--vm-surface-solid);
+  box-shadow: none;
 }
 
 .orientation-chat-scroll {

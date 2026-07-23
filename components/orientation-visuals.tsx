@@ -5,12 +5,18 @@ import { Icon } from "./icon";
 export function OrientationHeader({
   status,
   statusTone = "active",
+  sticky = true,
 }: {
   status: string;
   statusTone?: "active" | "success";
+  sticky?: boolean;
 }) {
   return (
-    <header className="orientation-header sticky top-0 z-40">
+    <header
+      className={`orientation-header ${
+        sticky ? "sticky top-0 z-40" : "orientation-header--static"
+      }`}
+    >
       <div className="mx-auto flex min-h-[72px] max-w-[1180px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <ProductBrand compact />
         <div
