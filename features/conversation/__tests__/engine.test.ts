@@ -86,20 +86,28 @@ describe("adaptive question selection", () => {
   });
 
   it("does not hide a compatible project because the prospect is not affiliated", () => {
-    const result = evaluateProfile(
+    const answers = {
+      dreamGoal: "BUY_THIS_YEAR",
+      horizon: "0_3",
+      incomeRange: "HIGH",
+      obligations: "LOW",
+      savings: "READY",
+    };
+    const nonAffiliate = evaluateProfile(
       { ...scenarios.laura, knownProfile: { affiliation: "NON_AFFILIATE", location: "SOACHA" } },
       "USE_KNOWN_DATA",
-      {
-        dreamGoal: "BUY_THIS_YEAR",
-        horizon: "0_3",
-        incomeRange: "HIGH",
-        obligations: "LOW",
-        savings: "READY",
-      },
+      answers,
+    );
+    const affiliate = evaluateProfile(
+      { ...scenarios.laura, knownProfile: { affiliation: "AFFILIATE", location: "SOACHA" } },
+      "USE_KNOWN_DATA",
+      answers,
     );
 
-    expect(result.route).toBe("NON_AFFILIATE_PRIORITY");
-    expect(result.projectIds).toEqual(["pamplona", "la-macarena", "mongui"]);
+    expect(nonAffiliate.route).toBe("NON_AFFILIATE_PRIORITY");
+    expect(nonAffiliate.projectIds).toEqual(affiliate.projectIds);
+    expect(nonAffiliate.projectIds).toHaveLength(3);
+    expect(nonAffiliate.projectMatches.every(({ reasons }) => reasons.some((reason) => reason.includes("Soacha")))).toBe(true);
   });
 
   it("creates, advances and completes a recoverable session", () => {
@@ -202,5 +210,8 @@ describe("adaptive question selection", () => {
     expect(jonathan?.evaluation).toEqual(direct);
     expect(jonathan?.evaluation.readinessScore).toBe(direct.readinessScore);
     expect(jonathan?.evaluation.capacity).toEqual(direct.capacity);
+    expect(direct.projectIds).toEqual(direct.projectMatches.map(({ projectId }) => projectId));
+    expect(jonathan?.evaluation.projectMatches).toEqual(direct.projectMatches);
+    expect(jonathan?.evaluation.benefitSignals).toEqual(direct.benefitSignals);
   });
 });

@@ -3,19 +3,22 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
-import type { EvaluationResult, ProfileField } from "@/features/conversation/domain";
+import type {
+  EvaluationResult,
+  ProfileField,
+  ProjectMatch,
+} from "@/features/conversation/domain";
+import { resolveProjectMatches } from "@/features/conversation/matching";
 import { formatCop, getProfileValue } from "@/features/conversation/profile-copy";
 import {
   formatProjectAreaRange,
   formatProjectPrice,
   formatVerificationDate,
-  getHousingProjects,
   getProjectEvidence,
   type HousingProject,
 } from "@/lib/housing-catalog";
 import { createFunnelEvent, trackFunnelEvent } from "../analytics";
-import { campaignExperiences } from "../campaigns";
-import type { CampaignExperience, ProspectSession } from "../domain";
+import type { ProspectSession } from "../domain";
 import { getCapacityRange } from "../capacity";
 import { loadProspectSession } from "../storage";
 
@@ -58,9 +61,8 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
   if (!showResult) return <ResultTransition />;
 
   const evaluation = session.evaluation;
-  const campaign = campaignExperiences[session.campaignId];
   const capacityRange = getCapacityRange(evaluation.capacity.estimatedHousingPayment);
-  const matchedProjects = getHousingProjects(evaluation.projectIds).slice(0, 3);
+  const matchedProjects = resolveProjectMatches(evaluation.projectMatches);
   const readyForAdvisor = evaluation.route === "ADVISOR_NOW" || evaluation.route === "NON_AFFILIATE_PRIORITY";
   const actionHref = readyForAdvisor
     ? `/vivienda/agendar?from=orientacion&sessionId=${encodeURIComponent(session.id)}`
@@ -124,11 +126,11 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
         {matchedProjects.length ? (
           <section className="result-reveal result-reveal--3 mt-8">
             <div className="max-w-2xl">
-              <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Proyecto para explorar</div>
-              <h2 className="mt-3 text-3xl font-semibold tracking-[-.035em]">Una opción que coincide con tu búsqueda.</h2>
-              <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Solo la mostramos cuando la información disponible coincide con el proyecto. Precio, disponibilidad y financiación deben confirmarse.</p>
+              <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Proyectos para explorar</div>
+              <h2 className="mt-3 text-3xl font-semibold tracking-[-.035em]">Opciones que responden a lo que nos contaste.</h2>
+              <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Mostramos máximo tres coincidencias y explicamos cada una. Los datos sin vigencia aparecen como “por confirmar”.</p>
             </div>
-            <div className="mt-6 grid gap-5 md:grid-cols-2">{matchedProjects.map((project) => <ProspectProject key={project.id} project={project} campaign={campaign} />)}</div>
+            <div className="mt-6 grid gap-5 md:grid-cols-2">{matchedProjects.map(({ project, match }) => <ProspectProject key={project.id} project={project} match={match} />)}</div>
           </section>
         ) : null}
 
@@ -194,26 +196,28 @@ function BenefitPanel({ title, items, empty, tone }: { title: string; items: str
   return <div className="rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-line)] p-5"><div className="text-sm font-bold" style={{ color }}>{title}</div>{items.length ? <ul className="mt-3 space-y-2 text-sm">{items.map((item) => <li key={item} className="flex gap-2"><Icon name="check" className="mt-0.5 h-4 w-4 shrink-0" style={{ color }} />{item}</li>)}</ul> : <p className="mt-3 text-sm text-[color:var(--vm-color-ink-muted)]">{empty}</p>}</div>;
 }
 
-function ProspectProject({ project, campaign }: { project: HousingProject; campaign: CampaignExperience }) {
-  const reason = campaign.projectId === project.id
-    ? "Te interesó este proyecto y su ubicación coincide con la búsqueda registrada."
-    : "Su ubicación y precio publicado coinciden preliminarmente con tu orientación.";
+function ProspectProject({ project, match }: { project: HousingProject; match: ProjectMatch }) {
   const priceSource = getProjectEvidence(project, project.priceFromCop)[0];
+  const availableTours = project.tours.filter(({ availability }) => availability === "AVAILABLE");
   return (
     <article className="surface-solid overflow-hidden p-6">
       <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">{project.location.city} · {project.location.department}</div>
       <h3 className="mt-2 text-2xl font-semibold">{project.name}</h3>
       <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-        <div><span className="block text-xs text-[color:var(--vm-color-ink-muted)]">Precio desde</span><strong>{formatProjectPrice(project)}</strong></div>
+        <div><span className="block text-xs text-[color:var(--vm-color-ink-muted)]">Precio desde</span><strong>{project.priceFromCop.validity === "CURRENT" ? formatProjectPrice(project) : "Por confirmar"}</strong></div>
         <div><span className="block text-xs text-[color:var(--vm-color-ink-muted)]">Área construida</span><strong>{formatProjectAreaRange(project)}</strong></div>
+        <div><span className="block text-xs text-[color:var(--vm-color-ink-muted)]">Inventario</span><strong>Por confirmar</strong></div>
+        <div><span className="block text-xs text-[color:var(--vm-color-ink-muted)]">Entrega</span><strong>{project.deliveryDate.validity === "CURRENT" && project.deliveryDate.value ? project.deliveryDate.value : "Por confirmar"}</strong></div>
       </div>
-      <p className="mt-3 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">{priceSource?.title ?? "Fuente registrada"} · verificado {formatVerificationDate(project.priceFromCop.verifiedAt)}. Inventario y entrega requieren confirmación.</p>
+      <p className="mt-3 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">{priceSource?.title ?? "Material comercial aprobado"} · verificado {formatVerificationDate(project.priceFromCop.verifiedAt)}.</p>
       <div className="mt-5 text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-success)]">Por qué te lo mostramos</div>
-      <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{reason}</p>
+      <ul className="mt-2 space-y-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+        {match.reasons.map((reason) => <li key={reason} className="flex gap-2"><Icon name="check" className="mt-1 h-4 w-4 shrink-0 text-[color:var(--vm-color-success)]" />{reason}</li>)}
+      </ul>
       <div className="mt-5 border-t border-[color:var(--vm-color-line)] pt-5">
-        <div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">Recorridos 360</div>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {project.tours.filter(({ availability }) => availability === "AVAILABLE").map((tour) => <a key={tour.id} href={tour.url} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center justify-between gap-2 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]">{tour.label}<Icon name="arrow" className="h-3.5 w-3.5" /></a>)}
+        <div className="grid gap-2 sm:grid-cols-2">
+          {project.brochureUrl ? <a href={project.brochureUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center justify-between gap-2 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]">Ver brochure aprobado<Icon name="arrow" className="h-3.5 w-3.5" /></a> : null}
+          {availableTours.map((tour) => <a key={tour.id} href={tour.url} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center justify-between gap-2 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]">{tour.label}<Icon name="arrow" className="h-3.5 w-3.5" /></a>)}
         </div>
       </div>
       <Link href={`/vivienda/proyectos/${project.id}`} className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[color:var(--vm-color-brand-blue)]">Conocer el proyecto <Icon name="arrow" className="h-4 w-4" /></Link>

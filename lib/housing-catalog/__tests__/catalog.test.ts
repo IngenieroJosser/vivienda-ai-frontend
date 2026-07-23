@@ -5,6 +5,7 @@ import {
   formatProjectPrice,
   getHousingProject,
   getRecommendedProjectTours,
+  getValidityLabel,
 } from "..";
 
 describe("evidence-backed housing catalog", () => {
@@ -90,6 +91,9 @@ describe("evidence-backed housing catalog", () => {
     });
     expect(project.inventory.validity).toBe("REQUIRES_CONFIRMATION");
     expect(project.deliveryDate.validity).toBe("REQUIRES_CONFIRMATION");
+    expect(formatProjectPrice(project)).toBe("Por confirmar");
+    expect(getValidityLabel(project.inventory.validity)).toBe("Por confirmar");
+    expect(getValidityLabel(project.deliveryDate.validity)).toBe("Por confirmar");
     expect(project.evidence.some(({ kind }) => kind === "APPROVED_BROCHURE")).toBe(true);
   });
 });

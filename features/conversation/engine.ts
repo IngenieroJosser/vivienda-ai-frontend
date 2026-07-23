@@ -1,4 +1,3 @@
-import { findHousingProjectsByCity } from "../../lib/housing-catalog";
 import type {
   ConsentMode,
   EvaluationResult,
@@ -7,6 +6,7 @@ import type {
   Question,
   Scenario,
 } from "./domain";
+import { matchHousingProjects } from "./matching";
 import { consentQuestion, questionBank } from "./questions";
 
 const MAX_FOLLOW_UP_QUESTIONS = 5;
@@ -82,14 +82,14 @@ export function evaluateProfile(
 
   const route = selectRoute(readinessScore, profile);
   const commercialRoute = route === "ADVISOR_NOW" || route === "NON_AFFILIATE_PRIORITY";
-  const targetCity = profile.location === "SOACHA"
-    ? "Soacha"
-    : profile.location === "BOGOTA"
-      ? "Bogotá"
-      : undefined;
-  const projectIds = commercialRoute && targetCity
-    ? selectCompatibleProjectIds(targetCity, scenario.campaignProjectId)
+  const projectMatches = commercialRoute
+    ? matchHousingProjects({
+        profile,
+        capacity,
+        campaignProjectId: scenario.campaignProjectId,
+      })
     : [];
+  const projectIds = projectMatches.map(({ projectId }) => projectId);
   const benefitSignals = {
     confirmed: profile.subsidyInterest === "HAS"
       ? ["Beneficio reportado por el prospecto; requiere verificación documental"]
@@ -132,6 +132,7 @@ export function evaluateProfile(
     priority: readinessScore >= 75 ? "HIGH" : readinessScore >= 50 ? "MEDIUM" : "LOW",
     route,
     projectIds,
+    projectMatches,
     capacity,
     benefitSignals,
     profileSnapshot: profile,
@@ -145,22 +146,6 @@ export function evaluateProfile(
     followUpAt: followUp.at,
     advanceCondition: followUp.condition,
   };
-}
-
-function selectCompatibleProjectIds(
-  city: string,
-  campaignProjectId?: string,
-): string[] {
-  const cityProjectIds = findHousingProjectsByCity(city).map(({ id }) => id);
-
-  if (!campaignProjectId || !cityProjectIds.includes(campaignProjectId)) {
-    return cityProjectIds.slice(0, 3);
-  }
-
-  return [
-    campaignProjectId,
-    ...cityProjectIds.filter((projectId) => projectId !== campaignProjectId),
-  ].slice(0, 3);
 }
 
 function buildFollowUp(
@@ -254,6 +239,7 @@ function buildOptedOutResult(scenario: Scenario): EvaluationResult {
     priority: "LOW",
     route: "OPTED_OUT",
     projectIds: [],
+    projectMatches: [],
     capacity: {
       monthlyIncomeEstimate: 0,
       currentCommitmentRatio: 0,

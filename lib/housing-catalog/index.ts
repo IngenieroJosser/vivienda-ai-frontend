@@ -84,7 +84,7 @@ export function formatVerificationDate(value: string): string {
 export function getValidityLabel(validity: EvidenceBackedFact<unknown>["validity"]): string {
   if (validity === "CURRENT") return "Vigente al verificar";
   if (validity === "COMMERCIAL_REFERENCE") return "Referencia comercial aprobada";
-  return "Requiere confirmación";
+  return "Por confirmar";
 }
 
 function formatDecimal(value: number): string {

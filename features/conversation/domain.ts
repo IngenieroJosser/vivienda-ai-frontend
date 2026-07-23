@@ -51,6 +51,22 @@ export type EvaluationRoute =
   | "NEEDS_DATA"
   | "OPTED_OUT";
 
+export type ProjectMatchSignal =
+  | "CAMPAIGN"
+  | "LOCATION"
+  | "CAPACITY"
+  | "HOUSEHOLD"
+  | "PREFERENCE"
+  | "HORIZON";
+
+export type ProjectMatch = {
+  projectId: string;
+  score: number;
+  signals: ProjectMatchSignal[];
+  reasons: string[];
+  evidenceSourceIds: string[];
+};
+
 export type EvaluationResult = {
   leadId: Scenario["leadId"];
   readinessScore: number;
@@ -58,6 +74,7 @@ export type EvaluationResult = {
   priority: "HIGH" | "MEDIUM" | "LOW";
   route: EvaluationRoute;
   projectIds: string[];
+  projectMatches: ProjectMatch[];
   capacity: {
     monthlyIncomeEstimate: number;
     currentCommitmentRatio: number;
@@ -82,7 +99,7 @@ export type EvaluationResult = {
 export type ConversationStatus = "ACTIVE" | "COMPLETED" | "OPTED_OUT";
 
 export type ConversationSession = {
-  version: 3;
+  version: 4;
   id: string;
   scenarioId: Scenario["id"];
   leadId: Scenario["leadId"];

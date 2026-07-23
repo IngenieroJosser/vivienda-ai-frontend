@@ -32,7 +32,7 @@ export function createProspectSession(input: {
   };
 
   return {
-    version: 4,
+    version: 5,
     id: input.id,
     ...(knownProspect?.firstName ? { firstName: knownProspect.firstName } : {}),
     acquisition: input.acquisition,

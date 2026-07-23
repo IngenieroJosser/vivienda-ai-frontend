@@ -13,7 +13,7 @@ export function createConversationSession(
   timestamp: string,
 ): ConversationSession {
   return {
-    version: 3,
+    version: 4,
     id,
     scenarioId: scenario.id,
     leadId: scenario.leadId,

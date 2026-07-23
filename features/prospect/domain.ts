@@ -45,7 +45,7 @@ export type ConversationTurn = {
 };
 
 export type ProspectSession = {
-  version: 4;
+  version: 5;
   id: string;
   firstName?: string;
   acquisition: AcquisitionContext;
