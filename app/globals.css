@@ -2154,10 +2154,23 @@ button:disabled { cursor: not-allowed; }
   outline-offset: -5px;
 }
 .project-gallery__image {
+  object-fit: cover;
   transform: scale(1.015);
   transition:
     transform 560ms var(--ease-natural),
     filter 560ms var(--ease-natural);
+}
+.project-gallery__panel[data-media-kind="BROCHURE_PLAN"],
+.project-gallery__panel[data-media-kind="BROCHURE_SPACE"],
+.project-gallery__mobile-slide[data-media-kind="BROCHURE_PLAN"],
+.project-gallery__mobile-slide[data-media-kind="BROCHURE_SPACE"] {
+  background: #fff;
+}
+.project-gallery__panel--active[data-media-kind="BROCHURE_PLAN"] .project-gallery__image,
+.project-gallery__panel--active[data-media-kind="BROCHURE_SPACE"] .project-gallery__image,
+.project-gallery__mobile-slide[data-media-kind="BROCHURE_PLAN"] .project-gallery__image,
+.project-gallery__mobile-slide[data-media-kind="BROCHURE_SPACE"] .project-gallery__image {
+  object-fit: contain;
 }
 .project-gallery__panel--active .project-gallery__image {
   transform: scale(1);
@@ -2424,8 +2437,8 @@ button:disabled { cursor: not-allowed; }
   display: flex;
   height: 100dvh;
   min-height: 0;
-  flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   padding:
     max(16px, env(safe-area-inset-top))
@@ -2433,35 +2446,44 @@ button:disabled { cursor: not-allowed; }
     max(16px, env(safe-area-inset-bottom))
     max(16px, env(safe-area-inset-left));
   color: white;
-  background: rgba(0,79,140,.97);
+  background: rgba(0,79,140,.88);
   overscroll-behavior: contain;
   animation: projectGalleryFade 240ms var(--ease-natural) both;
 }
 .project-gallery-modal__close {
-  position: relative;
-  z-index: 1;
+  position: absolute;
+  z-index: 3;
+  top: 16px;
+  right: 16px;
   display: inline-flex;
   flex: 0 0 auto;
-  align-self: flex-end;
   min-height: 44px;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(255,255,255,.32);
+  border: 1px solid rgba(0,103,177,.16);
   border-radius: var(--vm-radius-pill);
   padding: 0 16px;
-  color: white;
-  background: rgba(255,255,255,.12);
+  color: var(--vm-color-brand-blue-deep);
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 10px 32px rgba(0,46,79,.18);
   font-size: 11px;
   font-weight: var(--vm-weight-bold);
 }
 .project-gallery-modal__content {
+  position: relative;
   display: flex;
   width: min(100%, 1500px);
+  height: min(92dvh, 980px);
   min-height: 0;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   flex-direction: column;
-  align-self: center;
-  gap: 12px;
+  gap: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 28px;
+  padding: 10px;
+  background: var(--vm-surface-solid);
+  box-shadow: 0 32px 100px rgba(0,28,48,.34);
 }
 .project-gallery-modal__image {
   position: relative;
@@ -2469,16 +2491,16 @@ button:disabled { cursor: not-allowed; }
   min-height: 0;
   flex: 1 1 auto;
   overflow: hidden;
-  border-radius: 18px;
-  background: rgba(255,255,255,.06);
+  border-radius: 20px;
+  background: var(--vm-color-orientation-wash);
 }
 .project-gallery-modal__caption {
   display: flex;
   flex: 0 0 auto;
   justify-content: space-between;
   gap: 16px;
-  padding: 0 4px 2px;
-  color: rgba(255,255,255,.72);
+  padding: 2px 10px 4px;
+  color: var(--vm-color-ink-muted);
   font-size: 11px;
 }
 .project-gallery-modal__caption > span:first-child {
@@ -2488,14 +2510,14 @@ button:disabled { cursor: not-allowed; }
   gap: 3px;
 }
 .project-gallery-modal__caption strong {
-  color: white;
+  color: var(--vm-color-brand-blue-deep);
 }
 .project-gallery-modal__navigation {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
   gap: 10px;
-  color: white;
+  color: var(--vm-color-brand-blue-deep);
   font-weight: var(--vm-weight-bold);
 }
 .project-gallery-modal__navigation button {
@@ -2503,10 +2525,10 @@ button:disabled { cursor: not-allowed; }
   width: 42px;
   height: 42px;
   place-items: center;
-  border: 1px solid rgba(255,255,255,.3);
+  border: 1px solid rgba(0,103,177,.18);
   border-radius: 50%;
-  color: white;
-  background: rgba(255,255,255,.1);
+  color: var(--vm-color-brand-blue);
+  background: rgba(0,103,177,.06);
 }
 .project-gallery-modal__navigation button:focus-visible {
   outline: none;
@@ -2586,9 +2608,12 @@ button, a { transition-timing-function: cubic-bezier(.2,.72,.24,1); }
   }
   .project-gallery__mobile-track {
     display: flex;
+    gap: 10px;
     overflow-x: auto;
     border-radius: 20px;
+    padding-inline: 4px 12%;
     scroll-behavior: smooth;
+    scroll-padding-inline: 12%;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
   }
@@ -2599,10 +2624,10 @@ button, a { transition-timing-function: cubic-bezier(.2,.72,.24,1); }
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    width: 100%;
+    width: 88%;
     height: min(66vw, 390px);
     min-height: 300px;
-    flex: 0 0 100%;
+    flex: 0 0 88%;
     scroll-snap-align: center;
     border-radius: 20px;
     color: white;
@@ -2645,7 +2670,6 @@ button, a { transition-timing-function: cubic-bezier(.2,.72,.24,1); }
     min-width: 102px;
   }
   .project-gallery-modal {
-    gap: 8px;
     padding:
       max(10px, env(safe-area-inset-top))
       max(10px, env(safe-area-inset-right))
@@ -2653,7 +2677,15 @@ button, a { transition-timing-function: cubic-bezier(.2,.72,.24,1); }
       max(10px, env(safe-area-inset-left));
   }
   .project-gallery-modal__close {
+    top: 10px;
+    right: 10px;
     min-height: 42px;
+  }
+  .project-gallery-modal__content {
+    width: 100%;
+    height: min(96dvh, 900px);
+    border-radius: 22px;
+    padding: 8px;
   }
   .project-gallery-modal__image {
     border-radius: 14px;
@@ -2690,6 +2722,17 @@ button, a { transition-timing-function: cubic-bezier(.2,.72,.24,1); }
   .flow-page-reveal > *,
   .projects-grid > * { animation: none !important; }
   .animated-hero-background__blob { opacity: .48; }
+  .project-gallery,
+  .project-gallery-modal {
+    animation: none !important;
+  }
+  .project-gallery__panel,
+  .project-gallery__image {
+    transition: none !important;
+  }
+  .project-gallery__mobile-track {
+    scroll-behavior: auto;
+  }
 }
 
 /* Performance pass: legacy surfaces stay opaque until migrated explicitly. */

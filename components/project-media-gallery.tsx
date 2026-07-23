@@ -29,6 +29,7 @@ export function ProjectMediaGallery({
   const fullscreenTriggerRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const mobileTrackRef = useRef<HTMLDivElement>(null);
   const modalTitleId = useId();
   const modalDescriptionId = useId();
   const image = images[activeIndex] ?? images[0];
@@ -38,6 +39,19 @@ export function ProjectMediaGallery({
   const showNext = useCallback(() => {
     setActiveIndex((current) => (current + 1) % images.length);
   }, [images.length]);
+
+  useEffect(() => {
+    const track = mobileTrackRef.current;
+    const slide = track?.children.item(activeIndex) as HTMLElement | null;
+    if (!track || !slide) return;
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    track.scrollTo({
+      left: slide.offsetLeft - (track.clientWidth - slide.clientWidth) / 2,
+      behavior: reducedMotion ? "auto" : "smooth",
+    });
+  }, [activeIndex]);
 
   useEffect(() => {
     if (!fullscreenOpen) return;
@@ -97,33 +111,100 @@ export function ProjectMediaGallery({
         </div>
       </div>
 
+      <div className="project-gallery__desktop">
+        {images.map((galleryImage, index) => (
+          <button
+            key={galleryImage.id}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+            className={`project-gallery__panel ${
+              index === activeIndex ? "project-gallery__panel--active" : ""
+            }`}
+            data-media-kind={galleryImage.kind}
+            aria-pressed={index === activeIndex}
+            aria-label={`Mostrar ${galleryImage.label}`}
+          >
+            <Image
+              src={galleryImage.image}
+              alt=""
+              fill
+              sizes={
+                index === activeIndex
+                  ? "(max-width: 1200px) 75vw, 850px"
+                  : "120px"
+              }
+              priority={index === 0}
+              quality={95}
+              className="project-gallery__image"
+            />
+            <span className="project-gallery__panel-shade" />
+            <span className="project-gallery__panel-label">
+              <small>
+                {galleryImage.sourcePage
+                  ? `Folleto · Pág. ${galleryImage.sourcePage}`
+                  : "Imagen oficial"}
+              </small>
+              <strong>{galleryImage.label}</strong>
+              {index === activeIndex ? (
+                <span>{galleryImage.description}</span>
+              ) : null}
+            </span>
+          </button>
+        ))}
+      </div>
+
       <div
-        className="project-gallery__real-image"
-        data-media-kind={image.kind}
+        ref={mobileTrackRef}
+        className="project-gallery__mobile-track"
+        onScroll={(event) => {
+          const track = event.currentTarget;
+          const center = track.scrollLeft + track.clientWidth / 2;
+          const slides = Array.from(track.children) as HTMLElement[];
+          const closestIndex = slides.reduce(
+            (closest, slide, index) => {
+              const slideCenter = slide.offsetLeft + slide.clientWidth / 2;
+              const closestSlide = slides[closest];
+              const closestCenter =
+                closestSlide.offsetLeft + closestSlide.clientWidth / 2;
+              return Math.abs(slideCenter - center) <
+                Math.abs(closestCenter - center)
+                ? index
+                : closest;
+            },
+            0,
+          );
+          setActiveIndex(closestIndex);
+        }}
       >
-        <Image
-          src={image.image}
-          alt={`${image.label} de ${project.name}`}
-          fill
-          sizes="(max-width: 768px) 100vw, 90vw"
-          priority={activeIndex === 0}
-          quality={88}
-          className={
-            image.kind === "PROJECT_VIEW" ? "object-cover" : "object-contain"
-          }
-        />
-        {image.kind === "PROJECT_VIEW" ? (
-          <span className="project-gallery__panel-shade" />
-        ) : null}
-        <button
-          ref={fullscreenTriggerRef}
-          type="button"
-          onClick={() => setFullscreenOpen(true)}
-          className="project-gallery__fullscreen"
-        >
-          <Icon name="eye" className="h-4 w-4" />
-          Ver imagen completa
-        </button>
+        {images.map((galleryImage, index) => (
+          <button
+            key={galleryImage.id}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+            className="project-gallery__mobile-slide"
+            data-media-kind={galleryImage.kind}
+            aria-pressed={index === activeIndex}
+            aria-label={`Seleccionar ${galleryImage.label}`}
+          >
+            <Image
+              src={galleryImage.image}
+              alt=""
+              fill
+              sizes="88vw"
+              quality={93}
+              className="project-gallery__image"
+            />
+            <span className="project-gallery__panel-shade" />
+            <span className="project-gallery__mobile-label">
+              <small>
+                {galleryImage.sourcePage
+                  ? `Folleto · Pág. ${galleryImage.sourcePage}`
+                  : "Imagen oficial"}
+              </small>
+              <strong>{galleryImage.label}</strong>
+            </span>
+          </button>
+        ))}
       </div>
 
       <div className="project-gallery__details">
@@ -137,6 +218,15 @@ export function ProjectMediaGallery({
           <p>{image.description}</p>
         </div>
         <div className="project-gallery__actions">
+          <button
+            ref={fullscreenTriggerRef}
+            type="button"
+            onClick={() => setFullscreenOpen(true)}
+            className="project-gallery__action project-gallery__action--primary"
+          >
+            <Icon name="eye" className="h-4 w-4" />
+            Ver imagen completa
+          </button>
           <span className="project-gallery__position">
             {activeIndex + 1} de {images.length}
           </span>
@@ -157,30 +247,6 @@ export function ProjectMediaGallery({
             </button>
           </div>
         </div>
-      </div>
-
-      <div className="project-gallery__thumbnails" aria-label="Seleccionar vista">
-        {images.map((galleryImage, index) => (
-          <button
-            key={galleryImage.id}
-            type="button"
-            onClick={() => setActiveIndex(index)}
-            className="project-gallery__thumbnail"
-            aria-current={index === activeIndex}
-            aria-label={`Mostrar ${galleryImage.label}`}
-          >
-            <span className="project-gallery__thumbnail-image">
-              <Image
-                src={galleryImage.image}
-                alt=""
-                fill
-                sizes="38px"
-                className="object-cover"
-              />
-            </span>
-            <span>{galleryImage.label}</span>
-          </button>
-        ))}
       </div>
 
       {resources.length ? (
@@ -233,24 +299,24 @@ export function ProjectMediaGallery({
                 }
               }}
             >
-              <button
-                ref={closeButtonRef}
-                type="button"
-                onClick={() => setFullscreenOpen(false)}
-                className="project-gallery-modal__close"
-                aria-label="Cerrar pantalla completa"
-              >
-                <Icon name="close" className="h-5 w-5" />
-                Cerrar
-              </button>
-              <div className="project-gallery-modal__content">
+              <div className="project-gallery-modal__content glass-elevated">
+                <button
+                  ref={closeButtonRef}
+                  type="button"
+                  onClick={() => setFullscreenOpen(false)}
+                  className="project-gallery-modal__close"
+                  aria-label="Cerrar imagen ampliada"
+                >
+                  <Icon name="close" className="h-5 w-5" />
+                  Cerrar
+                </button>
                 <div className="project-gallery-modal__image">
                   <Image
                     src={image.image}
                     alt={`${image.label} de ${project.name}`}
                     fill
                     sizes="100vw"
-                    quality={92}
+                    quality={100}
                     className="object-contain"
                   />
                 </div>
