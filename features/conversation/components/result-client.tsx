@@ -24,7 +24,7 @@ export function ResultClient({ leadId }: { leadId: string }) {
   }, [leadId]);
 
   if (!loaded) return <ResultState title="Preparando tu orientación…" description="Estamos organizando la recomendación a partir de tus respuestas." />;
-  if (!session) return <ResultState title="No encontramos este resultado." description="Los resultados de DEMO_MODE solo están disponibles en el navegador donde se completó la conversación." action={{ label: "Iniciar perfilamiento", href: "/demo" }} />;
+  if (!session) return <ResultState title="No encontramos este resultado." description="El resultado está disponible en el navegador donde se completó la conversación." action={{ label: "Elegir un recorrido", href: "/escenarios" }} />;
   if (session.status === "ACTIVE" || !session.evaluation) return <ResultState title="Tu conversación aún está en curso." description="Completa el perfilamiento para conocer el siguiente paso." action={{ label: "Continuar conversación", href: `/conversacion/${session.id}` }} />;
 
   const result = session.evaluation;
@@ -37,7 +37,7 @@ export function ResultClient({ leadId }: { leadId: string }) {
       <PublicHeader />
       <main className="mx-auto max-w-[1120px] px-5 py-9 sm:px-8 lg:py-14">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <span className="rounded-full bg-[color:var(--vm-color-brand-yellow)]/25 px-3 py-2 text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-warning)]">DEMO_MODE · orientación, no aprobación</span>
+          <span className="rounded-full bg-[color:var(--vm-color-brand-yellow)]/25 px-3 py-2 text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-warning)]">Orientación preliminar · no constituye aprobación</span>
           <Link href={`/asesor/leads/${leadId}`} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/20 bg-white px-4 text-sm font-semibold text-[color:var(--vm-color-brand-blue)]">
             Ver lo que recibe el asesor <Icon name="arrow" className="h-4 w-4" />
           </Link>

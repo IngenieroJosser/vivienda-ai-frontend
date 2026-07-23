@@ -8,6 +8,7 @@ import { Icon } from "./icon";
 const links = [
   ["Cómo funciona", "/#como-funciona"],
   ["Proyectos", "/vivienda/proyectos"],
+  ["Recorridos", "/escenarios"],
 ] as const;
 
 export function PublicHeader() {
@@ -22,7 +23,7 @@ export function PublicHeader() {
         </nav>
         <div className="hidden items-center gap-3 sm:flex">
           <Link href="/login" prefetch className="rounded-full px-4 py-2.5 text-sm font-semibold text-[color:var(--vm-color-ink-muted)] transition hover:bg-[color:var(--vm-color-brand-blue)]/[.06] hover:text-[color:var(--vm-color-brand-blue)]">Acceso para asesores</Link>
-          <Link href="/demo" prefetch className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white transition hover:bg-[color:var(--vm-color-brand-blue-deep)]">Comenzar <Icon name="arrow" className="h-4 w-4" /></Link>
+          <Link href="/orientacion" prefetch className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white transition hover:bg-[color:var(--vm-color-brand-blue-deep)]">Comenzar <Icon name="arrow" className="h-4 w-4" /></Link>
         </div>
         <button type="button" onClick={() => setOpen((value) => !value)} className="grid h-11 w-11 place-items-center rounded-full border border-[color:var(--vm-color-brand-blue)]/15 bg-white text-[color:var(--vm-color-brand-blue)] sm:hidden" aria-label={open ? "Cerrar menú" : "Abrir menú"} aria-expanded={open} aria-controls="public-mobile-nav">
           <Icon name={open ? "close" : "menu"} />
@@ -33,7 +34,7 @@ export function PublicHeader() {
           <div className="flex flex-col gap-1">
             {links.map(([label, href]) => <Link key={href} href={href} prefetch onClick={() => setOpen(false)} className="rounded-xl px-4 py-3 text-base font-semibold hover:bg-[color:var(--vm-color-brand-blue)]/[.05]">{label}</Link>)}
             <Link href="/login" prefetch onClick={() => setOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold">Acceso para asesores</Link>
-            <Link href="/demo" prefetch onClick={() => setOpen(false)} className="mt-2 rounded-xl bg-[color:var(--vm-color-brand-blue)] px-4 py-3 text-center text-sm font-bold text-white">Comenzar</Link>
+            <Link href="/orientacion" prefetch onClick={() => setOpen(false)} className="mt-2 rounded-xl bg-[color:var(--vm-color-brand-blue)] px-4 py-3 text-center text-sm font-bold text-white">Comenzar</Link>
           </div>
         </nav>
       ) : null}

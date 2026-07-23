@@ -1,4 +1,4 @@
-import { getDemoQualifiedLeads, isCommercialOpportunity } from "@/features/conversation/qualified-leads";
+import { getQualifiedScenarioLeads, isCommercialOpportunity } from "@/features/conversation/qualified-leads";
 
 export const projects = [
   {
@@ -48,7 +48,7 @@ const goalLabels: Record<string, string> = {
   BENEFITS: "Conocer beneficios y subsidios",
 };
 
-export const leads = getDemoQualifiedLeads().map(({ scenario, evaluation }) => {
+export const leads = getQualifiedScenarioLeads().map(({ scenario, evaluation }) => {
   const project = projects.find((item) => evaluation.projectIds.includes(item.id));
   const profile = evaluation.profileSnapshot;
 

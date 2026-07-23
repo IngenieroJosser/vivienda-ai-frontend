@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { evaluateProfile, selectQuestions } from "../engine";
-import { getDemoQualifiedLeads } from "../qualified-leads";
-import { demoAnswers, getScenario, getScenarioByLeadId, scenarios } from "../scenarios";
+import { getQualifiedScenarioLeads } from "../qualified-leads";
+import { getScenario, getScenarioAnswers, getScenarioByLeadId, scenarioAnswers, scenarios } from "../scenarios";
 import { answerCurrentQuestion, createConversationSession } from "../session";
 
 describe("adaptive question selection", () => {
@@ -130,13 +130,16 @@ describe("adaptive question selection", () => {
     expect(result.capacity.status).toBe("LIMITED");
   });
 
-  it("completes the three demo journeys with the canonical scenario answers", () => {
+  it("completes the three journeys with the canonical scenario answers", () => {
     for (const scenario of Object.values(scenarios)) {
       let session = createConversationSession(scenario, `session-${scenario.id}`, scenario.capturedAt);
       session = answerCurrentQuestion(session, scenario, "USE_KNOWN_DATA", scenario.capturedAt);
+      const answers = getScenarioAnswers(scenario.id);
+
+      expect(answers, `missing canonical answers for ${scenario.id}`).toBeDefined();
 
       for (const questionId of session.questionIds) {
-        const value = demoAnswers[scenario.id][questionId as keyof typeof scenario.knownProfile];
+        const value = answers?.[questionId as keyof typeof scenario.knownProfile];
         expect(value, `missing answer for ${scenario.id}.${questionId}`).toBeDefined();
         session = answerCurrentQuestion(session, scenario, value as string, scenario.capturedAt);
       }
@@ -187,13 +190,14 @@ describe("adaptive question selection", () => {
 
   it("returns no scenario for invalid fixture identifiers", () => {
     expect(getScenario("unknown")).toBeUndefined();
+    expect(getScenarioAnswers("unknown")).toBeUndefined();
     expect(getScenarioByLeadId("lead-unknown")).toBeUndefined();
   });
 
   it("projects the exact same evaluation used by prospect and advisor views", () => {
-    const qualified = getDemoQualifiedLeads();
+    const qualified = getQualifiedScenarioLeads();
     const jonathan = qualified.find(({ scenario }) => scenario.id === "jonathan");
-    const direct = evaluateProfile(scenarios.jonathan, "USE_KNOWN_DATA", demoAnswers.jonathan);
+    const direct = evaluateProfile(scenarios.jonathan, "USE_KNOWN_DATA", scenarioAnswers.jonathan);
 
     expect(jonathan?.evaluation).toEqual(direct);
     expect(jonathan?.evaluation.readinessScore).toBe(direct.readinessScore);

@@ -81,9 +81,8 @@ export type EvaluationResult = {
 export type ConversationStatus = "ACTIVE" | "COMPLETED" | "OPTED_OUT";
 
 export type ConversationSession = {
-  version: 2;
+  version: 3;
   id: string;
-  demoMode: true;
   scenarioId: Scenario["id"];
   leadId: Scenario["leadId"];
   consent: ConsentMode;

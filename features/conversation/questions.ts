@@ -2,8 +2,8 @@ import type { ProfileField, Question } from "./domain";
 
 export const consentQuestion: Question = {
   id: "consent",
-  prompt: "¿Nos autorizas a usar información sintética conocida para personalizar esta demostración?",
-  explanation: "DEMO_MODE: los datos son ficticios, permanecen en este navegador y puedes continuar sin utilizarlos.",
+  prompt: "¿Nos autorizas a usar la información disponible para personalizar tu orientación?",
+  explanation: "El avance se guardará en este dispositivo. Si prefieres, puedes continuar sin usar la información conocida.",
   options: [
     { value: "USE_KNOWN_DATA", label: "Sí, continuar con la información conocida" },
     { value: "START_FRESH", label: "Prefiero empezar sin usarla" },

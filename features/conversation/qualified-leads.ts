@@ -1,21 +1,26 @@
 import type { EvaluationResult, Scenario } from "./domain";
 import { evaluateProfile } from "./engine";
-import { demoAnswers, scenarios, type ScenarioId } from "./scenarios";
+import { getScenarioAnswers, scenarios } from "./scenarios";
 
 export type QualifiedLead = {
   scenario: Scenario;
   evaluation: EvaluationResult;
 };
 
-export function getDemoQualifiedLeads(): QualifiedLead[] {
-  return Object.values(scenarios).map((scenario) => ({
-    scenario,
-    evaluation: evaluateProfile(scenario, "USE_KNOWN_DATA", demoAnswers[scenario.id as ScenarioId]),
-  }));
+export function getQualifiedScenarioLeads(): QualifiedLead[] {
+  return Object.values(scenarios).map((scenario) => {
+    const answers = getScenarioAnswers(scenario.id);
+    if (!answers) throw new Error(`Missing canonical answers for scenario: ${scenario.id}`);
+
+    return {
+      scenario,
+      evaluation: evaluateProfile(scenario, "USE_KNOWN_DATA", answers),
+    };
+  });
 }
 
-export function getDemoQualifiedLead(leadId: string): QualifiedLead | undefined {
-  return getDemoQualifiedLeads().find(({ scenario }) => scenario.leadId === leadId);
+export function getQualifiedScenarioLead(leadId: string): QualifiedLead | undefined {
+  return getQualifiedScenarioLeads().find(({ scenario }) => scenario.leadId === leadId);
 }
 
 export function isCommercialOpportunity(result: EvaluationResult): boolean {

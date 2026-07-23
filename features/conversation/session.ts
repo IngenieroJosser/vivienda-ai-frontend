@@ -13,9 +13,8 @@ export function createConversationSession(
   timestamp: string,
 ): ConversationSession {
   return {
-    version: 2,
+    version: 3,
     id,
-    demoMode: true,
     scenarioId: scenario.id,
     leadId: scenario.leadId,
     consent: "PENDING",

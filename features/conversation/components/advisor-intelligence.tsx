@@ -7,7 +7,7 @@ import { Pill, ProgressBar } from "@/components/ui";
 import { projects } from "@/lib/data";
 import type { EvaluationResult } from "../domain";
 import { formatCop, getProfileValue } from "../profile-copy";
-import { getDemoQualifiedLead } from "../qualified-leads";
+import { getQualifiedScenarioLead } from "../qualified-leads";
 import { findSessionByLeadId } from "../storage";
 
 const routeLabels: Record<EvaluationResult["route"], string> = {
@@ -21,7 +21,7 @@ const routeLabels: Record<EvaluationResult["route"], string> = {
 };
 
 export function AdvisorIntelligence({ leadId }: { leadId: string }) {
-  const qualifiedLead = getDemoQualifiedLead(leadId);
+  const qualifiedLead = getQualifiedScenarioLead(leadId);
   const scenario = qualifiedLead?.scenario;
   const [evaluation, setEvaluation] = useState(qualifiedLead?.evaluation);
 

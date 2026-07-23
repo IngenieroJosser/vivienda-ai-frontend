@@ -50,9 +50,9 @@ export function ConversationClient({ sessionId }: { sessionId: string }) {
   }
 
   if (!loaded) return <ConversationState title="Recuperando la conversación…" description="Estamos leyendo el avance guardado en este navegador." />;
-  if (!session || !scenario) return <ConversationState title="No encontramos esta sesión." description="Puede haber sido creada en otro navegador o haberse eliminado." action={{ label: "Volver al simulador", href: "/demo" }} />;
+  if (!session || !scenario) return <ConversationState title="No encontramos esta sesión." description="Puede haber sido creada en otro navegador o haberse eliminado." action={{ label: "Elegir un recorrido", href: "/escenarios" }} />;
   if (session.status !== "ACTIVE") return <ConversationState title="El perfilamiento ya finalizó." description="La recomendación inteligente está disponible." action={{ label: "Ver resultado", href: `/resultado/${session.leadId}` }} />;
-  if (!question) return <ConversationState title="No pudimos cargar la siguiente pregunta." description="La sesión continúa guardada." action={{ label: "Volver al simulador", href: "/demo" }} />;
+  if (!question) return <ConversationState title="No pudimos cargar la siguiente pregunta." description="La sesión continúa guardada." action={{ label: "Elegir un recorrido", href: "/escenarios" }} />;
 
   return (
     <div className="min-h-screen bg-[linear-gradient(145deg,#f5fbff_0%,#fffdf3_52%,#f7fbfd_100%)] text-[color:var(--vm-color-ink)]">
@@ -65,7 +65,7 @@ export function ConversationClient({ sessionId }: { sessionId: string }) {
               <div className="mt-0.5 flex items-center gap-1.5 text-xs text-[color:var(--vm-color-success)]"><span className="h-2 w-2 rounded-full bg-[color:var(--vm-color-success)]" /> Canal WhatsApp simulado</div>
             </div>
           </div>
-          <Link href="/demo" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/15 px-4 text-sm font-semibold text-[color:var(--vm-color-brand-blue)]">
+          <Link href="/escenarios" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/15 px-4 text-sm font-semibold text-[color:var(--vm-color-brand-blue)]">
             <Icon name="arrow" className="h-4 w-4 rotate-180" /> <span className="hidden sm:inline">Guardar y salir</span>
           </Link>
         </div>
@@ -76,7 +76,7 @@ export function ConversationClient({ sessionId }: { sessionId: string }) {
           <span className="text-xs font-semibold text-[color:var(--vm-color-ink-muted)]">
             {session.consent === "PENDING" ? "Antes de conversar" : `Perfilamiento ${progress}% completo`}
           </span>
-          <span className="rounded-full bg-[color:var(--vm-color-brand-yellow)]/25 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-warning)]">DEMO_MODE</span>
+          <span className="rounded-full bg-[color:var(--vm-color-brand-blue)]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Sesión recuperable</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--vm-color-brand-blue)]/10">
           <div className="h-full rounded-full bg-[color:var(--vm-color-brand-blue)] transition-[width] duration-200" style={{ width: `${Math.max(session.consent === "PENDING" ? 4 : 12, progress)}%` }} />
@@ -90,7 +90,7 @@ export function ConversationClient({ sessionId }: { sessionId: string }) {
 
             {session.consent === "PENDING" ? (
               <AssistantMessage>
-                Antes de usar la información sintética asociada a este escenario, necesitamos tu autorización. También puedes comenzar desde cero.
+                Antes de usar la información disponible para personalizar tu orientación, necesitamos tu autorización. También puedes comenzar desde cero.
               </AssistantMessage>
             ) : (
               <AssistantMessage>

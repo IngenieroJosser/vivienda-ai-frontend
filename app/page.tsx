@@ -45,7 +45,7 @@ export default function Home() {
                 Cuéntanos qué buscas y cuál es tu momento. En aproximadamente cinco minutos te orientamos con hasta tres proyectos compatibles y un siguiente paso claro, seas afiliado o no.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/demo" prefetch className="inline-flex min-h-13 items-center justify-center gap-3 rounded-full bg-[color:var(--vm-color-brand-blue)] px-7 text-sm font-bold text-white shadow-[var(--vm-shadow-medium)] transition duration-200 hover:-translate-y-0.5 hover:bg-[color:var(--vm-color-brand-blue-deep)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]">
+                <Link href="/orientacion" prefetch className="inline-flex min-h-13 items-center justify-center gap-3 rounded-full bg-[color:var(--vm-color-brand-blue)] px-7 text-sm font-bold text-white shadow-[var(--vm-shadow-medium)] transition duration-200 hover:-translate-y-0.5 hover:bg-[color:var(--vm-color-brand-blue-deep)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]">
                   Empezar mi orientación <Icon name="arrow" className="h-4 w-4" />
                 </Link>
                 <Link href="/vivienda/proyectos" prefetch className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/20 bg-white px-7 text-sm font-bold text-[color:var(--vm-color-brand-blue-deep)] transition duration-200 hover:border-[color:var(--vm-color-brand-blue)] hover:text-[color:var(--vm-color-brand-blue)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]">
@@ -73,7 +73,7 @@ export default function Home() {
                   {previewAnswers.map((answer) => <div key={answer} className="rounded-[14px] border border-[color:var(--vm-color-brand-blue)]/15 bg-[color:var(--vm-color-brand-blue)]/[.045] px-4 py-3 text-sm font-semibold text-[color:var(--vm-color-ink)]">{answer}</div>)}
                 </div>
               </div>
-              <Link href="/demo" prefetch className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white transition duration-200 hover:bg-[color:var(--vm-color-brand-blue-deep)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]">
+              <Link href="/orientacion" prefetch className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white transition duration-200 hover:bg-[color:var(--vm-color-brand-blue-deep)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]">
                 Iniciar conversación <Icon name="arrow" className="h-4 w-4" />
               </Link>
             </article>
@@ -116,7 +116,7 @@ export default function Home() {
         <section className="mx-auto max-w-[1460px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
           <div className="relative overflow-hidden rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/10 bg-[linear-gradient(135deg,#fff7bd,#eef8ff)] p-8 text-[color:var(--vm-color-brand-blue-deep)] shadow-[var(--vm-shadow-medium)] sm:p-12 lg:flex lg:items-end lg:justify-between lg:gap-12 lg:p-16">
             <div><div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Tu siguiente paso</div><h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-[.96] tracking-[-.05em] sm:text-6xl">Tu búsqueda puede empezar con una conversación.</h2><p className="mt-5 max-w-2xl text-sm leading-7 text-[color:var(--vm-color-ink-muted)]">En pocos minutos podrás entender qué opciones podrían ajustarse a ti y cuál es el mejor siguiente paso.</p></div>
-            <Link href="/demo" className="mt-8 inline-flex min-h-13 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-7 text-sm font-bold text-white transition hover:bg-[color:var(--vm-color-brand-blue-deep)] lg:mt-0 lg:w-auto">Empezar mi orientación <Icon name="arrow" className="h-4 w-4" /></Link>
+            <Link href="/orientacion" className="mt-8 inline-flex min-h-13 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-7 text-sm font-bold text-white transition hover:bg-[color:var(--vm-color-brand-blue-deep)] lg:mt-0 lg:w-auto">Empezar mi orientación <Icon name="arrow" className="h-4 w-4" /></Link>
           </div>
         </section>
       </main>

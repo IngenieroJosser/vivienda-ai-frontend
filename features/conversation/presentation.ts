@@ -56,15 +56,15 @@ const resultPresentations: Record<EvaluationResult["route"], ResultPresentation>
     description: "Tus respuestas no permiten recomendar una ruta concluyente, pero ya indican qué conviene validar.",
     readinessLabel: "Información por completar",
     actionLabel: "Iniciar otra orientación",
-    actionHref: "/demo",
+    actionHref: "/escenarios",
   },
   OPTED_OUT: {
     eyebrow: "Orientación finalizada",
     title: "No continuaremos usando información de esta sesión.",
     description: "Puedes volver cuando quieras e iniciar una orientación nueva.",
     readinessLabel: "Sin evaluación",
-    actionLabel: "Volver a la demo",
-    actionHref: "/demo",
+    actionLabel: "Elegir otro recorrido",
+    actionHref: "/escenarios",
   },
 };
 

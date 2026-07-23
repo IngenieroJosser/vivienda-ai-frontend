@@ -63,7 +63,7 @@ export function getScenarioByLeadId(leadId: string): Scenario | undefined {
   return Object.values(scenarios).find((scenario) => scenario.leadId === leadId);
 }
 
-export const demoAnswers: Record<ScenarioId, ProfileAnswers> = {
+export const scenarioAnswers: Record<ScenarioId, ProfileAnswers> = {
   jonathan: {
     dreamGoal: "BUY_THIS_YEAR",
     horizon: "3_6",
@@ -86,3 +86,9 @@ export const demoAnswers: Record<ScenarioId, ProfileAnswers> = {
     visitIntent: "LATER",
   },
 };
+
+export function getScenarioAnswers(id: string): ProfileAnswers | undefined {
+  return Object.prototype.hasOwnProperty.call(scenarioAnswers, id)
+    ? scenarioAnswers[id as ScenarioId]
+    : undefined;
+}

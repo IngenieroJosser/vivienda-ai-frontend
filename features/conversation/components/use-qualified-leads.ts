@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import type { QualifiedLead } from "../qualified-leads";
-import { getDemoQualifiedLeads } from "../qualified-leads";
+import { getQualifiedScenarioLeads } from "../qualified-leads";
 import { getStoredSessions } from "../storage";
 
 export function useQualifiedLeads(): QualifiedLead[] {
-  const [qualifiedLeads, setQualifiedLeads] = useState(getDemoQualifiedLeads);
+  const [qualifiedLeads, setQualifiedLeads] = useState(getQualifiedScenarioLeads);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {

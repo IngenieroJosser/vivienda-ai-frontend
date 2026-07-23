@@ -20,7 +20,7 @@ export default function LeadsPage() {
   );
 
   return (
-    <PortalShell role="asesor" title="Bandeja de leads" subtitle="Escenarios sintéticos aprobados para validar las rutas de cierre, no afiliado y nutrición.">
+    <PortalShell role="asesor" title="Bandeja de leads" subtitle="Perfiles evaluados para revisar las rutas de atención inmediata, no afiliado y nutrición.">
       <div className="surface-solid overflow-hidden">
         <div className="flex flex-col gap-4 border-b border-black/[.07] p-5 lg:flex-row">
           <label className="relative flex-1">
