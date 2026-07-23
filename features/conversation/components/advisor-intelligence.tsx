@@ -34,10 +34,10 @@ const detailTabs: Array<{
   label: string;
   icon: Parameters<typeof Icon>[0]["name"];
 }> = [
-  { value: "SUMMARY", label: "Resumen", icon: "document" },
-  { value: "PROJECTS", label: "Proyectos", icon: "building" },
+  { value: "SUMMARY", label: "Perfil y capacidad", icon: "document" },
+  { value: "PROJECTS", label: "Viviendas recomendadas", icon: "building" },
   { value: "CONVERSATION", label: "Conversación", icon: "mail" },
-  { value: "ACTIVITY", label: "Actividad", icon: "history" },
+  { value: "ACTIVITY", label: "Gestionar oportunidad", icon: "target" },
 ];
 
 export function AdvisorIntelligence({
@@ -160,7 +160,7 @@ export function AdvisorIntelligence({
             </>
           ) : null}
 
-          <nav aria-label="Secciones de la oportunidad" className="-mx-1 mt-5 flex gap-1 overflow-x-auto border-t border-[color:var(--vm-color-line)] px-1 pt-4">
+          <nav aria-label="Secciones de la oportunidad" className="advisor-opportunity-tabs -mx-1 mt-5 flex gap-1 overflow-x-auto border-t border-[color:var(--vm-color-line)] px-1 pt-4">
             {detailTabs.map((tab) => (
               <button
                 key={tab.value}

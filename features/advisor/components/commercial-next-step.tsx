@@ -5,6 +5,7 @@ import { Icon } from "@/components/icon";
 import type { EvaluationResult } from "@/features/conversation/domain";
 import { isCommercialOpportunity } from "@/features/conversation/qualified-leads";
 import { useCommercialStates } from "../use-commercial-states";
+import { getCommercialWorkflow } from "../workflow";
 
 export function CommercialNextStep({
   leadId,
@@ -20,57 +21,44 @@ export function CommercialNextStep({
   const { states } = useCommercialStates();
   const state = states[leadId];
   const commercial = isCommercialOpportunity(evaluation);
-  const title = !commercial
-    ? evaluation.nextAction
-    : !state?.assignedTo
-      ? "Tomar la oportunidad"
-      : !state.firstContactAt
-        ? "Registrar el primer contacto"
-        : state.status === "CONTACTING"
-          ? "Registrar el resultado"
-          : !state.followUpAt
-            ? "Programar el siguiente paso"
-          : "Cumplir el seguimiento programado";
-  const description = !commercial
-    ? evaluation.blockers[0] ?? "Continuar la ruta de acompañamiento."
-    : !state?.assignedTo
-      ? "La gestión permanece bloqueada hasta que un asesor acepte la oportunidad."
-      : !state.firstContactAt
-        ? "Después del contacto podrás registrar el resultado y la siguiente actividad."
-        : state.status === "CONTACTING"
-          ? "Define cómo resultó el contacto para habilitar el siguiente paso."
-          : state.followUpAt
-            ? `Seguimiento programado para ${formatDate(state.followUpAt)}.`
-            : "El resultado ya está registrado; define cuándo debe continuar la gestión.";
+  const workflow = getCommercialWorkflow(state);
+  const title = commercial ? workflow.title : evaluation.nextAction;
+  const description = commercial
+    ? workflow.description
+    : evaluation.blockers[0] ?? "Continuar la ruta de acompañamiento.";
 
   if (compact) {
     return (
-      <section className="sticky top-[72px] z-20 flex flex-col gap-3 rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-brand-blue)]/20 bg-white/95 p-3.5 shadow-[0_10px_30px_rgba(17,24,32,.09)] sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-3">
+      <section className="advisor-action-dock sticky top-[72px] z-20">
+        <div className="advisor-action-dock__summary">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]">
             <Icon name="target" className="h-4 w-4" />
           </span>
           <div className="min-w-0">
             <div className="text-[9px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
-              Siguiente acción
+              Qué debes hacer ahora
             </div>
-            <p className="truncate text-sm font-semibold">{title}</p>
+            <p className="text-sm font-semibold">{title}</p>
+            <span>{description}</span>
           </div>
         </div>
-        {commercial && !state?.followUpAt ? (
+        {commercial ? (
+          <WorkflowProgress completed={workflow.completedSteps} />
+        ) : null}
+        {commercial && workflow.action !== "FOLLOW_UP" ? (
           <button
             type="button"
             onClick={onManage}
-            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-4 text-xs font-bold text-white"
+            className="advisor-action-dock__button"
           >
-            Gestionar ahora <Icon name="arrow" className="h-3.5 w-3.5" />
+            {workflow.ctaLabel} <Icon name="arrow" className="h-3.5 w-3.5" />
           </button>
         ) : (
           <Link
             href={commercial ? "/asesor/agenda" : "/asesor/nutricion"}
-            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-4 text-xs font-bold text-white"
+            className="advisor-action-dock__button"
           >
-            {commercial ? "Ver actividad" : "Abrir acompañamiento"}
+            {commercial ? workflow.ctaLabel : "Abrir acompañamiento"}
             <Icon name="arrow" className="h-3.5 w-3.5" />
           </Link>
         )}
@@ -103,6 +91,19 @@ export function CommercialNextStep({
   );
 }
 
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("es-CO", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+function WorkflowProgress({ completed }: { completed: number }) {
+  const steps = ["Asignar", "Contactar", "Resultado", "Seguimiento"];
+  return (
+    <ol className="advisor-action-dock__progress" aria-label="Progreso comercial">
+      {steps.map((step, index) => (
+        <li
+          key={step}
+          className={index < completed ? "advisor-action-dock__step--done" : ""}
+        >
+          <span>{index < completed ? <Icon name="check" className="h-3 w-3" /> : index + 1}</span>
+          <small>{step}</small>
+        </li>
+      ))}
+    </ol>
+  );
 }

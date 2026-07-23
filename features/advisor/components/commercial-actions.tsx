@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Icon } from "@/components/icon";
 import { useQualifiedLeads } from "@/features/conversation/components/use-qualified-leads";
 import { isCommercialOpportunity } from "@/features/conversation/qualified-leads";
@@ -10,8 +10,10 @@ import {
   createCommercialState,
   type CommercialActivityType,
   type CommercialStatus,
+  type CommercialOpportunityState,
 } from "../commercial";
 import { useCommercialStates } from "../use-commercial-states";
+import { getCommercialWorkflow } from "../workflow";
 
 const ADVISOR_NAME = "Asesor actual";
 
@@ -22,7 +24,6 @@ export function CommercialActions({ leadId }: { leadId: string }) {
   const [note, setNote] = useState("");
   const [followUpAt, setFollowUpAt] = useState("");
   const [feedback, setFeedback] = useState("");
-  const now = useMemo(() => new Date().toISOString(), []);
 
   if (!qualifiedLead || !isCommercialOpportunity(qualifiedLead.evaluation)) {
     return null;
@@ -33,6 +34,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
     createCommercialState(leadId, qualifiedLead.scenario.capturedAt);
   const isAssigned = Boolean(state.assignedTo);
   const hasFirstContact = Boolean(state.firstContactAt);
+  const workflow = getCommercialWorkflow(state);
 
   function persist(
     type: CommercialActivityType,
@@ -58,20 +60,22 @@ export function CommercialActions({ leadId }: { leadId: string }) {
   }
 
   function acceptOpportunity() {
+    const timestamp = new Date().toISOString();
     persist("OPPORTUNITY_ACCEPTED", `Oportunidad aceptada por ${ADVISOR_NAME}.`, {
       type: "OPPORTUNITY_ACCEPTED",
       description: "",
-      timestamp: now,
+      timestamp,
       status: "ASSIGNED",
       assignedTo: ADVISOR_NAME,
     });
   }
 
   function recordContact() {
+    const timestamp = new Date().toISOString();
     persist("CONTACT_RECORDED", "Contacto registrado por el asesor.", {
       type: "CONTACT_RECORDED",
       description: "",
-      timestamp: now,
+      timestamp,
       status: "CONTACTING",
       firstContact: true,
     });
@@ -87,10 +91,11 @@ export function CommercialActions({ leadId }: { leadId: string }) {
   function scheduleFollowUp() {
     if (!followUpAt) return;
     const timestamp = new Date(followUpAt).toISOString();
+    const occurredAt = new Date().toISOString();
     persist("FOLLOW_UP_SCHEDULED", `Seguimiento programado para ${formatDate(timestamp)}.`, {
       type: "FOLLOW_UP_SCHEDULED",
       description: "",
-      timestamp: now,
+      timestamp: occurredAt,
       status: "FOLLOW_UP",
       followUpAt: timestamp,
     });
@@ -103,7 +108,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
       {
         type: "STATUS_CHANGED",
         description: "",
-        timestamp: now,
+        timestamp: new Date().toISOString(),
         status,
       },
     );
@@ -122,7 +127,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
       {
         type: "VALIDATION_CHANGED",
         description: "",
-        timestamp: now,
+        timestamp: new Date().toISOString(),
         [field]: checked,
       },
     );
@@ -154,125 +159,88 @@ export function CommercialActions({ leadId }: { leadId: string }) {
         </div>
       ) : null}
 
-      {!state.assignedTo ? (
-        <button
-          type="button"
-          onClick={acceptOpportunity}
-          className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-4 text-sm font-bold text-white"
-        >
-          <Icon name="user" className="h-4 w-4" /> Tomar oportunidad
-        </button>
-      ) : null}
-
-      {!isAssigned ? (
-        <p className="mt-3 rounded-[var(--vm-radius-control)] bg-white/75 p-3 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
-          Toma la oportunidad para habilitar contacto, estado, validaciones,
-          notas y seguimiento.
-        </p>
-      ) : null}
-
-      <div className="mt-4 flex items-start gap-3 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white/80 p-3">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/8 text-[color:var(--vm-color-brand-blue)]">
-          <Icon name="info" className="h-4 w-4" />
-        </span>
-        <div>
-          <p className="text-xs font-semibold">Canales corporativos pendientes</p>
-          <p className="mt-1 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">
-            El prototipo registra la gestión localmente sin simular llamadas ni
-            mensajes reales.
-          </p>
+      <div className="advisor-management-flow">
+        <div className="advisor-management-flow__current">
+          <span>Paso actual</span>
+          <strong>{workflow.title}</strong>
+          <p>{workflow.description}</p>
         </div>
-      </div>
 
-      <button
-        type="button"
-        onClick={recordContact}
-        disabled={!isAssigned || hasFirstContact}
-        className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/20 bg-white text-xs font-bold text-[color:var(--vm-color-brand-blue)] disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        <Icon name="check" className="h-4 w-4" /> {hasFirstContact ? "Primer contacto registrado" : "Registrar primer contacto"}
-      </button>
-
-      <label className="mt-5 block">
-        <span className="text-xs font-semibold">Resultado del contacto</span>
-        <select
-          value={state.status}
-          onChange={(event) => changeStatus(event.target.value as CommercialStatus)}
-          disabled={!hasFirstContact}
-          className="mt-2 h-11 w-full rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {(hasFirstContact
-            ? Object.entries(commercialStatusLabels).filter(
-                ([value]) => value !== "NEW" && value !== "ASSIGNED",
-              )
-            : [[state.status, commercialStatusLabels[state.status]]]
-          ).map(([value, label]) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </select>
-      </label>
-
-      <label className="mt-4 block">
-        <span className="text-xs font-semibold">Programar seguimiento</span>
-        <div className="mt-2 flex gap-2">
-          <input
-            type="datetime-local"
-            value={followUpAt}
-            onChange={(event) => setFollowUpAt(event.target.value)}
-            disabled={!hasFirstContact}
-            className="min-w-0 flex-1 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white px-3 text-xs disabled:cursor-not-allowed disabled:opacity-50"
-          />
+        {!isAssigned ? (
           <button
             type="button"
-            onClick={scheduleFollowUp}
-            disabled={!hasFirstContact || !followUpAt}
-            aria-label="Guardar seguimiento"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)] text-white disabled:opacity-40"
+            onClick={acceptOpportunity}
+            className="advisor-management-flow__primary"
           >
-            <Icon name="calendar" className="h-4 w-4" />
+            <Icon name="user" className="h-4 w-4" />
+            Tomar esta oportunidad
           </button>
-        </div>
-      </label>
+        ) : null}
 
-      <div className="mt-4 space-y-2">
-        <ValidationCheck
-          label="Requiere validar subsidio"
-          checked={state.subsidyValidationRequired}
-          disabled={!hasFirstContact}
-          onChange={(checked) =>
-            toggleValidation("subsidyValidationRequired", checked)
-          }
-        />
-        <ValidationCheck
-          label="Requiere validar financiación"
-          checked={state.financingValidationRequired}
-          disabled={!hasFirstContact}
-          onChange={(checked) =>
-            toggleValidation("financingValidationRequired", checked)
-          }
-        />
+        {isAssigned && !hasFirstContact ? (
+          <section className="advisor-management-flow__section">
+            <div className="advisor-management-flow__section-heading">
+              <span>2</span>
+              <div>
+                <strong>Contacta al prospecto</strong>
+                <p>
+                  En esta demostración el contacto ocurre fuera del sistema.
+                  Regístralo cuando haya finalizado.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={recordContact}
+              className="advisor-management-flow__primary"
+            >
+              <Icon name="check" className="h-4 w-4" />
+              Confirmar primer contacto
+            </button>
+          </section>
+        ) : null}
+
+        {hasFirstContact ? (
+          <PostContactManagement
+            key={state.status}
+            state={state}
+            followUpAt={followUpAt}
+            onFollowUpChange={setFollowUpAt}
+            onStatusChange={changeStatus}
+            onSchedule={scheduleFollowUp}
+            onValidationChange={toggleValidation}
+          />
+        ) : null}
+
+        {isAssigned ? (
+          <details className="advisor-management-flow__additional">
+            <summary>
+              <span>
+                <Icon name="plus" className="h-4 w-4" />
+                Añadir información complementaria
+              </span>
+              <Icon name="chevron" className="h-4 w-4" />
+            </summary>
+            <label>
+              <span>Nota del asesor</span>
+              <textarea
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                rows={3}
+                maxLength={500}
+                placeholder="Registra contexto útil para el siguiente contacto"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={addNote}
+              disabled={!note.trim()}
+            >
+              Guardar nota
+            </button>
+          </details>
+        ) : null}
       </div>
-
-      <label className="mt-4 block">
-        <span className="text-xs font-semibold">Nota del asesor</span>
-        <textarea
-          value={note}
-          onChange={(event) => setNote(event.target.value)}
-          rows={3}
-          maxLength={500}
-          disabled={!isAssigned}
-          placeholder="Registra contexto útil para el siguiente contacto"
-          className="mt-2 w-full resize-y rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white p-3 text-xs leading-5 disabled:cursor-not-allowed disabled:opacity-50"
-        />
-      </label>
-      <button
-        type="button"
-        onClick={addNote}
-        disabled={!isAssigned || !note.trim()}
-        className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/20 bg-white text-xs font-bold text-[color:var(--vm-color-brand-blue)] disabled:opacity-40"
-      >
-        <Icon name="plus" className="h-4 w-4" /> Añadir nota
-      </button>
 
       {feedback ? (
         <div role="status" className="advisor-toast mt-3 rounded-[var(--vm-radius-control)] bg-white/80 p-3 text-xs text-[color:var(--vm-color-success)]">
@@ -328,6 +296,126 @@ function ValidationCheck({
       />
       {label}
     </label>
+  );
+}
+
+function PostContactManagement({
+  state,
+  followUpAt,
+  onFollowUpChange,
+  onStatusChange,
+  onSchedule,
+  onValidationChange,
+}: {
+  state: CommercialOpportunityState;
+  followUpAt: string;
+  onFollowUpChange: (value: string) => void;
+  onStatusChange: (status: CommercialStatus) => void;
+  onSchedule: () => void;
+  onValidationChange: (
+    field: "subsidyValidationRequired" | "financingValidationRequired",
+    checked: boolean,
+  ) => void;
+}) {
+  const [result, setResult] = useState<CommercialStatus>(state.status);
+  const terminal = ["WON", "DEFERRED", "NOT_VIABLE"].includes(state.status);
+  const resultRecorded = !["ASSIGNED", "CONTACTING"].includes(state.status);
+
+  if (terminal) {
+    return (
+      <div className="advisor-management-flow__complete">
+        <Icon name="check" className="h-5 w-5" />
+        <div>
+          <strong>Gestión finalizada como {commercialStatusLabels[state.status]}</strong>
+          <p>El historial conserva las acciones y decisiones registradas.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <section className="advisor-management-flow__section">
+        <div className="advisor-management-flow__section-heading">
+          <span>3</span>
+          <div>
+            <strong>Registra el resultado</strong>
+            <p>Selecciona el avance real después del contacto.</p>
+          </div>
+        </div>
+        <label className="advisor-management-flow__field">
+          <span>Resultado del contacto</span>
+          <select
+            value={result}
+            onChange={(event) =>
+              setResult(event.target.value as CommercialStatus)
+            }
+          >
+            {Object.entries(commercialStatusLabels)
+              .filter(([value]) => value !== "NEW" && value !== "ASSIGNED")
+              .map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          onClick={() => onStatusChange(result)}
+          disabled={result === state.status}
+          className="advisor-management-flow__secondary"
+        >
+          Guardar resultado
+        </button>
+      </section>
+
+      {resultRecorded ? (
+        <section className="advisor-management-flow__section">
+          <div className="advisor-management-flow__section-heading">
+            <span>4</span>
+            <div>
+              <strong>Define la próxima actividad</strong>
+              <p>Programa una fecha concreta para mantener la continuidad.</p>
+            </div>
+          </div>
+          <label className="advisor-management-flow__field">
+            <span>Fecha y hora del seguimiento</span>
+            <input
+              type="datetime-local"
+              value={followUpAt}
+              onChange={(event) => onFollowUpChange(event.target.value)}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={onSchedule}
+            disabled={!followUpAt}
+            className="advisor-management-flow__primary"
+          >
+            <Icon name="calendar" className="h-4 w-4" />
+            Programar seguimiento
+          </button>
+          <div className="advisor-management-flow__validations">
+            <span>Validaciones necesarias</span>
+            <ValidationCheck
+              label="Validar subsidio"
+              checked={state.subsidyValidationRequired}
+              onChange={(checked) =>
+                onValidationChange("subsidyValidationRequired", checked)
+              }
+            />
+            <ValidationCheck
+              label="Validar financiación"
+              checked={state.financingValidationRequired}
+              onChange={(checked) =>
+                onValidationChange("financingValidationRequired", checked)
+              }
+            />
+          </div>
+        </section>
+      ) : null}
+    </>
   );
 }
 
