@@ -7,7 +7,7 @@ import { ProductBrand } from "./brand";
 import { Icon } from "./icon";
 import { AnimatedHeroBackground } from "./animated-hero-background";
 
-type Role = "asesor" | "marketing" | "admin";
+type Role = "asesor";
 type NavItem = { label: string; href: string; icon: Parameters<typeof Icon>[0]["name"] };
 
 const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[]; insight: string }> = {
@@ -22,27 +22,6 @@ const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[]
       { label: "Comparador", href: "/asesor/comparador", icon: "compare" },
     ],
   },
-  marketing: {
-    label: "Marketing intelligence",
-    userRole: "Marketing manager",
-    insight: "La campaña “Subsidio + vivienda” concentra la mejor calidad de lead esta semana.",
-    nav: [
-      { label: "Dashboard", href: "/marketing/dashboard", icon: "chart" },
-      { label: "Campañas", href: "/marketing/campanas", icon: "campaign" },
-      { label: "Leads", href: "/asesor/leads", icon: "users" },
-    ],
-  },
-  admin: {
-    label: "Administración",
-    userRole: "Administración",
-    insight: "El modelo v2.4.1 permanece estable y sin alertas críticas de drift.",
-    nav: [
-      { label: "Proyectos", href: "/admin/proyectos", icon: "building" },
-      { label: "Motor de scoring", href: "/admin/scoring", icon: "brain" },
-      { label: "Auditoría", href: "/admin/auditoria", icon: "shield" },
-      { label: "Marketing", href: "/marketing/dashboard", icon: "chart" },
-    ],
-  },
 };
 
 const PortalChromeContext = createContext<Role | null>(null);
@@ -50,7 +29,6 @@ const PortalChromeContext = createContext<Role | null>(null);
 export function PortalLayout({ role, children }: { role: Role; children: ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [roleOpen, setRoleOpen] = useState(false);
   const config = roleConfig[role];
 
 
@@ -88,7 +66,7 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
         <div className="rounded-[18px] bg-[#111820] p-4 text-white shadow-[0_14px_36px_rgba(17,24,32,.13)]">
           <div className="flex items-center justify-between"><div className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#ffd000]">Insight del día</div><Icon name="brain" className="h-4 w-4 text-[#ffd000]" /></div>
           <p className="mt-3 text-[11px] leading-5 text-white/58">{config.insight}</p>
-          <Link href={role === "admin" ? "/admin/scoring" : role === "marketing" ? "/marketing/dashboard" : "/asesor/leads"} prefetch className="mt-4 inline-flex items-center gap-2 text-[11px] font-bold text-white">Ver detalle <Icon name="arrow" className="h-3.5 w-3.5" /></Link>
+          <Link href="/asesor/leads" prefetch className="mt-4 inline-flex items-center gap-2 text-[11px] font-bold text-white">Ver detalle <Icon name="arrow" className="h-3.5 w-3.5" /></Link>
         </div>
         <Link href="/login" prefetch className="mt-3 flex items-center gap-3 rounded-[15px] px-3.5 py-3 text-xs font-semibold text-black/40 transition hover:bg-black/[.035] hover:text-black"><Icon name="logout" className="h-4 w-4" />Cerrar sesión</Link>
       </div>
@@ -113,18 +91,7 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
             <div className="flex h-[72px] items-center justify-between px-5 sm:px-8 lg:px-9">
               <div className="flex items-center gap-3">
                 <button onClick={() => setMobileOpen(true)} className="grid h-10 w-10 place-items-center rounded-[13px] border border-black/[.08] bg-white shadow-sm lg:hidden"><Icon name="menu" /></button>
-                <div className="relative hidden md:block">
-                  <button onClick={() => setRoleOpen((value) => !value)} className="flex items-center gap-2 rounded-full border border-black/[.065] bg-white px-4 py-2.5 text-xs font-bold text-black/62 shadow-sm transition hover:border-[#0067b1]/20">
-                    {config.label}<Icon name="chevron" className={`h-3.5 w-3.5 transition ${roleOpen ? "rotate-90" : ""}`} />
-                  </button>
-                  {roleOpen ? (
-                    <div className="absolute left-0 top-12 z-50 w-60 rounded-[18px] border border-black/[.075] bg-white p-2 shadow-[0_22px_60px_rgba(17,24,32,.14)]">
-                      <Link href="/asesor/dashboard" prefetch className="block rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-black/[.035]">Portal comercial</Link>
-                      <Link href="/marketing/dashboard" prefetch className="block rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-black/[.035]">Marketing intelligence</Link>
-                      <Link href="/admin/proyectos" prefetch className="block rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-black/[.035]">Administración</Link>
-                    </div>
-                  ) : null}
-                </div>
+                <div className="hidden rounded-full border border-black/[.065] bg-white px-4 py-2.5 text-xs font-bold text-black/62 shadow-sm md:block">{config.label}</div>
               </div>
               <div className="flex items-center gap-2.5">
                 <button className="relative grid h-10 w-10 place-items-center rounded-[13px] border border-black/[.065] bg-white shadow-sm"><Icon name="search" className="h-4 w-4 text-black/52" /></button>
