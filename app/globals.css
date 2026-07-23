@@ -596,6 +596,7 @@ button:disabled { cursor: not-allowed; }
 .search-field { padding-left: 3rem; }
 .search-field:hover,
 .search-field:focus { transform: none; }
+.login-field { padding-left: 3rem; }
 .form-label {
   display:block;
   margin-bottom: 8px;
