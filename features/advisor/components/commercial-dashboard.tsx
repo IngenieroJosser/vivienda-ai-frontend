@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
 import { AdvisorIntelligence } from "@/features/conversation/components/advisor-intelligence";
@@ -23,7 +23,11 @@ export function CommercialDashboard({ fullInbox = false }: { fullInbox?: boolean
   const [status, setStatus] = useState("ALL");
   const [selectedLeadId, setSelectedLeadId] = useState("");
   const detailRef = useRef<HTMLDivElement>(null);
-  const now = useMemo(() => new Date(), []);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
   const opportunities = useMemo(
     () => projectCommercialOpportunities(qualifiedLeads, states, now),
     [qualifiedLeads, states, now],
@@ -51,6 +55,7 @@ export function CommercialDashboard({ fullInbox = false }: { fullInbox?: boolean
 
   function selectOpportunity(leadId: string) {
     setSelectedLeadId(leadId);
+    if (!window.matchMedia("(max-width: 1279px)").matches) return;
     window.requestAnimationFrame(() => {
       detailRef.current?.scrollIntoView({ block: "start" });
     });

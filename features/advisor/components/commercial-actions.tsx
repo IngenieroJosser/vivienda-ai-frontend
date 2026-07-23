@@ -171,28 +171,18 @@ export function CommercialActions({ leadId }: { leadId: string }) {
         </p>
       ) : null}
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          disabled
-          title="Disponible al integrar el canal corporativo"
-          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-line)] bg-white text-xs font-semibold text-[color:var(--vm-color-ink-muted)] disabled:cursor-not-allowed disabled:opacity-65"
-        >
-          <Icon name="phone" className="h-4 w-4" /> WhatsApp
-        </button>
-        <button
-          type="button"
-          disabled
-          title="Disponible al integrar el canal corporativo"
-          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-line)] bg-white text-xs font-semibold text-[color:var(--vm-color-ink-muted)] disabled:cursor-not-allowed disabled:opacity-65"
-        >
-          <Icon name="phone" className="h-4 w-4" /> Llamar
-        </button>
+      <div className="mt-4 flex items-start gap-3 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white/80 p-3">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/8 text-[color:var(--vm-color-brand-blue)]">
+          <Icon name="info" className="h-4 w-4" />
+        </span>
+        <div>
+          <p className="text-xs font-semibold">Canales corporativos pendientes</p>
+          <p className="mt-1 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">
+            El prototipo registra la gestión localmente sin simular llamadas ni
+            mensajes reales.
+          </p>
+        </div>
       </div>
-      <p className="mt-2 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">
-        Canales pendientes de identidad y telefonía corporativa. No se muestran
-        datos sensibles ficticios.
-      </p>
 
       <button
         type="button"

@@ -1,13 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { Pill, ProgressBar } from "@/components/ui";
-import {
-  formatProjectPrice,
-  getValidityLabel,
-} from "@/lib/housing-catalog";
 import type { EvaluationResult } from "../domain";
 import { resolveProjectMatches } from "../matching";
 import { formatCop, getProfileValue } from "../profile-copy";
@@ -18,6 +15,7 @@ import type { ProspectSession } from "@/features/prospect/domain";
 import { findProspectSessionByLeadId } from "@/features/prospect/storage";
 import { CommercialActions } from "@/features/advisor/components/commercial-actions";
 import { CommercialNextStep } from "@/features/advisor/components/commercial-next-step";
+import { AdvisorProjectExplorer } from "@/features/advisor/components/advisor-project-explorer";
 
 const routeLabels: Record<EvaluationResult["route"], string> = {
   ADVISOR_NOW: "Oportunidad comercial",
@@ -82,6 +80,7 @@ export function AdvisorIntelligence({
   const priorityLabel = evaluation.priority === "HIGH" ? "Alta" : evaluation.priority === "MEDIUM" ? "Media" : "Baja";
   const confidence = Math.round(evaluation.confidenceScore * 100);
   const calculatedAt = formatCalculationDate(scenario.capturedAt);
+  const primaryProject = projectMatches[0]?.project;
 
   function openTab(tab: DetailTab) {
     setActiveTab(tab);
@@ -99,17 +98,42 @@ export function AdvisorIntelligence({
         onManage={() => openTab("ACTIVITY")}
       />
       <div className="space-y-5">
-        <section className={`surface-solid ${embedded ? "p-5" : "p-6 sm:p-8"}`}>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="grid h-14 w-14 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)] font-bold text-white">{initials}</span>
-            <div>
-              <h2 className="text-2xl font-semibold">{scenario.displayName}</h2>
-              <div className="mt-2 flex flex-wrap gap-2">
+        <section className={`advisor-opportunity-focus surface-solid ${embedded ? "p-5" : "p-6 sm:p-8"}`}>
+          <div className="advisor-opportunity-focus__identity">
+            <div className="advisor-opportunity-focus__person">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="grid h-14 w-14 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)] font-bold text-white">{initials}</span>
+                <div>
+                  <div className="text-[9px] font-bold uppercase tracking-[.13em] text-[color:var(--vm-color-brand-blue)]">
+                    Oportunidad seleccionada
+                  </div>
+                  <h2 className="mt-1 text-2xl font-semibold">{scenario.displayName}</h2>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
                 <Pill tone={evaluation.priority === "HIGH" ? "green" : "yellow"}>{priorityLabel} prioridad</Pill>
                 <Pill>{routeLabels[evaluation.route]}</Pill>
                 <Pill tone="gray">{scenario.leadSource === "META" ? "Meta · pago" : "Canal orgánico"}</Pill>
               </div>
             </div>
+            {primaryProject ? (
+              <div className="advisor-opportunity-focus__project">
+                <Image
+                  src={primaryProject.image}
+                  alt=""
+                  fill
+                  sizes={embedded ? "360px" : "480px"}
+                  quality={90}
+                  className="object-cover"
+                />
+                <span />
+                <div>
+                  <small>Proyecto principal</small>
+                  <strong>{primaryProject.name}</strong>
+                  <p>{primaryProject.location.city} · {primaryProject.location.development}</p>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <p className="mt-5 rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.04] p-4 text-sm font-semibold leading-6">{evaluation.commercialSummary}</p>
@@ -248,38 +272,7 @@ export function AdvisorIntelligence({
         </section> : null}
 
         {activeTab === "PROJECTS" && projectMatches.length ? (
-          <section className="surface-solid p-6 sm:p-8">
-            <h2 className="text-lg font-semibold">Proyectos y evidencia utilizados</h2>
-            <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Es la misma recomendación que recibió el prospecto, sin recalcular el ranking en el portal.</p>
-            <div className="mt-5 space-y-4">
-              {projectMatches.map(({ project, match }, index) => {
-                const evidence = project.evidence.filter(({ id }) => match.evidenceSourceIds.includes(id));
-                return (
-                  <article key={project.id} className="rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-line)] p-5">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Recomendación {index + 1}</div>
-                        <h3 className="mt-1 text-xl font-semibold">{project.name}</h3>
-                        <div className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">{project.location.city} · {project.location.development}</div>
-                      </div>
-                      <Pill tone={match.signals.includes("CAMPAIGN") ? "yellow" : "blue"}>{match.signals.includes("CAMPAIGN") ? "Origen Meta" : "Coincidencia de perfil"}</Pill>
-                    </div>
-                    <div className="mt-4 grid gap-3 text-xs sm:grid-cols-3">
-                      <EvidenceFact label="Precio" value={project.priceFromCop.validity === "CURRENT" ? formatProjectPrice(project) : "Por confirmar"} />
-                      <EvidenceFact label="Inventario" value={getValidityLabel(project.inventory.validity)} />
-                      <EvidenceFact label="Entrega" value={getValidityLabel(project.deliveryDate.validity)} />
-                    </div>
-                    <ul className="mt-4 space-y-2 text-sm leading-5 text-[color:var(--vm-color-ink-muted)]">
-                      {match.reasons.map((reason) => <li key={reason} className="flex gap-2"><Icon name="check" className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--vm-color-success)]" />{reason}</li>)}
-                    </ul>
-                    <div className="mt-4 flex flex-wrap gap-2 border-t border-[color:var(--vm-color-line)] pt-4">
-                      {evidence.map((source) => source.url ? <a key={source.id} href={source.url} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[color:var(--vm-color-line)] px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]">{source.title}<Icon name="arrow" className="h-3 w-3" /></a> : <span key={source.id} className="text-xs text-[color:var(--vm-color-ink-muted)]">{source.title}</span>)}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </section>
+          <AdvisorProjectExplorer matches={projectMatches} />
         ) : activeTab === "PROJECTS" ? (
           <section className="surface-solid p-8 text-center">
             <Icon name="building" className="mx-auto h-6 w-6 text-[color:var(--vm-color-brand-blue)]" />
@@ -290,9 +283,8 @@ export function AdvisorIntelligence({
       </div>
 
       {activeTab === "ACTIVITY" ? (
-        <div className="grid gap-4 xl:grid-cols-[1.1fr_.9fr]">
+        <div className="mx-auto max-w-3xl">
           <CommercialActions leadId={leadId} />
-          <CommercialNextStep leadId={leadId} evaluation={evaluation} />
         </div>
       ) : null}
 
@@ -348,10 +340,6 @@ function Metric({
 
 function ProfileItem({ label, value }: { label: string; value: string }) {
   return <div className="rounded-[18px] border border-[color:var(--vm-color-line)] p-4"><div className="text-[10px] uppercase tracking-[.11em] text-[color:var(--vm-color-ink-muted)]">{label}</div><div className="mt-2 text-sm font-semibold">{value}</div></div>;
-}
-
-function EvidenceFact({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.035] p-3"><div className="text-[9px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">{label}</div><div className="mt-1 font-semibold">{value}</div></div>;
 }
 
 function contextualProfileValue(
