@@ -112,6 +112,7 @@ export function evaluateProfile(
     NEEDS_DATA: "Completar la información financiera pendiente",
     OPTED_OUT: "Finalizar comunicaciones",
   };
+  const followUp = buildFollowUp(scenario.capturedAt, route);
 
   return {
     leadId: scenario.leadId,
@@ -130,7 +131,30 @@ export function evaluateProfile(
     blockers,
     commercialSummary: buildCommercialSummary(scenario, profile, route, capacity.estimatedHousingPayment),
     nextAction: nextActions[route],
+    followUpAt: followUp.at,
+    advanceCondition: followUp.condition,
   };
+}
+
+function buildFollowUp(
+  capturedAt: string,
+  route: EvaluationResult["route"],
+): { at: string | null; condition: string } {
+  const configuration: Record<EvaluationResult["route"], { days: number | null; condition: string }> = {
+    ADVISOR_NOW: { days: 0, condition: "Validar financiación y confirmar interés en una visita" },
+    NON_AFFILIATE_PRIORITY: { days: 0, condition: "Confirmar ruta disponible para no afiliados" },
+    NURTURE_FINANCIAL: { days: 90, condition: "Contar con una meta de ahorro activa y evidenciar avance" },
+    NURTURE_BENEFITS: { days: 14, condition: "Completar la validación preliminar de beneficios" },
+    NURTURE_LONG_TERM: { days: 90, condition: "Acercarse a un horizonte de compra menor a doce meses" },
+    NEEDS_DATA: { days: 3, condition: "Completar ingresos y obligaciones pendientes" },
+    OPTED_OUT: { days: null, condition: "Solo reactivar si el prospecto inicia una nueva conversación" },
+  };
+  const selected = configuration[route];
+  if (selected.days === null) return { at: null, condition: selected.condition };
+
+  const date = new Date(capturedAt);
+  date.setUTCDate(date.getUTCDate() + selected.days);
+  return { at: date.toISOString(), condition: selected.condition };
 }
 
 function calculateCapacity(profile: ProfileAnswers): EvaluationResult["capacity"] {
@@ -217,5 +241,7 @@ function buildOptedOutResult(scenario: Scenario): EvaluationResult {
     blockers: ["No se autorizó continuar con la orientación"],
     commercialSummary: "El prospecto decidió no continuar. No realizar contacto derivado de esta sesión.",
     nextAction: "Finalizar comunicaciones",
+    followUpAt: null,
+    advanceCondition: "Solo reactivar si el prospecto inicia una nueva conversación",
   };
 }

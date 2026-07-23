@@ -6,6 +6,7 @@ export const scenarios = {
     leadId: "lead-jonathan",
     displayName: "Jonathan",
     leadSource: "META",
+    capturedAt: "2026-07-23T08:30:00.000-05:00",
     routeLabel: "Afiliado listo",
     description: "Lead de pauta con afiliación, hogar e ingresos conocidos. Debemos descubrir intención, capacidad disponible y ubicación.",
     knownProfile: {
@@ -22,6 +23,7 @@ export const scenarios = {
     leadId: "lead-laura",
     displayName: "Laura",
     leadSource: "ORGANIC",
+    capturedAt: "2026-07-23T09:10:00.000-05:00",
     routeLabel: "No afiliada con capacidad",
     description: "Lead orgánico no afiliado. La calidad del perfilamiento debe ser la misma y su afiliación no reduce la prioridad.",
     knownProfile: {
@@ -36,6 +38,7 @@ export const scenarios = {
     leadId: "lead-camila",
     displayName: "Camila",
     leadSource: "META",
+    capturedAt: "2026-07-23T10:00:00.000-05:00",
     routeLabel: "Afiliada en preparación",
     description: "Lead de pauta con compra a largo plazo y ahorro pendiente. Debemos definir una nutrición útil, no enviarla a cierre.",
     knownProfile: {

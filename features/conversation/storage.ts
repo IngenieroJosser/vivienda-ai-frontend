@@ -14,6 +14,10 @@ function readSessions(): ConversationSession[] {
   }
 }
 
+export function getStoredSessions(): ConversationSession[] {
+  return readSessions();
+}
+
 export function saveSession(session: ConversationSession): void {
   const sessions = readSessions().filter((stored) => stored.id !== session.id);
   window.localStorage.setItem(SESSIONS_KEY, JSON.stringify([session, ...sessions].slice(0, 10)));

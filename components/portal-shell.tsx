@@ -15,8 +15,10 @@ const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[]
     label: "Portal comercial",
     userRole: "Asesora senior",
     nav: [
+      { label: "Resumen", href: "/asesor/resumen", icon: "chart" },
       { label: "Leads", href: "/asesor/leads", icon: "users" },
       { label: "Agenda", href: "/asesor/agenda", icon: "calendar" },
+      { label: "Nutrición", href: "/asesor/nutricion", icon: "heart" },
       { label: "Comparador", href: "/asesor/comparador", icon: "compare" },
     ],
   },

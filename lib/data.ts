@@ -1,5 +1,4 @@
-import { evaluateProfile } from "@/features/conversation/engine";
-import { demoAnswers, scenarios } from "@/features/conversation/scenarios";
+import { getDemoQualifiedLeads, isCommercialOpportunity } from "@/features/conversation/qualified-leads";
 
 export const projects = [
   {
@@ -49,8 +48,7 @@ const goalLabels: Record<string, string> = {
   BENEFITS: "Conocer beneficios y subsidios",
 };
 
-export const leads = Object.values(scenarios).map((scenario) => {
-  const evaluation = evaluateProfile(scenario, "USE_KNOWN_DATA", demoAnswers[scenario.id]);
+export const leads = getDemoQualifiedLeads().map(({ scenario, evaluation }) => {
   const project = projects.find((item) => evaluation.projectIds.includes(item.id));
   const profile = evaluation.profileSnapshot;
 
@@ -65,7 +63,7 @@ export const leads = Object.values(scenarios).map((scenario) => {
       : "Por completar",
     project: project?.name ?? "Sin asignar",
     source: scenario.leadSource === "META" ? "Meta" : "Canal propio",
-    state: evaluation.route === "ADVISOR_NOW" || evaluation.route === "NON_AFFILIATE_PRIORITY" ? "Listo para asesor" : "Nutrición activa",
+    state: isCommercialOpportunity(evaluation) ? "Listo para asesor" : "Nutrición activa",
     priority: evaluation.priority === "HIGH" ? "Alta" : evaluation.priority === "MEDIUM" ? "Media" : "Baja",
     phone: "Dato protegido",
     email: "Dato protegido",

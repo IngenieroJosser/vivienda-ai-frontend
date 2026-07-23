@@ -20,6 +20,7 @@ export type Scenario = {
   leadId: `lead-${string}`;
   displayName: string;
   leadSource: "META" | "ORGANIC";
+  capturedAt: string;
   routeLabel: string;
   description: string;
   knownProfile: ProfileAnswers;
@@ -73,6 +74,8 @@ export type EvaluationResult = {
   blockers: string[];
   commercialSummary: string;
   nextAction: string;
+  followUpAt: string | null;
+  advanceCondition: string;
 };
 
 export type ConversationStatus = "ACTIVE" | "COMPLETED" | "OPTED_OUT";

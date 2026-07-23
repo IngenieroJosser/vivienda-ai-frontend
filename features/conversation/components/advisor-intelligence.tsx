@@ -6,9 +6,8 @@ import { Icon } from "@/components/icon";
 import { Pill, ProgressBar } from "@/components/ui";
 import { projects } from "@/lib/data";
 import type { EvaluationResult } from "../domain";
-import { evaluateProfile } from "../engine";
 import { formatCop, getProfileValue } from "../profile-copy";
-import { demoAnswers, getScenarioByLeadId } from "../scenarios";
+import { getDemoQualifiedLead } from "../qualified-leads";
 import { findSessionByLeadId } from "../storage";
 
 const routeLabels: Record<EvaluationResult["route"], string> = {
@@ -22,11 +21,9 @@ const routeLabels: Record<EvaluationResult["route"], string> = {
 };
 
 export function AdvisorIntelligence({ leadId }: { leadId: string }) {
-  const scenario = getScenarioByLeadId(leadId);
-  const initial = scenario
-    ? evaluateProfile(scenario, "USE_KNOWN_DATA", demoAnswers[scenario.id])
-    : undefined;
-  const [evaluation, setEvaluation] = useState(initial);
+  const qualifiedLead = getDemoQualifiedLead(leadId);
+  const scenario = qualifiedLead?.scenario;
+  const [evaluation, setEvaluation] = useState(qualifiedLead?.evaluation);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -115,7 +112,7 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
           </div>
           <h3 className="mt-5 text-2xl font-semibold tracking-[-.04em]">{evaluation.nextAction}</h3>
           <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{evaluation.blockers[0] ?? "No se identificaron bloqueos principales."}</p>
-          <button type="button" className="mt-6 min-h-12 w-full rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white">Registrar gestión</button>
+          <Link href="/asesor/agenda" className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white">Abrir agenda <Icon name="calendar" className="h-4 w-4" /></Link>
         </section>
 
         {project ? (

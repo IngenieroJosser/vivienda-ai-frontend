@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { evaluateProfile, selectQuestions } from "../engine";
-import { scenarios } from "../scenarios";
+import { getDemoQualifiedLeads } from "../qualified-leads";
+import { demoAnswers, getScenario, getScenarioByLeadId, scenarios } from "../scenarios";
 import { answerCurrentQuestion, createConversationSession } from "../session";
 
 describe("adaptive question selection", () => {
@@ -110,5 +111,75 @@ describe("adaptive question selection", () => {
     expect(result.capacity.currentCommitmentRatio + result.capacity.maximumHousingRatio).toBeLessThanOrEqual(0.4);
     expect(result.capacity.estimatedHousingPayment).toBe(300_000);
     expect(result.capacity.status).toBe("LIMITED");
+  });
+
+  it("completes the three demo journeys with the canonical scenario answers", () => {
+    for (const scenario of Object.values(scenarios)) {
+      let session = createConversationSession(scenario, `session-${scenario.id}`, scenario.capturedAt);
+      session = answerCurrentQuestion(session, scenario, "USE_KNOWN_DATA", scenario.capturedAt);
+
+      for (const questionId of session.questionIds) {
+        const value = demoAnswers[scenario.id][questionId as keyof typeof scenario.knownProfile];
+        expect(value, `missing answer for ${scenario.id}.${questionId}`).toBeDefined();
+        session = answerCurrentQuestion(session, scenario, value as string, scenario.capturedAt);
+      }
+
+      expect(session.status).toBe("COMPLETED");
+      expect(session.evaluation).toBeDefined();
+    }
+  });
+
+  it("keeps total commitments exactly at forty percent for every known income case", () => {
+    for (const obligations of ["LOW", "MEDIUM", "HIGH"] as const) {
+      const result = evaluateProfile(scenarios.laura, "USE_KNOWN_DATA", {
+        dreamGoal: "BUY_THIS_YEAR",
+        horizon: "0_3",
+        incomeRange: "HIGH",
+        obligations,
+        savings: "READY",
+      });
+
+      expect(result.capacity.currentCommitmentRatio + result.capacity.maximumHousingRatio).toBeCloseTo(0.4);
+    }
+  });
+
+  it("survives interruption and JSON recovery before completing", () => {
+    let session = createConversationSession(scenarios.jonathan, "recoverable", scenarios.jonathan.capturedAt);
+    session = answerCurrentQuestion(session, scenarios.jonathan, "USE_KNOWN_DATA", scenarios.jonathan.capturedAt);
+    session = answerCurrentQuestion(session, scenarios.jonathan, "BUY_THIS_YEAR", scenarios.jonathan.capturedAt);
+    session = answerCurrentQuestion(session, scenarios.jonathan, "3_6", scenarios.jonathan.capturedAt);
+
+    const recovered = JSON.parse(JSON.stringify(session)) as typeof session;
+    expect(recovered.status).toBe("ACTIVE");
+    expect(recovered.currentQuestionIndex).toBe(2);
+    expect(recovered.answers).toEqual({ dreamGoal: "BUY_THIS_YEAR", horizon: "3_6" });
+  });
+
+  it("stops the flow without qualification when consent is rejected", () => {
+    const session = answerCurrentQuestion(
+      createConversationSession(scenarios.camila, "declined", scenarios.camila.capturedAt),
+      scenarios.camila,
+      "DECLINED",
+      scenarios.camila.capturedAt,
+    );
+
+    expect(session.status).toBe("OPTED_OUT");
+    expect(session.evaluation?.route).toBe("OPTED_OUT");
+    expect(session.evaluation?.followUpAt).toBeNull();
+  });
+
+  it("returns no scenario for invalid fixture identifiers", () => {
+    expect(getScenario("unknown")).toBeUndefined();
+    expect(getScenarioByLeadId("lead-unknown")).toBeUndefined();
+  });
+
+  it("projects the exact same evaluation used by prospect and advisor views", () => {
+    const qualified = getDemoQualifiedLeads();
+    const jonathan = qualified.find(({ scenario }) => scenario.id === "jonathan");
+    const direct = evaluateProfile(scenarios.jonathan, "USE_KNOWN_DATA", demoAnswers.jonathan);
+
+    expect(jonathan?.evaluation).toEqual(direct);
+    expect(jonathan?.evaluation.readinessScore).toBe(direct.readinessScore);
+    expect(jonathan?.evaluation.capacity).toEqual(direct.capacity);
   });
 });
