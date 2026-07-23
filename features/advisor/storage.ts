@@ -15,16 +15,13 @@ export function getCommercialStates(): Record<
   CommercialOpportunityState
 > {
   if (typeof window === "undefined") return {};
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as Partial<StoredCommercialState>;
-    return parsed.version === 1 && parsed.opportunities
-      ? parsed.opportunities
-      : {};
-  } catch {
-    return {};
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (!raw) return {};
+  const parsed = JSON.parse(raw) as Partial<StoredCommercialState>;
+  if (parsed.version !== 1 || !parsed.opportunities) {
+    throw new Error("La gestión comercial local no es compatible.");
   }
+  return parsed.opportunities;
 }
 
 export function saveCommercialState(state: CommercialOpportunityState): void {

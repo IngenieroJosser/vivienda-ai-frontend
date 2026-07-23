@@ -277,7 +277,7 @@ button:disabled { cursor: not-allowed; }
   margin-right: 4px;
   border-radius: 999px;
   background: var(--vm-color-brand-blue);
-  animation: vm-typing 900ms ease-in-out infinite;
+  animation: vm-typing 1.1s ease-in-out infinite;
 }
 
 .typing-dot:nth-child(2) { animation-delay: 120ms; }
@@ -313,7 +313,7 @@ button:disabled { cursor: not-allowed; }
 @keyframes vm-message-right {
   from {
     opacity: 0;
-    transform: translateX(14px);
+    transform: translateX(8px);
   }
   to {
     opacity: 1;
@@ -324,7 +324,7 @@ button:disabled { cursor: not-allowed; }
 @keyframes vm-message-left {
   from {
     opacity: 0;
-    transform: translateX(-14px);
+    transform: translateX(-8px);
   }
   to {
     opacity: 1;
@@ -467,7 +467,8 @@ button:disabled { cursor: not-allowed; }
   .result-transition,
   .result-reveal,
   .typing-dot,
-  .prospect-landing__ambient {
+  .prospect-landing__ambient,
+  .animate-pulse {
     animation: none !important;
   }
 

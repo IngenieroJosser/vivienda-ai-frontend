@@ -1,3 +1,5 @@
+import { CHAT_MESSAGE_MAX_LENGTH } from "./chat-machine";
+
 const ENTRY_MESSAGE_KEY = "vivienda-match:pending-entry-message";
 const SESSION_MESSAGE_PREFIX = "vivienda-match:pending-session-message:";
 const MAX_MESSAGE_AGE_MS = 30 * 60 * 1000;
@@ -58,5 +60,9 @@ function readPending(raw: string | null): PendingMessage | undefined {
 }
 
 function sanitize(value: string): string {
-  return value.trim().replace(/\s+/g, " ").slice(0, 600);
+  return value
+    .trim()
+    .replace(/[^\S\r\n]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .slice(0, CHAT_MESSAGE_MAX_LENGTH);
 }

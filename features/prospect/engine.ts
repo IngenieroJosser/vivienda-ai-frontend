@@ -81,7 +81,11 @@ export function answerProspectMessage(
   timestamp: string,
 ): ProspectSession {
   if (session.status !== "ACTIVE") return session;
-  const userText = rawMessage.trim().replace(/\s+/g, " ").slice(0, 600);
+  const userText = rawMessage
+    .trim()
+    .replace(/[^\S\r\n]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .slice(0, 600);
   if (!userText) return session;
 
   const extraction = extractProspectSignals(userText, session.nextAction);

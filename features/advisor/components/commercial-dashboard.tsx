@@ -20,7 +20,7 @@ export function CommercialDashboard({
   fullInbox?: boolean;
 }) {
   const qualifiedLeads = useQualifiedLeads();
-  const { states } = useCommercialStates();
+  const { states, status: storageStatus, retry } = useCommercialStates();
   const [query, setQuery] = useState("");
   const [priority, setPriority] = useState("ALL");
   const [status, setStatus] = useState("ALL");
@@ -47,6 +47,13 @@ export function CommercialDashboard({
     [opportunities, priority, query, status],
   );
   const visible = fullInbox ? filtered : filtered.slice(0, 8);
+
+  if (storageStatus === "LOADING") return <CommercialDashboardLoading />;
+  if (storageStatus === "ERROR") {
+    return (
+      <CommercialDashboardError onRetry={retry} />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -462,4 +469,29 @@ function formatDuration(minutes: number): string {
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours} h`;
   return `${Math.floor(hours / 24)} d`;
+}
+
+function CommercialDashboardLoading() {
+  return (
+    <div aria-live="polite" aria-busy="true" className="space-y-6">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div key={index} className="h-32 animate-pulse rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-line)] bg-white" />
+        ))}
+      </section>
+      <div className="h-[420px] animate-pulse rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-line)] bg-white" />
+      <span className="sr-only">Cargando oportunidades comerciales</span>
+    </div>
+  );
+}
+
+function CommercialDashboardError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <section role="alert" className="surface-solid p-9 text-center">
+      <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-rose-50 text-rose-700"><Icon name="alert" /></span>
+      <h2 className="mt-4 text-xl font-semibold">No pudimos leer la gestión comercial local.</h2>
+      <p className="mt-2 text-sm text-[color:var(--vm-color-ink-muted)]">Las evaluaciones no fueron modificadas. Intenta cargar nuevamente la información guardada en este dispositivo.</p>
+      <button type="button" onClick={onRetry} className="mt-5 min-h-11 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white">Intentar nuevamente</button>
+    </section>
+  );
 }

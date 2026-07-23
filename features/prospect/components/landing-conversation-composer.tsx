@@ -1,14 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/icon";
 import { stageEntryMessage } from "../pending-message";
+import {
+  CHAT_MESSAGE_MAX_LENGTH,
+  shouldShowCharacterCounter,
+  validateChatMessage,
+} from "../chat-machine";
 
 export function LandingConversationComposer() {
   const router = useRouter();
   const [message, setMessage] = useState("");
-  const hasMessage = Boolean(message.trim());
+  const composingRef = useRef(false);
+  const hasMessage = validateChatMessage(message).valid;
+  const showCounter = shouldShowCharacterCounter(message.length);
 
   function submit() {
     if (!hasMessage) return;
@@ -28,23 +35,43 @@ export function LandingConversationComposer() {
         <span className="sr-only">Cuéntanos qué vivienda estás buscando</span>
         <textarea
           value={message}
-          onChange={(event) => setMessage(event.target.value)}
+          onChange={(event) =>
+            setMessage(event.target.value.slice(0, CHAT_MESSAGE_MAX_LENGTH))
+          }
+          onCompositionStart={() => {
+            composingRef.current = true;
+          }}
+          onCompositionEnd={() => {
+            composingRef.current = false;
+          }}
           onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
+            if (
+              event.key === "Enter" &&
+              !event.shiftKey &&
+              !event.nativeEvent.isComposing &&
+              !composingRef.current
+            ) {
               event.preventDefault();
               submit();
             }
           }}
           rows={1}
-          maxLength={600}
+          maxLength={CHAT_MESSAGE_MAX_LENGTH}
           className="prospect-landing-textarea"
           placeholder="Cuéntanos qué vivienda estás buscando…"
         />
       </label>
       <div className="mt-3 flex items-center justify-between gap-3">
-        <p className="text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
-          Tu mensaje continuará en la conversación después de autorizar el uso de la información.
-        </p>
+        <div>
+          <p className="text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
+            Tu mensaje continuará en la conversación después de autorizar el uso de la información.
+          </p>
+          {showCounter ? (
+            <p className="mt-1 text-[10px] text-[color:var(--vm-color-ink-muted)]">
+              {message.length}/{CHAT_MESSAGE_MAX_LENGTH}
+            </p>
+          ) : null}
+        </div>
         <button
           type="submit"
           disabled={!hasMessage}

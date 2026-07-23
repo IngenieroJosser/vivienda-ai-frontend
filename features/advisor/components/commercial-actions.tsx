@@ -18,7 +18,7 @@ const ADVISOR_NAME = "Asesor actual";
 export function CommercialActions({ leadId }: { leadId: string }) {
   const leads = useQualifiedLeads();
   const qualifiedLead = leads.find(({ scenario }) => scenario.leadId === leadId);
-  const { states, save } = useCommercialStates();
+  const { states, status, save, retry } = useCommercialStates();
   const [note, setNote] = useState("");
   const [followUpAt, setFollowUpAt] = useState("");
   const [feedback, setFeedback] = useState("");
@@ -47,8 +47,12 @@ export function CommercialActions({ leadId }: { leadId: string }) {
       description,
       timestamp: new Date().toISOString(),
     });
-    save(updated);
-    setFeedback(description);
+    const saved = save(updated);
+    setFeedback(
+      saved
+        ? description
+        : "No pudimos guardar la acción. Puedes intentar nuevamente.",
+    );
   }
 
   function acceptOpportunity() {
@@ -140,6 +144,13 @@ export function CommercialActions({ leadId }: { leadId: string }) {
           <Icon name="briefcase" className="h-5 w-5" />
         </span>
       </div>
+
+      {status === "ERROR" ? (
+        <div role="alert" className="mt-4 rounded-[var(--vm-radius-control)] border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+          La acción quedó pendiente en esta pantalla y no se guardó localmente.
+          <button type="button" onClick={retry} className="ml-2 font-bold underline">Intentar nuevamente</button>
+        </div>
+      ) : null}
 
       {!state.assignedTo ? (
         <button
