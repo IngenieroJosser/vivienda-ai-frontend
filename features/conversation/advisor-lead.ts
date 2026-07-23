@@ -1,6 +1,6 @@
-import type { QualifiedLead } from "@/features/conversation/qualified-leads";
-import { getQualifiedScenarioLeads, isCommercialOpportunity } from "@/features/conversation/qualified-leads";
 import { getHousingProject } from "@/lib/housing-catalog";
+import type { QualifiedLead } from "./qualified-leads";
+import { isCommercialOpportunity } from "./qualified-leads";
 
 const routeLabels = {
   ADVISOR_NOW: "Oportunidad comercial",
@@ -26,7 +26,32 @@ const goalLabels: Record<string, string> = {
   BENEFITS: "Conocer beneficios y subsidios",
 };
 
-export function toAdvisorLeadRow({ scenario, evaluation }: QualifiedLead) {
+export type AdvisorLeadRow = {
+  id: QualifiedLead["scenario"]["leadId"];
+  name: string;
+  initials: string;
+  score: number;
+  confidence: number;
+  capacity: string;
+  project: string;
+  source: string;
+  state: string;
+  priority: "Alta" | "Media" | "Baja";
+  phone: string;
+  email: string;
+  affiliate: string;
+  route: (typeof routeLabels)[keyof typeof routeLabels];
+  horizon: string;
+  goal: string;
+  location: string;
+  blocker: string;
+  nextAction: string;
+};
+
+export function toAdvisorLeadRow({
+  scenario,
+  evaluation,
+}: QualifiedLead): AdvisorLeadRow {
   const project = evaluation.projectIds
     .map(getHousingProject)
     .find((item) => item !== undefined);
@@ -39,22 +64,41 @@ export function toAdvisorLeadRow({ scenario, evaluation }: QualifiedLead) {
     score: evaluation.readinessScore,
     confidence: evaluation.confidenceScore,
     capacity: evaluation.capacity.estimatedHousingPayment
-      ? new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(evaluation.capacity.estimatedHousingPayment)
+      ? new Intl.NumberFormat("es-CO", {
+          style: "currency",
+          currency: "COP",
+          maximumFractionDigits: 0,
+        }).format(evaluation.capacity.estimatedHousingPayment)
       : "Por completar",
     project: project?.name ?? "Sin asignar",
     source: scenario.leadSource === "META" ? "Meta" : "Canal propio",
-    state: isCommercialOpportunity(evaluation) ? "Listo para asesor" : "Nutrición activa",
-    priority: evaluation.priority === "HIGH" ? "Alta" : evaluation.priority === "MEDIUM" ? "Media" : "Baja",
+    state: isCommercialOpportunity(evaluation)
+      ? "Listo para asesor"
+      : "Acompañamiento activo",
+    priority:
+      evaluation.priority === "HIGH"
+        ? "Alta"
+        : evaluation.priority === "MEDIUM"
+          ? "Media"
+          : "Baja",
     phone: "Dato protegido",
     email: "Dato protegido",
-    affiliate: profile.affiliation === "AFFILIATE" ? "Afiliado verificado" : profile.affiliation === "NON_AFFILIATE" ? "No afiliado" : "Por confirmar",
+    affiliate:
+      profile.affiliation === "AFFILIATE"
+        ? "Afiliado verificado"
+        : profile.affiliation === "NON_AFFILIATE"
+          ? "No afiliado"
+          : "Por confirmar",
     route: routeLabels[evaluation.route],
     horizon: horizonLabels[profile.horizon ?? ""] ?? "Por confirmar",
     goal: goalLabels[profile.dreamGoal ?? ""] ?? "Por confirmar",
-    location: profile.location === "SOACHA" ? "Soacha" : profile.location === "BOGOTA" ? "Bogotá" : "Por confirmar",
+    location:
+      profile.location === "SOACHA"
+        ? "Soacha"
+        : profile.location === "BOGOTA"
+          ? "Bogotá"
+          : "Por confirmar",
     blocker: evaluation.blockers[0] ?? "Sin bloqueo principal",
     nextAction: evaluation.nextAction,
   };
 }
-
-export const leads = getQualifiedScenarioLeads().map(toAdvisorLeadRow);

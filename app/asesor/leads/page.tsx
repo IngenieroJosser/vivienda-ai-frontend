@@ -5,8 +5,8 @@ import Link from "next/link";
 import { PortalShell } from "@/components/portal-shell";
 import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
+import { toAdvisorLeadRow } from "@/features/conversation/advisor-lead";
 import { useQualifiedLeads } from "@/features/conversation/components/use-qualified-leads";
-import { toAdvisorLeadRow } from "@/lib/data";
 
 export default function LeadsPage() {
   const qualifiedLeads = useQualifiedLeads();
