@@ -365,37 +365,59 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
     "outgoing" in chatState ? chatState.outgoing : undefined;
   const canSubmit = canSubmitChatMessage(chatState, message);
   const showCounter = shouldShowCharacterCounter(message.length);
+  const conversationHeading = session.firstName
+    ? `${session.firstName}, este espacio es para escucharte.`
+    : "Este espacio es para escucharte.";
 
   return (
     <div className="orientation-experience orientation-chat flex h-[100dvh] flex-col overflow-hidden">
       <OrientationHeader
         status={
           chatState.phase === "typing"
-            ? "Preparando respuesta"
-            : "Conversación protegida"
+            ? "Respondiendo"
+            : "Orientación activa"
         }
       />
 
       <div
         ref={scrollContainerRef}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        className="orientation-chat-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain"
       >
-      <div className="mx-auto grid max-w-[1120px] gap-10 px-4 pb-10 pt-7 sm:px-6 lg:grid-cols-[240px_minmax(0,760px)] lg:px-8 lg:pt-10">
+      <div className="mx-auto grid max-w-[1180px] gap-8 px-4 pb-12 pt-6 sm:px-6 lg:grid-cols-[280px_minmax(0,800px)] lg:gap-12 lg:px-8 lg:pt-9">
         <aside className="hidden lg:block">
-          <div className="sticky top-3">
+          <div className="orientation-chat-aside sticky top-3">
             <HousingWindow compact />
-            <div className="mt-6">
-              <div className="text-[11px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
-                Tu espacio de orientación
+            <div className="px-2 pt-7">
+              <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.14em] text-[color:var(--vm-color-brand-blue)]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--vm-color-brand-yellow)]" />
+                Conversación a tu ritmo
               </div>
-              <h1 className="mt-3 text-2xl font-semibold leading-tight tracking-[-.04em]">
-                No hay respuestas correctas. Solo tu historia.
-              </h1>
-              <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
-                Escribe con naturalidad. Confirmaremos únicamente lo necesario
-                para darte un siguiente paso responsable.
+              <h2 className="mt-4 text-[1.75rem] font-semibold leading-[1.04] tracking-[-.05em]">
+                Tu historia importa más que llenar un formulario.
+              </h2>
+              <p className="mt-4 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+                Cuéntanos qué imaginas, qué te preocupa y qué necesitas para
+                avanzar. La conversación se adapta a ti.
               </p>
-              <div className="mt-5 border-t border-[color:var(--vm-color-line)] pt-5">
+              <div className="orientation-chat-principle mt-6">
+                <span className="orientation-chat-principle__icon">
+                  <Icon name="heart" className="h-4 w-4" />
+                </span>
+                <div>
+                  <strong>Sin respuestas correctas</strong>
+                  <p>Escribe como hablarías normalmente.</p>
+                </div>
+              </div>
+              <div className="orientation-chat-principle">
+                <span className="orientation-chat-principle__icon">
+                  <Icon name="lock" className="h-4 w-4" />
+                </span>
+                <div>
+                  <strong>Tú mantienes el control</strong>
+                  <p>Tu avance queda guardado en este dispositivo.</p>
+                </div>
+              </div>
+              <div className="mt-6 border-t border-[color:var(--vm-color-line)] pt-5">
                 <OrientationTrustStrip />
               </div>
             </div>
@@ -403,21 +425,52 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
         </aside>
 
         <main className="min-w-0">
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <div>
-              <div className="text-[11px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
-                Orientación en curso
+          <section className="orientation-chat-intro">
+            <div className="relative z-10">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.14em] text-[color:var(--vm-color-brand-blue)]">
+                  <Icon name="home" className="h-4 w-4" />
+                  Tu orientación de vivienda
+                </div>
+                <span className="inline-flex items-center gap-2 text-[10px] font-bold text-[color:var(--vm-color-success)]">
+                  <span className="h-2 w-2 rounded-full bg-[color:var(--vm-color-success)]" />
+                  Avance guardado
+                </span>
               </div>
-              <div className="mt-1 text-sm text-[color:var(--vm-color-ink-muted)]">
-                Puedes escribir con tus propias palabras
+              <h1 className="mt-5 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-.052em] sm:text-[2.65rem]">
+                {conversationHeading}
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-[color:var(--vm-color-ink-muted)] sm:text-[15px]">
+                No tienes que organizar tus ideas antes de escribir. Vivienda
+                Colsubsidio te ayudará a convertir lo que buscas en un siguiente
+                paso claro.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <span className="orientation-chat-attribute">
+                  <Icon name="heart" className="h-3.5 w-3.5" />
+                  Conversación libre
+                </span>
+                <span className="orientation-chat-attribute">
+                  <Icon name="shield" className="h-3.5 w-3.5" />
+                  Información protegida
+                </span>
               </div>
             </div>
-            <span className="hidden items-center gap-2 rounded-full bg-white px-3 py-2 text-[10px] font-bold text-[color:var(--vm-color-success)] shadow-[var(--vm-shadow-low)] sm:inline-flex">
-              <span className="h-2 w-2 rounded-full bg-[color:var(--vm-color-success)]" />
-              Guardado local
-            </span>
-          </div>
+          </section>
 
+          <div className="orientation-thread-shell mt-5">
+            <div className="orientation-thread-shell__header">
+              <div>
+                <div className="text-xs font-bold">Vivienda Colsubsidio</div>
+                <div className="mt-0.5 text-[10px] text-[color:var(--vm-color-ink-muted)]">
+                  Orientación personalizada
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[color:var(--vm-color-ink-muted)]">
+                <Icon name="lock" className="h-3.5 w-3.5" />
+                Conversación protegida
+              </span>
+            </div>
           <section
             className="orientation-thread space-y-5"
             aria-label="Conversación de orientación"
@@ -445,6 +498,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
             {chatState.phase === "typing" ? <TypingIndicator /> : null}
             <div ref={conversationEndRef} />
           </section>
+          </div>
         </main>
       </div>
       </div>
@@ -460,9 +514,17 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
             Nuevos mensajes ↓
           </button>
         ) : null}
-        <div className="mx-auto grid max-w-[1120px] gap-10 px-4 py-4 sm:px-6 lg:grid-cols-[240px_minmax(0,760px)] lg:px-8">
+        <div className="mx-auto grid max-w-[1180px] gap-8 px-4 py-3 sm:px-6 lg:grid-cols-[280px_minmax(0,800px)] lg:gap-12 lg:px-8">
           <div className="hidden lg:block" aria-hidden="true" />
-          <div>
+          <div className="orientation-composer__content">
+          <div className="mb-2 hidden items-center justify-between px-2 sm:flex">
+            <span className="text-[10px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
+              Cuéntanos con tus palabras
+            </span>
+            <span className="text-[10px] text-[color:var(--vm-color-ink-muted)]">
+              Enter para enviar · Shift + Enter para nueva línea
+            </span>
+          </div>
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -502,10 +564,10 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
                 disabled={chatState.phase !== "idle"}
                 placeholder={
                   chatState.phase === "idle"
-                    ? "Escribe un mensaje…"
+                    ? "Escribe lo que buscas, necesitas o te preocupa…"
                     : "Espera la respuesta…"
                 }
-                className="orientation-textarea prospect-textarea min-h-[56px] resize-none rounded-[20px] border-0 bg-transparent px-4 py-3.5 text-base outline-none disabled:opacity-70"
+                className="orientation-textarea prospect-textarea min-h-[56px] resize-none rounded-[20px] border-0 bg-transparent px-4 py-3.5 text-base leading-6 outline-none disabled:opacity-70"
               />
               <div className="mt-1 min-h-4 px-2 text-right text-[10px]">
                 {chatState.phase === "idle" &&
@@ -532,20 +594,25 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
               type="submit"
               disabled={!canSubmit}
               aria-label="Enviar respuesta"
-              className={`grid h-13 w-13 shrink-0 place-items-center rounded-full transition duration-150 focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)] ${
+              className={`orientation-send-button flex h-13 shrink-0 items-center justify-center gap-2 rounded-full px-4 transition duration-150 focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)] sm:min-w-[112px] ${
                 canSubmit
                   ? "bg-[color:var(--vm-color-brand-blue)] text-white shadow-[var(--vm-shadow-low)] hover:-translate-y-0.5 hover:bg-[color:var(--vm-color-brand-blue-deep)] active:translate-y-0"
                   : "bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]/40"
               }`}
             >
+              <span className="hidden text-xs font-bold sm:inline">Enviar</span>
               <Icon name="arrow" className="h-4 w-4" />
             </button>
           </form>
-          <div className="mt-2 flex items-center justify-between gap-3 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">
-            <span>
-              La orientación es preliminar y no constituye aprobación.
+          <div className="mt-1.5 flex items-center justify-between gap-3 px-2 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">
+            <span className="inline-flex items-center gap-1.5">
+              <Icon name="info" className="h-3.5 w-3.5" />
+              Orientación preliminar
             </span>
-            <span className="shrink-0">Guardado en este dispositivo</span>
+            <span className="inline-flex shrink-0 items-center gap-1.5">
+              <Icon name="check" className="h-3.5 w-3.5 text-[color:var(--vm-color-success)]" />
+              Guardado local
+            </span>
           </div>
           </div>
         </div>
@@ -667,12 +734,16 @@ function AssistantMessage({
   animate?: boolean;
 }) {
   return (
-    <div className={`max-w-[640px] ${animate ? "prospect-message-left" : ""}`}>
-      <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
-        <span className="grid h-6 w-6 place-items-center rounded-full bg-[color:var(--vm-color-brand-yellow)]/30">
+    <div
+      className={`orientation-message orientation-message--assistant max-w-[650px] ${
+        animate ? "prospect-message-left" : ""
+      }`}
+    >
+      <div className="mb-2.5 flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
+        <span className="orientation-message__brand grid h-7 w-7 place-items-center rounded-full">
           <Icon name="home" className="h-3.5 w-3.5" />
         </span>
-        Asistente de vivienda
+        Vivienda Colsubsidio
       </div>
       <div className="orientation-assistant-bubble whitespace-pre-line px-5 py-4 text-[15px] leading-7">
         {children}
@@ -683,8 +754,17 @@ function AssistantMessage({
 
 function UserMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="orientation-user-bubble ml-auto max-w-[560px] whitespace-pre-line px-5 py-4 text-[15px] font-semibold leading-7 text-white">
-      {children}
+    <div className="orientation-message orientation-message--user ml-auto max-w-[580px]">
+      <div className="orientation-user-bubble whitespace-pre-line px-5 py-4 text-[15px] font-semibold leading-7 text-white">
+        {children}
+      </div>
+      <div className="mt-1.5 flex items-center justify-end gap-1 text-[10px] text-[color:var(--vm-color-ink-muted)]">
+        <Icon
+          name="check"
+          className="h-3 w-3 text-[color:var(--vm-color-success)]"
+        />
+        Enviado
+      </div>
     </div>
   );
 }
@@ -743,11 +823,14 @@ function PendingUserMessage({
 function TypingIndicator() {
   return (
     <div className="prospect-message-left w-fit" role="status">
-      <div className="mb-1.5 text-[10px] font-bold text-[color:var(--vm-color-brand-blue)]">
-        Preparando respuesta…
+      <div className="mb-2 flex items-center gap-2 text-[10px] font-bold text-[color:var(--vm-color-brand-blue)]">
+        <span className="orientation-message__brand grid h-6 w-6 place-items-center rounded-full">
+          <Icon name="home" className="h-3 w-3" />
+        </span>
+        Vivienda Colsubsidio está escribiendo…
       </div>
       <div
-        className="rounded-[18px_18px_18px_5px] border border-[color:var(--vm-color-line)] bg-white px-4 py-3"
+        className="orientation-typing-bubble px-4 py-3"
         aria-hidden="true"
       >
         <span className="typing-dot" />
