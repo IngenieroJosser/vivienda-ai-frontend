@@ -90,14 +90,6 @@ export function resolveCampaignExperience(campaign: string): CampaignExperience 
   return campaignExperiences.general;
 }
 
-export function sanitizeFirstName(value: string): string {
-  return value
-    .replace(/[^\p{L}\s'-]/gu, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 40);
-}
-
 function sanitizeParameter(value: string | undefined, fallback: string): string {
   const sanitized = value
     ?.trim()

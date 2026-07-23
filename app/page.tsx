@@ -36,7 +36,7 @@ export default function Home() {
             <div className="max-w-[760px]">
               <div className="inline-flex items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)]/[.07] px-3.5 py-2 text-[11px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
                 <span className="h-2 w-2 rounded-full bg-[color:var(--vm-color-brand-yellow)]" />
-                Vivienda Match AI · Orientación personalizada
+                Vivienda Colsubsidio · Orientación personalizada
               </div>
               <h1 className="mt-7 text-[clamp(3.25rem,6.8vw,7.2rem)] font-semibold leading-[.88] tracking-[-.065em] text-[color:var(--vm-color-ink)]">
                 Encuentra una vivienda que sí encaje contigo.
@@ -61,8 +61,8 @@ export default function Home() {
             <article className="glass-elevated prospect-conversation relative overflow-hidden p-5 sm:p-7" aria-label="Vista previa de la conversación">
               <div className="flex items-center justify-between border-b border-[color:var(--vm-color-brand-blue)]/10 pb-5">
                 <div className="flex items-center gap-3">
-                  <span className="grid h-11 w-11 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)] text-white"><Icon name="sparkles" className="h-5 w-5" /></span>
-                  <div><div className="text-sm font-bold">Asesor digital de vivienda</div><div className="mt-1 flex items-center gap-1.5 text-[10px] font-semibold tracking-[.02em] text-[color:var(--vm-color-success)]"><span className="h-1.5 w-1.5 rounded-full bg-current" />Orientación guiada</div></div>
+                  <span className="grid h-11 w-11 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]"><Icon name="home" className="h-5 w-5" /></span>
+                  <div><div className="text-sm font-bold">Vivienda Colsubsidio</div><div className="mt-1 flex items-center gap-1.5 text-[10px] font-semibold tracking-[.02em] text-[color:var(--vm-color-success)]"><span className="h-1.5 w-1.5 rounded-full bg-current" />Orientación virtual</div></div>
                 </div>
                 <span className="rounded-full bg-[color:var(--vm-color-brand-blue)]/[.06] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue-deep)]">Vista previa</span>
               </div>

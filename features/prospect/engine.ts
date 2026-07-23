@@ -1,9 +1,14 @@
-import type { ProfileAnswers, Scenario } from "../conversation/domain";
+import type { ProfileAnswers, ProfileField, Scenario } from "../conversation/domain";
 import { evaluateProfile } from "../conversation/engine";
 import { resolveKnownProspect } from "./campaigns";
+import {
+  buildContextualResponse,
+  selectNextBestAction,
+} from "./conversation-policy";
 import type { CampaignExperience, ProspectSession } from "./domain";
+import { extractProspectSignals } from "./signal-extractor";
 
-const PUBLIC_QUESTION_IDS = [
+const PUBLIC_PROFILE_FIELDS: ProfileField[] = [
   "affiliation",
   "mainConcern",
   "location",
@@ -12,7 +17,7 @@ const PUBLIC_QUESTION_IDS = [
   "incomeRange",
   "obligations",
   "savings",
-] as const;
+];
 
 export function createProspectSession(input: {
   id: string;
@@ -27,7 +32,7 @@ export function createProspectSession(input: {
   };
 
   return {
-    version: 2,
+    version: 3,
     id: input.id,
     ...(knownProspect?.firstName ? { firstName: knownProspect.firstName } : {}),
     acquisition: input.acquisition,
@@ -35,9 +40,10 @@ export function createProspectSession(input: {
     leadReference: input.acquisition.leadReference ?? `vm_local_${input.id}`,
     knownProfile,
     status: "CONSENT",
-    questionIds: selectPublicQuestions(knownProfile),
-    currentQuestionIndex: 0,
+    nextAction: "OPEN_DISCOVERY",
+    turns: [],
     answers: {},
+    handoffRequested: false,
     createdAt: input.timestamp,
     updatedAt: input.timestamp,
   };
@@ -47,7 +53,12 @@ export function acceptProspectConsent(
   session: ProspectSession,
   timestamp: string,
 ): ProspectSession {
-  return { ...session, status: "ACTIVE", updatedAt: timestamp };
+  return {
+    ...session,
+    status: "ACTIVE",
+    consentAcceptedAt: timestamp,
+    updatedAt: timestamp,
+  };
 }
 
 export function declineProspectConsent(
@@ -62,33 +73,56 @@ export function declineProspectConsent(
   };
 }
 
-export function answerProspectQuestion(
+export function answerProspectMessage(
   session: ProspectSession,
-  value: string,
+  rawMessage: string,
   timestamp: string,
 ): ProspectSession {
   if (session.status !== "ACTIVE") return session;
-  const field = session.questionIds[session.currentQuestionIndex];
-  if (!field) return session;
+  const userText = rawMessage.trim().replace(/\s+/g, " ").slice(0, 600);
+  if (!userText) return session;
 
-  const answers: ProfileAnswers = { ...session.answers, [field]: value };
-  const completed = session.currentQuestionIndex === session.questionIds.length - 1;
-
-  return {
+  const extraction = extractProspectSignals(userText, session.nextAction);
+  const answers: ProfileAnswers = { ...session.answers, ...extraction.profile };
+  const profile = { ...session.knownProfile, ...answers };
+  const turnCount = session.turns.length + 1;
+  const selectedAction = selectNextBestAction(profile, turnCount);
+  const completed = extraction.requestsAdvisor
+    || extraction.wantsToFinish
+    || selectedAction === "COMPLETE";
+  const draft: ProspectSession = {
     ...session,
     answers,
-    currentQuestionIndex: completed ? session.currentQuestionIndex : session.currentQuestionIndex + 1,
+    handoffRequested: session.handoffRequested || extraction.requestsAdvisor,
+    nextAction: completed ? "COMPLETE" : selectedAction,
     status: completed ? "COMPLETED" : "ACTIVE",
-    ...(completed
-      ? { evaluation: evaluateProfile(buildPublicScenario(session), "USE_KNOWN_DATA", answers) }
-      : {}),
     updatedAt: timestamp,
+  };
+  const evaluation = evaluateProfile(buildPublicScenario(draft), "USE_KNOWN_DATA", answers);
+  const assistantText = buildContextualResponse({
+    extraction,
+    nextAction: draft.nextAction,
+    profile,
+    estimatedHousingPayment: evaluation.capacity.estimatedHousingPayment,
+  });
+
+  return {
+    ...draft,
+    turns: [
+      ...session.turns,
+      {
+        id: `${session.id}-turn-${turnCount}`,
+        userText,
+        assistantText,
+        extractedFields: extraction.fields,
+        createdAt: timestamp,
+      },
+    ],
+    ...(completed ? { evaluation } : {}),
   };
 }
 
-export function buildPublicScenario(
-  session: ProspectSession,
-): Scenario {
+export function buildPublicScenario(session: ProspectSession): Scenario {
   return {
     id: `public-${session.id}`,
     leadId: `lead-${session.leadReference}`,
@@ -104,22 +138,6 @@ export function buildPublicScenario(
       `Campaña ${session.acquisition.campaign}`,
       `Contenido ${session.acquisition.content}`,
     ],
-    requiredFields: [...PUBLIC_QUESTION_IDS],
-  };
-}
-
-export function selectPublicQuestions(knownProfile: ProfileAnswers): ProspectSession["questionIds"] {
-  return PUBLIC_QUESTION_IDS.filter((field) => !knownProfile[field]);
-}
-
-export function getCapacityRange(estimatedPayment: number): {
-  minimum: number;
-  maximum: number;
-} | undefined {
-  if (estimatedPayment <= 0) return undefined;
-  const round = (value: number) => Math.round(value / 50_000) * 50_000;
-  return {
-    minimum: round(estimatedPayment * 0.85),
-    maximum: round(estimatedPayment),
+    requiredFields: PUBLIC_PROFILE_FIELDS,
   };
 }

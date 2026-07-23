@@ -1,19 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { createFunnelEvent, summarizeFunnelByCampaign } from "../analytics";
+import { getCapacityRange } from "../capacity";
 import {
   campaignExperiences,
   resolveKnownProspect,
   resolveCampaignExperience,
   sanitizeAcquisitionContext,
-  sanitizeFirstName,
 } from "../campaigns";
 import {
   acceptProspectConsent,
-  answerProspectQuestion,
+  answerProspectMessage,
   createProspectSession,
-  getCapacityRange,
-  selectPublicQuestions,
 } from "../engine";
+import { extractProspectSignals } from "../signal-extractor";
 
 describe("paid acquisition prospect journey", () => {
   const acquisition = sanitizeAcquisitionContext({
@@ -23,7 +22,7 @@ describe("paid acquisition prospect journey", () => {
     leadId: "vm_D8fx20zQp4mN",
   });
 
-  it("preserves sanitized campaign attribution and accepts only opaque lead references", () => {
+  it("preserves sanitized attribution and accepts only opaque lead references", () => {
     expect(acquisition).toEqual({
       source: "meta",
       campaign: "versalles_familias",
@@ -34,40 +33,81 @@ describe("paid acquisition prospect journey", () => {
     expect(resolveCampaignExperience(acquisition.campaign).id).toBe("versalles");
   });
 
-  it("sanitizes the minimum identity without accepting markup or numbers", () => {
-    expect(sanitizeFirstName("  Ana <script>123  María  ")).toBe("Ana script María");
+  it("extracts several profile signals from one natural-language response", () => {
+    const extraction = extractProspectSignals(
+      "Busco algo para vivir con mi hija en Soacha, pero me preocupa no tener suficiente para la cuota inicial.",
+      "OPEN_DISCOVERY",
+    );
+
+    expect(extraction.profile).toMatchObject({
+      dreamGoal: "BUY_THIS_YEAR",
+      householdSize: "2",
+      location: "SOACHA",
+      mainConcern: "PAYMENT",
+      savings: "NONE",
+    });
+    expect(extraction.fields.length).toBeGreaterThanOrEqual(5);
   });
 
-  it("uses known lead data and asks only the missing questions", () => {
-    const campaign = campaignExperiences.versalles;
-    const identifiedAcquisition = sanitizeAcquisitionContext({
-      utm_source: "Meta",
-      utm_campaign: "Versalles_Familias",
-      utm_content: "Video-01",
-      leadId: "vm_Jonathan30X1",
-    });
+  it("reflects what was understood and stops as soon as evidence is sufficient", () => {
     let session = createProspectSession({
-      id: "public-session",
-      acquisition: identifiedAcquisition,
-      campaign,
+      id: "jonathan-conversation",
+      acquisition: sanitizeAcquisitionContext({
+        utm_campaign: "versalles",
+        leadId: "vm_Jonathan30X1",
+      }),
+      campaign: campaignExperiences.versalles,
       timestamp: "2026-07-23T12:00:00.000Z",
     });
     session = acceptProspectConsent(session, "2026-07-23T12:00:01.000Z");
+    session = answerProspectMessage(
+      session,
+      "Busco algo para vivir con mi hija, pero me preocupa no tener suficiente para la cuota inicial.",
+      "2026-07-23T12:01:00.000Z",
+    );
 
-    expect(session.firstName).toBe("Jonathan");
-    expect(session.questionIds).toEqual(["mainConcern", "horizon", "obligations", "savings"]);
+    expect(session.status).toBe("ACTIVE");
+    expect(session.nextAction).toBe("obligations");
+    expect(session.turns[0]?.assistantText).toContain("dos personas");
+    expect(session.turns[0]?.extractedFields).toEqual(expect.arrayContaining(["householdSize", "mainConcern", "savings"]));
 
-    for (const answer of ["PAYMENT", "3_6", "LOW", "READY"]) {
-      session = answerProspectQuestion(session, answer, "2026-07-23T12:01:00.000Z");
-    }
+    session = answerProspectMessage(
+      session,
+      "No tengo deudas y quisiera comprar entre 3 y 6 meses.",
+      "2026-07-23T12:02:00.000Z",
+    );
 
     expect(session.status).toBe("COMPLETED");
-    expect(session.evaluation?.profileSnapshot.location).toBe("SOACHA");
-    expect(session.evaluation?.projectIds).toEqual(["versalles"]);
-    expect(session.evaluation?.readinessScore).toBeGreaterThanOrEqual(75);
+    expect(session.turns).toHaveLength(2);
+    expect(session.evaluation?.route).toBe("NURTURE_FINANCIAL");
   });
 
-  it("keeps unknown visitors anonymous until consent and selects the missing profile fields", () => {
+  it("reacts differently to different free-text answers", () => {
+    const createAnonymous = (id: string) => acceptProspectConsent(createProspectSession({
+      id,
+      acquisition: sanitizeAcquisitionContext({ utm_campaign: "general" }),
+      campaign: campaignExperiences.general,
+      timestamp: "2026-07-23T12:00:00.000Z",
+    }), "2026-07-23T12:00:01.000Z");
+
+    const vague = answerProspectMessage(
+      createAnonymous("vague"),
+      "Quiero entender mejor mis opciones.",
+      "2026-07-23T12:01:00.000Z",
+    );
+    const detailed = answerProspectMessage(
+      createAnonymous("detailed"),
+      "Busco en Soacha para vivir con mi hija y todavía no tengo ahorro.",
+      "2026-07-23T12:01:00.000Z",
+    );
+
+    expect(vague.nextAction).toBe("mainConcern");
+    expect(detailed.nextAction).toBe("horizon");
+    expect(vague.turns[0]?.assistantText).not.toBe(detailed.turns[0]?.assistantText);
+    expect(detailed.turns[0]?.extractedFields.length).toBeGreaterThan(vague.turns[0]?.extractedFields.length ?? 0);
+  });
+
+  it("keeps unknown visitors anonymous until explicit consent", () => {
     const session = createProspectSession({
       id: "anonymous-session",
       acquisition: sanitizeAcquisitionContext({ utm_campaign: "versalles" }),
@@ -77,55 +117,77 @@ describe("paid acquisition prospect journey", () => {
 
     expect(session.firstName).toBeUndefined();
     expect(session.status).toBe("CONSENT");
-    expect(session.questionIds).not.toContain("location");
-    expect(session.questionIds).toContain("affiliation");
-    expect(selectPublicQuestions({ affiliation: "AFFILIATE" })).not.toContain("affiliation");
+    expect(session.consentAcceptedAt).toBeUndefined();
+    expect(session.turns).toEqual([]);
     expect(resolveKnownProspect("unknown")).toBeUndefined();
   });
 
-  it("keeps the three internal jury journeys on distinct public routes", () => {
+  it("runs the three jury profiles through variable-length public conversations", () => {
     const cases = [
       {
         leadId: "vm_Jonathan30X1",
         campaign: campaignExperiences.versalles,
-        answers: ["PAYMENT", "3_6", "LOW", "READY"],
+        messages: [
+          "Quiero saber si la cuota me alcanza y ya tengo una base de ahorro.",
+          "No tengo deudas y quiero comprar entre 3 y 6 meses.",
+        ],
         expectedRoute: "ADVISOR_NOW",
       },
       {
         leadId: "vm_Laura30X2026",
         campaign: campaignExperiences.general,
-        answers: ["SPACE", "SOACHA", "0_3", "2", "HIGH", "LOW", "READY"],
+        messages: [
+          "Necesito espacio para mi esposo y dos hijos en Soacha, quiero comprar este año y ya tengo ahorro.",
+          "Recibimos más de 4 salarios mínimos y no tengo deudas.",
+        ],
         expectedRoute: "NON_AFFILIATE_PRIORITY",
       },
       {
         leadId: "vm_Camila30X2026",
         campaign: campaignExperiences.cuota,
-        answers: ["SOACHA", "3", "MID", "MEDIUM"],
+        messages: [
+          "Me interesa Soacha para vivir con mi hija. Recibimos entre 2 y 4 salarios y tengo algunas deudas.",
+        ],
         expectedRoute: "NURTURE_FINANCIAL",
       },
     ] as const;
 
-    const routes = cases.map(({ leadId, campaign, answers, expectedRoute }) => {
-      let session = createProspectSession({
+    const turnCounts = cases.map(({ leadId, campaign, messages, expectedRoute }) => {
+      let session = acceptProspectConsent(createProspectSession({
         id: `session-${leadId}`,
         acquisition: sanitizeAcquisitionContext({ utm_campaign: campaign.id, leadId }),
         campaign,
         timestamp: "2026-07-23T12:00:00.000Z",
-      });
-      session = acceptProspectConsent(session, "2026-07-23T12:00:01.000Z");
-      for (const answer of answers) {
-        session = answerProspectQuestion(session, answer, "2026-07-23T12:01:00.000Z");
+      }), "2026-07-23T12:00:01.000Z");
+
+      for (const message of messages) {
+        session = answerProspectMessage(session, message, "2026-07-23T12:01:00.000Z");
       }
 
       expect(session.status).toBe("COMPLETED");
       expect(session.evaluation?.route).toBe(expectedRoute);
-      return session.evaluation?.route;
+      return session.turns.length;
     });
 
-    expect(new Set(routes).size).toBe(3);
+    expect(new Set(turnCounts).size).toBeGreaterThan(1);
   });
 
-  it("presents capacity as an orientation range instead of a single promise", () => {
+  it("allows the user to request human help at any turn", () => {
+    let session = acceptProspectConsent(createProspectSession({
+      id: "human-handoff",
+      acquisition,
+      campaign: campaignExperiences.versalles,
+      timestamp: "2026-07-23T12:00:00.000Z",
+    }), "2026-07-23T12:00:01.000Z");
+
+    session = answerProspectMessage(session, "Prefiero hablar con un asesor.", "2026-07-23T12:01:00.000Z");
+
+    expect(session.status).toBe("COMPLETED");
+    expect(session.handoffRequested).toBe(true);
+    expect(session.turns).toHaveLength(1);
+  });
+
+  it("presents capacity as a prudent range below the deterministic maximum", () => {
     expect(getCapacityRange(1_200_000)).toEqual({
       minimum: 1_000_000,
       maximum: 1_200_000,

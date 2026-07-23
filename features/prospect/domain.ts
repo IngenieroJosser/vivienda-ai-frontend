@@ -20,8 +20,18 @@ export type CampaignExperience = {
 
 export type ProspectStatus = "CONSENT" | "ACTIVE" | "COMPLETED" | "DECLINED";
 
+export type ConversationAction = "OPEN_DISCOVERY" | ProfileField | "COMPLETE";
+
+export type ConversationTurn = {
+  id: string;
+  userText: string;
+  assistantText: string;
+  extractedFields: ProfileField[];
+  createdAt: string;
+};
+
 export type ProspectSession = {
-  version: 2;
+  version: 3;
   id: string;
   firstName?: string;
   acquisition: AcquisitionContext;
@@ -29,9 +39,11 @@ export type ProspectSession = {
   leadReference: string;
   knownProfile: ProfileAnswers;
   status: ProspectStatus;
-  questionIds: ProfileField[];
-  currentQuestionIndex: number;
+  nextAction: ConversationAction;
+  turns: ConversationTurn[];
   answers: ProfileAnswers;
+  consentAcceptedAt?: string;
+  handoffRequested: boolean;
   evaluation?: EvaluationResult;
   createdAt: string;
   updatedAt: string;

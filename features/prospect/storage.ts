@@ -1,6 +1,6 @@
 import type { ProspectSession } from "./domain";
 
-const SESSIONS_KEY = "vivienda-match-ai:prospect-sessions:v2";
+const SESSIONS_KEY = "vivienda-match-ai:prospect-sessions:v3";
 
 function readSessions(): ProspectSession[] {
   if (typeof window === "undefined") return [];

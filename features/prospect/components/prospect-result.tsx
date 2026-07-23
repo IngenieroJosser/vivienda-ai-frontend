@@ -9,7 +9,7 @@ import { projects } from "@/lib/data";
 import { createFunnelEvent, trackFunnelEvent } from "../analytics";
 import { campaignExperiences } from "../campaigns";
 import type { CampaignExperience, ProspectSession } from "../domain";
-import { getCapacityRange } from "../engine";
+import { getCapacityRange } from "../capacity";
 import { loadProspectSession } from "../storage";
 
 export function ProspectResult({ sessionId }: { sessionId: string }) {
@@ -46,10 +46,11 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
   const capacityRange = getCapacityRange(evaluation.capacity.estimatedHousingPayment);
   const matchedProjects = projects.filter((project) => evaluation.projectIds.includes(project.id)).slice(0, 3);
   const readyForAdvisor = evaluation.route === "ADVISOR_NOW" || evaluation.route === "NON_AFFILIATE_PRIORITY";
-  const actionHref = readyForAdvisor
+  const shouldOfferAdvisor = readyForAdvisor || session.handoffRequested;
+  const actionHref = shouldOfferAdvisor
     ? `/vivienda/agendar?from=orientacion&sessionId=${encodeURIComponent(session.id)}`
     : "#plan-preparacion";
-  const actionLabel = readyForAdvisor ? "Solicitar contacto de un asesor" : "Ver mi plan de preparación";
+  const actionLabel = shouldOfferAdvisor ? "Solicitar contacto de un asesor" : "Ver mi plan de preparación";
   const profileSummary = buildProfileSummary(evaluation);
 
   function trackAction() {
@@ -65,7 +66,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
     <div className="min-h-screen bg-[color:var(--vm-color-canvas)] text-[color:var(--vm-color-ink)]">
       <header className="border-b border-[color:var(--vm-color-line)] bg-white">
         <div className="mx-auto flex min-h-[64px] max-w-[980px] items-center justify-between px-5 sm:px-8">
-          <div className="text-sm font-bold text-[color:var(--vm-color-brand-blue)]">Colsubsidio × Vivienda Match AI</div>
+          <div className="inline-flex items-center gap-2 text-sm font-bold text-[color:var(--vm-color-brand-blue)]"><Icon name="home" className="h-4 w-4" /> Vivienda Colsubsidio</div>
           <span className="inline-flex items-center gap-2 text-xs font-semibold text-[color:var(--vm-color-success)]"><Icon name="check" className="h-4 w-4" /> Orientación lista</span>
         </div>
       </header>
@@ -77,7 +78,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
               {session.firstName ? `Tu orientación, ${session.firstName}` : "Tu orientación personalizada"}
             </div>
             <h1 className="mt-4 text-4xl font-semibold leading-[1.04] tracking-[-.04em] sm:text-5xl">
-              {readyForAdvisor ? "Tu perfil parece listo para avanzar." : preparationTitle(evaluation.route)}
+              {readyForAdvisor ? "Tu perfil parece listo para avanzar." : session.handoffRequested ? "Un asesor puede continuar contigo." : preparationTitle(evaluation.route)}
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-[color:var(--vm-color-ink-muted)]">
               {capacityRange
@@ -211,5 +212,5 @@ function publicNextAction(route: EvaluationResult["route"]): string {
 }
 
 function ResultState({ title, description, action }: { title: string; description: string; action?: { label: string; href: string } }) {
-  return <div className="grid min-h-screen place-items-center bg-[color:var(--vm-color-canvas)] px-5"><section className="surface-solid max-w-lg p-8 text-center"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]"><Icon name="sparkles" /></span><h1 className="mt-5 text-2xl font-semibold">{title}</h1><p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{description}</p>{action ? <Link href={action.href} className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-6 text-sm font-bold text-white">{action.label}<Icon name="arrow" className="h-4 w-4" /></Link> : null}</section></div>;
+  return <div className="grid min-h-screen place-items-center bg-[color:var(--vm-color-canvas)] px-5"><section className="surface-solid max-w-lg p-8 text-center"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]"><Icon name="home" /></span><h1 className="mt-5 text-2xl font-semibold">{title}</h1><p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{description}</p>{action ? <Link href={action.href} className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-6 text-sm font-bold text-white">{action.label}<Icon name="arrow" className="h-4 w-4" /></Link> : null}</section></div>;
 }
