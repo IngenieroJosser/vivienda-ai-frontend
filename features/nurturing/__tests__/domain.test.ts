@@ -49,6 +49,24 @@ describe("nurturing workspace domain", () => {
     expect(updated.activities[0].description).toBe("Avance registrado.");
   });
 
+  it("calculates verifiable progress only from completed route milestones", () => {
+    const leads = getQualifiedScenarioLeads();
+    const [initialPlan] = buildNurturingPlans(leads, {});
+    const milestone = initialPlan.milestones[0];
+    const updated = updateNurturingState(initialPlan.state, {
+      type: "MILESTONE_COMPLETED",
+      description: "Primer hito completado.",
+      timestamp: "2026-07-23T15:00:00.000-05:00",
+      milestone,
+    });
+    const [updatedPlan] = buildNurturingPlans(leads, {
+      [initialPlan.lead.scenario.leadId]: updated,
+    });
+
+    expect(initialPlan.progress).toBe(0);
+    expect(updatedPlan.progress).toBe(33);
+  });
+
   it("simulates a new evaluation without replacing the original result", () => {
     const [plan] = buildNurturingPlans(getQualifiedScenarioLeads(), {});
     const originalScore = plan.lead.evaluation.readinessScore;

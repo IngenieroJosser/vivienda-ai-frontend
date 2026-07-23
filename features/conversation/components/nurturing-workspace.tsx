@@ -339,7 +339,12 @@ function NurturingPlanDetail({
           value={plan.barrierDescription}
           warning
         />
-        <PlanFact icon="heart" label="Ruta activa" value={plan.route} />
+        <PlanFact
+          icon="target"
+          label="Condición para avanzar"
+          value={plan.objective}
+        />
+        <PlanFact icon="heart" label="Ruta de preparación" value={plan.route} />
         <PlanFact
           icon="clock"
           label="Última interacción"

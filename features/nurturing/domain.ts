@@ -108,11 +108,11 @@ export function buildNurturingPlans(
         ? { ...initialState, ...states[lead.scenario.leadId] }
         : initialState;
       const configuration = getBarrierConfiguration(barrier);
-      const progress = Math.min(
-        100,
-        lead.evaluation.readinessScore +
-          state.completedMilestones.length *
-            Math.ceil((100 - lead.evaluation.readinessScore) / 3),
+      const completedMilestones = configuration.milestones.filter((milestone) =>
+        state.completedMilestones.includes(milestone),
+      ).length;
+      const progress = Math.round(
+        (completedMilestones / configuration.milestones.length) * 100,
       );
       const missingData = getMissingData(lead.evaluation.profileSnapshot);
       const interventionRequired =

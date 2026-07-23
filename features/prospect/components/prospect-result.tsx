@@ -107,7 +107,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
     ? contactRequest
       ? "Ver estado de mi solicitud"
       : "Solicitar contacto"
-    : "Ver mi plan de preparación";
+    : "Revisar mi plan de preparación";
   const profileSummary = buildProfileSummary(evaluation);
 
   function trackAction() {
@@ -177,27 +177,19 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
           </div>
         </section>
 
-        {matchedProjects.length ? (
-          <section className="result-reveal result-reveal--3 mt-10">
-            <div className="max-w-2xl">
-              <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Proyectos para explorar</div>
-              <h2 className="mt-3 text-3xl font-semibold tracking-[-.035em]">Opciones que responden a lo que nos contaste.</h2>
-              <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Mostramos máximo tres coincidencias y explicamos cada una. Los datos sin vigencia aparecen como “por confirmar”.</p>
-            </div>
-            <div className="mt-7 grid gap-6 md:grid-cols-2">{matchedProjects.map(({ project, match }) => <ProspectProject key={project.id} project={project} match={match} />)}</div>
-          </section>
+        {readyForAdvisor && matchedProjects.length ? (
+          <ProjectRecommendations matches={matchedProjects} readyForAdvisor />
         ) : null}
 
         {!readyForAdvisor ? (
-          <section id="plan-preparacion" className="orientation-section result-reveal result-reveal--3 mt-8 scroll-mt-6 p-6 sm:p-8">
-            <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-warning)]">Tu plan de preparación</div>
-            <h2 className="mt-2 text-3xl font-semibold tracking-[-.035em]">Avanza con una meta concreta.</h2>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <PreparationStep label="Meta" value={preparationGoal(evaluation)} />
-              <PreparationStep label="Momento para revisar" value={formatFollowUp(evaluation.followUpAt)} />
-              <PreparationStep label="Acción" value={publicNextAction(evaluation.route)} />
-            </div>
-          </section>
+          <PreparationPlan
+            evaluation={evaluation}
+            capacityDisplay={capacityDisplay}
+          />
+        ) : null}
+
+        {!readyForAdvisor && matchedProjects.length ? (
+          <ProjectRecommendations matches={matchedProjects} readyForAdvisor={false} />
         ) : null}
 
         <section className="result-reveal result-reveal--4 mt-8 overflow-hidden rounded-[32px] bg-[linear-gradient(125deg,var(--vm-color-brand-yellow),var(--vm-color-brand-yellow-soft)_48%,var(--vm-color-orientation-wash))] p-7 shadow-[0_26px_76px_rgba(0,79,140,.13)] sm:flex sm:items-end sm:justify-between sm:gap-8 sm:p-10">
@@ -374,6 +366,100 @@ function BenefitPanel({ title, items, empty, tone }: { title: string; items: str
   return <div className="rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-line)] p-5"><div className="text-sm font-bold" style={{ color }}>{title}</div>{items.length ? <ul className="mt-3 space-y-2 text-sm">{items.map((item) => <li key={item} className="flex gap-2"><Icon name="check" className="mt-0.5 h-4 w-4 shrink-0" style={{ color }} />{item}</li>)}</ul> : <p className="mt-3 text-sm text-[color:var(--vm-color-ink-muted)]">{empty}</p>}</div>;
 }
 
+function ProjectRecommendations({
+  matches,
+  readyForAdvisor,
+}: {
+  matches: Array<{ project: HousingProject; match: ProjectMatch }>;
+  readyForAdvisor: boolean;
+}) {
+  return (
+    <section className="result-reveal result-reveal--3 mt-10">
+      <div className="max-w-2xl">
+        <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
+          {readyForAdvisor ? "Viviendas recomendadas" : "Viviendas para orientar tu meta"}
+        </div>
+        <h2 className="mt-3 text-3xl font-semibold tracking-[-.035em]">
+          {readyForAdvisor
+            ? "Opciones que responden a lo que nos contaste."
+            : "Referencias para saber hacia dónde estás avanzando."}
+        </h2>
+        <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+          {readyForAdvisor
+            ? "Mostramos máximo tres coincidencias y explicamos cada una."
+            : "Estas opciones ayudan a definir una meta; no representan reserva, aprobación ni disponibilidad confirmada."}{" "}
+          Los datos sin vigencia aparecen como “por confirmar”.
+        </p>
+      </div>
+      <div className="mt-7 grid gap-6 md:grid-cols-2">
+        {matches.map(({ project, match }) => (
+          <ProspectProject key={project.id} project={project} match={match} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PreparationPlan({
+  evaluation,
+  capacityDisplay,
+}: {
+  evaluation: EvaluationResult;
+  capacityDisplay: string;
+}) {
+  const actions = preparationActions(evaluation.route);
+  return (
+    <section
+      id="plan-preparacion"
+      className="orientation-section result-reveal result-reveal--3 mt-8 scroll-mt-6 overflow-hidden p-6 sm:p-8"
+    >
+      <div className="max-w-2xl">
+        <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-warning)]">
+          Tu plan de preparación
+        </div>
+        <h2 className="mt-2 text-3xl font-semibold tracking-[-.035em]">
+          No es un rechazo: es una ruta para avanzar.
+        </h2>
+        <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+          Partimos de una brecha concreta y te mostramos qué fortalecer antes de una nueva revisión.
+        </p>
+      </div>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <PreparationStep
+          label="Qué necesitamos fortalecer"
+          value={evaluation.blockers[0] ?? "Completar información para orientar el siguiente paso."}
+        />
+        <PreparationStep label="Meta para avanzar" value={preparationGoal(evaluation)} />
+        <PreparationStep label="Cuota mensual de referencia" value={capacityDisplay} />
+        <PreparationStep
+          label="Cuándo revisamos nuevamente"
+          value={formatFollowUp(evaluation.followUpAt)}
+        />
+      </div>
+
+      <div className="mt-6 rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-brand-blue)]/15 bg-[color:var(--vm-color-brand-blue)]/[.035] p-5 sm:p-6">
+        <div className="text-xs font-bold uppercase tracking-[.09em] text-[color:var(--vm-color-brand-blue)]">
+          Tus próximos pasos
+        </div>
+        <ol className="mt-4 grid gap-3 md:grid-cols-3">
+          {actions.map((action, index) => (
+            <li key={action} className="flex gap-3 rounded-[var(--vm-radius-control)] bg-white p-4">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)] text-xs font-bold text-white">
+                {index + 1}
+              </span>
+              <span className="text-sm font-semibold leading-6">{action}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-4 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
+          Cuando llegue la fecha de revisión, se deberá actualizar esta información antes de decidir si corresponde atención comercial.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function ProspectProject({ project, match }: { project: HousingProject; match: ProjectMatch }) {
   const priceSource = getProjectEvidence(project, project.priceFromCop)[0];
   const availableTours = project.tours.filter(({ availability }) => availability === "AVAILABLE");
@@ -525,6 +611,38 @@ function publicNextAction(route: EvaluationResult["route"]): string {
     NEEDS_DATA: "Completar la información necesaria para estimar tu capacidad.",
   };
   return labels[route] ?? "Revisa tu orientación y elige cuándo continuar.";
+}
+
+function preparationActions(route: EvaluationResult["route"]): string[] {
+  const actions: Partial<Record<EvaluationResult["route"], string[]>> = {
+    NURTURE_FINANCIAL: [
+      "Define un aporte mensual realista para tu cuota inicial.",
+      "Completa un primer periodo de ahorro y registra el avance.",
+      "Revisa beneficios que podrían complementar ese ahorro.",
+    ],
+    NURTURE_BENEFITS: [
+      "Revisa los requisitos del beneficio que deseas validar.",
+      "Prepara la información y los soportes necesarios.",
+      "Actualiza el resultado antes de solicitar contacto comercial.",
+    ],
+    NURTURE_LONG_TERM: [
+      "Define una fecha objetivo para tu compra.",
+      "Mantén una meta de ahorro acorde con ese horizonte.",
+      "Retoma la orientación cuando falten menos de doce meses.",
+    ],
+    NEEDS_DATA: [
+      "Completa los ingresos y obligaciones del hogar.",
+      "Actualiza el ahorro y la composición de tu hogar.",
+      "Realiza una nueva orientación con los datos confirmados.",
+    ],
+  };
+  return (
+    actions[route] ?? [
+      publicNextAction(route),
+      "Conserva actualizada tu información.",
+      "Revisa nuevamente tu orientación antes de avanzar.",
+    ]
+  );
 }
 
 function ResultState({

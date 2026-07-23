@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
-import { Pill, ProgressBar } from "@/components/ui";
+import { Pill } from "@/components/ui";
 import type { EvaluationResult } from "../domain";
 import { resolveProjectMatches } from "../matching";
 import { formatCop, getProfileValue } from "../profile-copy";
@@ -16,6 +16,10 @@ import { findProspectSessionByLeadId } from "@/features/prospect/storage";
 import { CommercialActions } from "@/features/advisor/components/commercial-actions";
 import { CommercialNextStep } from "@/features/advisor/components/commercial-next-step";
 import { AdvisorProjectExplorer } from "@/features/advisor/components/advisor-project-explorer";
+import {
+  getEvidencePresentation,
+  getReadinessPresentation,
+} from "../readiness-presentation";
 
 const routeLabels: Record<EvaluationResult["route"], string> = {
   ADVISOR_NOW: "Oportunidad comercial",
@@ -78,7 +82,8 @@ export function AdvisorIntelligence({
   const projectMatches = resolveProjectMatches(evaluation.projectMatches);
   const initials = scenario.displayName.slice(0, 2).toUpperCase();
   const priorityLabel = evaluation.priority === "HIGH" ? "Alta" : evaluation.priority === "MEDIUM" ? "Media" : "Baja";
-  const confidence = Math.round(evaluation.confidenceScore * 100);
+  const readiness = getReadinessPresentation(evaluation.readinessScore);
+  const evidence = getEvidencePresentation(evaluation.confidenceScore);
   const calculatedAt = formatCalculationDate(scenario.capturedAt);
   const primaryProject = projectMatches[0]?.project;
 
@@ -143,20 +148,32 @@ export function AdvisorIntelligence({
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 <Metric
                   label="Preparación comercial"
-                  value={`${evaluation.readinessScore}/100`}
+                  value={readiness.label}
                   accent
-                  help="Considera capacidad financiera, horizonte de compra, compatibilidad con proyectos y señales comerciales."
+                  help={readiness.description}
                   calculatedAt={calculatedAt}
                 />
                 <Metric
-                  label="Nivel de evidencia"
-                  value={`${confidence}%`}
-                  help="Refleja cuánta información del perfil está confirmada y cuánta permanece pendiente de validación."
+                  label="Información disponible"
+                  value={evidence.label}
+                  help={evidence.description}
                   calculatedAt={calculatedAt}
                 />
                 <Metric label="Cuota máxima orientativa" value={evaluation.capacity.estimatedHousingPayment ? formatCop(evaluation.capacity.estimatedHousingPayment) : "Por completar"} />
               </div>
-              <div className="mt-5"><ProgressBar value={evaluation.readinessScore} label="Preparación comercial" /></div>
+              <div className="mt-5 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] p-4">
+                <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
+                  Por qué tiene esta preparación
+                </div>
+                <ul className="mt-3 grid gap-2 text-xs leading-5 sm:grid-cols-2">
+                  {evaluation.factors.slice(0, 4).map((factor) => (
+                    <li key={factor} className="flex gap-2">
+                      <Icon name="check" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--vm-color-success)]" />
+                      <span>{factor}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </>
           ) : null}
 

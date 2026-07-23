@@ -5,6 +5,10 @@ import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
 import { formatCop } from "../profile-copy";
 import { isCommercialOpportunity, isNurturingLead } from "../qualified-leads";
+import {
+  getEvidencePresentation,
+  getReadinessPresentation,
+} from "../readiness-presentation";
 import { useQualifiedLeads } from "./use-qualified-leads";
 
 export function AdvisorSummaryClient() {
@@ -13,10 +17,11 @@ export function AdvisorSummaryClient() {
     .filter(({ evaluation }) => isCommercialOpportunity(evaluation))
     .sort((a, b) => b.evaluation.readinessScore - a.evaluation.readinessScore);
   const nurturing = qualifiedLeads.filter(({ evaluation }) => isNurturingLead(evaluation));
-  const averageReadiness = Math.round(
-    qualifiedLeads.reduce((sum, lead) => sum + lead.evaluation.readinessScore, 0) / Math.max(1, qualifiedLeads.length),
-  );
   const paidReady = opportunities.filter(({ scenario }) => scenario.leadSource === "META").length;
+  const solidEvidence = opportunities.filter(
+    ({ evaluation }) =>
+      getEvidencePresentation(evaluation.confidenceScore).label === "Sólida",
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -24,7 +29,7 @@ export function AdvisorSummaryClient() {
         <SummaryMetric icon="target" label="Listos para asesor" value={String(opportunities.length)} detail="Requieren atención comercial" accent />
         <SummaryMetric icon="heart" label="En acompañamiento" value={String(nurturing.length)} detail="Con condición de avance" />
         <SummaryMetric icon="campaign" label="Pagos listos" value={String(paidReady)} detail="Leads de Meta priorizados" />
-        <SummaryMetric icon="chart" label="Preparación media" value={`${averageReadiness}/100`} detail="Calculada por el motor único" />
+        <SummaryMetric icon="document" label="Evidencia sólida" value={String(solidEvidence)} detail="Con información suficiente" />
       </section>
 
       <section className="surface-solid overflow-hidden">
@@ -54,7 +59,9 @@ export function AdvisorSummaryClient() {
               <div>
                 <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">Capacidad y preparación</div>
                 <div className="mt-2 text-lg font-semibold">{evaluation.capacity.estimatedHousingPayment ? `${formatCop(evaluation.capacity.estimatedHousingPayment)}/mes` : "Por completar"}</div>
-                <div className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">{evaluation.readinessScore}/100 · confianza {Math.round(evaluation.confidenceScore * 100)}%</div>
+                <div className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">
+                  Preparación {getReadinessPresentation(evaluation.readinessScore).label.toLowerCase()} · evidencia {getEvidencePresentation(evaluation.confidenceScore).label.toLowerCase()}
+                </div>
               </div>
               <Link href={`/asesor/leads/${scenario.leadId}`} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white">Abrir recomendación <Icon name="arrow" className="h-4 w-4" /></Link>
             </article>
