@@ -24,7 +24,7 @@ export function PublicFlowShell({
   return (
       <main className="flow-shell-content mx-auto max-w-[1460px] px-5 py-7 sm:px-8 lg:px-12 lg:py-10">
         <div className="mb-6 flex items-center justify-between">
-          <Link href="/" className="inline-flex items-center gap-2 rounded-full border border-black/[.07] bg-white/80 px-3.5 py-2 text-[11px] font-semibold text-black/48 shadow-sm backdrop-blur transition hover:border-[#0067b1]/20 hover:text-[#0067b1]">
+          <Link href="/" className="glass-subtle inline-flex items-center gap-2 px-3.5 py-2 text-[11px] font-semibold text-[color:var(--vm-color-ink-muted)] transition hover:border-[color:var(--vm-color-brand-blue)] hover:text-[color:var(--vm-color-brand-blue)] focus-visible:outline-none">
             <Icon name="arrow" className="h-3.5 w-3.5 rotate-180" /> Volver al inicio
           </Link>
           {typeof step === "number" ? (
@@ -59,16 +59,16 @@ export function PublicFlowShell({
 
         <div className="grid gap-7 xl:grid-cols-[320px_minmax(0,1fr)] xl:gap-9">
           <aside className="xl:sticky xl:top-28 xl:self-start">
-            <div className="flow-intro-card relative overflow-hidden rounded-[30px] border border-white/55 bg-white/66 p-6 shadow-[0_24px_70px_rgba(17,24,32,.08)] backdrop-blur-2xl sm:p-7">
+            <div className="flow-intro-card glass-elevated relative overflow-hidden p-6 sm:p-7">
               <div className="flow-intro-card__glow" aria-hidden="true" />
               <div className="relative inline-flex items-center gap-2 rounded-full bg-[#0067b1]/7 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.15em] text-[#0067b1]">
                 <Icon name="sparkles" className="h-3.5 w-3.5" /> {eyebrow}
               </div>
               <h1 className="relative mt-5 text-4xl font-semibold leading-[.98] tracking-[-.055em] xl:text-[3.2rem]">{title}</h1>
-              {description ? <p className="relative mt-5 text-sm leading-7 text-black/50">{description}</p> : null}
+              {description ? <p className="relative mt-5 text-sm leading-7 text-[color:var(--vm-color-ink-muted)]">{description}</p> : null}
               {typeof step === "number" ? (
                 <div className="relative mt-7">
-                  <div className="mb-2 flex items-center justify-between text-[10px] font-semibold text-black/42"><span>Progreso del perfil</span><span>{Math.round((step / total) * 100)}%</span></div>
+                  <div className="mb-2 flex items-center justify-between text-[10px] font-semibold text-[color:var(--vm-color-ink-muted)]"><span>Progreso del perfil</span><span>{Math.round((step / total) * 100)}%</span></div>
                   <div className="h-2 overflow-hidden rounded-full bg-black/[.065]"><div className="h-full rounded-full bg-gradient-to-r from-[#ffd000] to-[#0067b1] transition-all" style={{ width: `${(step / total) * 100}%` }} /></div>
                 </div>
               ) : null}

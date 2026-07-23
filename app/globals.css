@@ -149,22 +149,40 @@ button:disabled { cursor: not-allowed; }
 .glass-subtle,
 [data-vm-glass="subtle"] {
   --vm-component-blur: var(--vm-blur-subtle);
+  border-radius: var(--vm-radius-control);
   box-shadow: var(--vm-shadow-low);
 }
 
 .glass-elevated,
 [data-vm-glass="elevated"] {
   --vm-component-blur: var(--vm-blur-elevated);
+  border-radius: var(--vm-radius-elevated);
   box-shadow: var(--vm-shadow-medium);
 }
 
 .surface-solid,
 [data-vm-surface="solid"] {
   border: var(--vm-border-subtle);
+  border-radius: var(--vm-radius-card);
   background: var(--vm-surface-solid);
   box-shadow: var(--vm-shadow-low);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+}
+
+:is(a, button).glass-subtle:focus-visible,
+:is(a, button)[data-vm-glass="subtle"]:focus-visible,
+:is(a, button).glass-elevated:focus-visible,
+:is(a, button)[data-vm-glass="elevated"]:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: var(--vm-shadow-low), var(--vm-shadow-focus);
+}
+
+.surface-solid :is(a, button, input, select, textarea):focus-visible,
+[data-vm-surface="solid"] :is(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--vm-color-focus);
+  outline-offset: 2px;
 }
 
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
