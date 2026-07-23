@@ -192,22 +192,24 @@ export function ProjectMediaGallery({
           <span className="project-gallery__position">
             {activeIndex + 1} de {images.length}
           </span>
-          <div className="project-gallery__arrows">
-            <button
-              type="button"
-              onClick={showPrevious}
-              aria-label="Ver imagen anterior"
-            >
-              <Icon name="arrow" className="h-4 w-4 rotate-180" />
-            </button>
-            <button
-              type="button"
-              onClick={showNext}
-              aria-label="Ver imagen siguiente"
-            >
-              <Icon name="arrow" className="h-4 w-4" />
-            </button>
-          </div>
+          {images.length > 1 ? (
+            <div className="project-gallery__arrows">
+              <button
+                type="button"
+                onClick={showPrevious}
+                aria-label="Ver imagen anterior"
+              >
+                <Icon name="arrow" className="h-4 w-4 rotate-180" />
+              </button>
+              <button
+                type="button"
+                onClick={showNext}
+                aria-label="Ver imagen siguiente"
+              >
+                <Icon name="arrow" className="h-4 w-4" />
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
 

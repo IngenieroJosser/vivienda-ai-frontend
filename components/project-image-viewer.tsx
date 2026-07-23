@@ -120,23 +120,25 @@ export function ProjectImageViewer({
             <strong id={titleId}>{projectName}</strong>
             <span id={descriptionId}>{image.label}</span>
           </span>
-          <span className="project-gallery-modal__navigation">
-            <button
-              type="button"
-              onClick={showPrevious}
-              aria-label="Ver imagen anterior dentro del visor"
-            >
-              <Icon name="arrow" className="h-4 w-4 rotate-180" />
-            </button>
-            <span>{activeIndex + 1} de {images.length}</span>
-            <button
-              type="button"
-              onClick={showNext}
-              aria-label="Ver imagen siguiente dentro del visor"
-            >
-              <Icon name="arrow" className="h-4 w-4" />
-            </button>
-          </span>
+          {images.length > 1 ? (
+            <span className="project-gallery-modal__navigation">
+              <button
+                type="button"
+                onClick={showPrevious}
+                aria-label="Ver imagen anterior dentro del visor"
+              >
+                <Icon name="arrow" className="h-4 w-4 rotate-180" />
+              </button>
+              <span>{activeIndex + 1} de {images.length}</span>
+              <button
+                type="button"
+                onClick={showNext}
+                aria-label="Ver imagen siguiente dentro del visor"
+              >
+                <Icon name="arrow" className="h-4 w-4" />
+              </button>
+            </span>
+          ) : null}
         </div>
       </div>
     </div>,
