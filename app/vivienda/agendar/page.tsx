@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { PublicFlowShell } from "@/components/public-flow-shell";
 import { Icon } from "@/components/icon";
 
@@ -20,15 +19,15 @@ const channels = [
 ];
 
 export default function AgendarPage() {
-  const router = useRouter();
   const [day, setDay] = useState(days[1].day);
   const [time, setTime] = useState(times[2]);
   const [channel, setChannel] = useState("video");
+  const [confirmed, setConfirmed] = useState(false);
   const selectedDay = days.find((item) => item.day === day);
   const selectedChannel = channels.find((item) => item.id === channel);
 
   return (
-    <PublicFlowShell step={5} eyebrow="Asesoría personalizada" title="Agenda el siguiente paso." description="Tu asesor recibirá el perfil, proyecto de interés y validaciones pendientes antes de la conversación.">
+    <PublicFlowShell eyebrow="Asesoría personalizada" title="Agenda el siguiente paso." description="Selecciona una fecha, un horario y el canal de atención que prefieras.">
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <section className="flow-panel p-6 sm:p-8 lg:p-9">
           <div className="flex items-start justify-between gap-4"><div><h2 className="text-2xl font-bold tracking-[-.04em]">Elige la fecha de tu asesoría</h2><p className="mt-2 text-xs leading-5 text-black/45">Duración estimada: 30 minutos.</p></div><span className="hidden rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-bold text-emerald-700 sm:inline-flex">Disponibilidad en tiempo real</span></div>
@@ -46,7 +45,7 @@ export default function AgendarPage() {
         <aside className="space-y-4">
           <section className="surface-card p-5"><div className="text-[9px] font-bold uppercase tracking-[.13em] text-[#0067b1]">Asesora disponible</div><div className="mt-5 flex items-center gap-3"><span className="grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-[#0067b1] to-[#004f8c] text-sm font-extrabold text-white">LG</span><div><div className="text-sm font-bold">Laura Gómez</div><div className="mt-0.5 text-[10px] text-black/40">Asesora comercial senior</div><div className="mt-2 flex items-center gap-1 text-[9px] font-bold text-[#7a6100]"><span className="text-[#ffd000]">★</span>4,9 · 128 asesorías</div></div></div><div className="mt-5 space-y-2.5">{["Especialista en vivienda e inversión", "Más de 6 años de experiencia", "Atención personalizada"].map((item) => <div key={item} className="flex gap-2 text-[10px] text-black/48"><Icon name="check" className="h-3.5 w-3.5 text-emerald-700" />{item}</div>)}</div></section>
 
-          <section className="rounded-[24px] bg-[#111820] p-6 text-white shadow-[0_18px_48px_rgba(17,24,32,.16)]"><div className="flex items-center justify-between"><div className="text-[9px] font-bold uppercase tracking-[.14em] text-[#ffd000]">Resumen de la cita</div><Icon name="calendar" className="h-5 w-5 text-[#ffd000]" /></div><div className="mt-6 space-y-4">{[["building", "Proyecto", "Reserva del Parque"], ["calendar", "Fecha", `${selectedDay?.week} ${day} de julio`], ["clock", "Hora", time], [selectedChannel?.icon ?? "camera", "Modalidad", selectedChannel?.label ?? "Videollamada"]].map(([icon, label, value]) => <div key={label} className="flex items-center gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-white/[.07]"><Icon name={icon as Parameters<typeof Icon>[0]["name"]} className="h-4 w-4 text-white/72" /></span><div><div className="text-[8px] uppercase tracking-[.1em] text-white/32">{label}</div><div className="mt-1 text-xs font-bold">{value}</div></div></div>)}</div><div className="mt-6 rounded-[15px] bg-white/[.055] p-4"><div className="flex gap-2.5"><Icon name="info" className="h-4 w-4 shrink-0 text-[#ffd000]" /><p className="text-[9px] leading-4 text-white/45">La confirmación y el enlace de acceso llegarán por correo y WhatsApp.</p></div></div><button onClick={() => router.push("/vivienda/confirmacion")} className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#ffd000] text-sm font-extrabold text-[#111820] transition hover:-translate-y-0.5">Confirmar cita <Icon name="arrow" className="h-4 w-4" /></button></section>
+          <section className="rounded-[24px] bg-[#111820] p-6 text-white shadow-[0_18px_48px_rgba(17,24,32,.16)]"><div className="flex items-center justify-between"><div className="text-[9px] font-bold uppercase tracking-[.14em] text-[#ffd000]">{confirmed ? "Cita confirmada" : "Resumen de la cita"}</div><Icon name={confirmed ? "check" : "calendar"} className="h-5 w-5 text-[#ffd000]" /></div><div className="mt-6 space-y-4">{[["building", "Proyecto", "Reserva del Parque"], ["calendar", "Fecha", `${selectedDay?.week} ${day} de julio`], ["clock", "Hora", time], [selectedChannel?.icon ?? "camera", "Modalidad", selectedChannel?.label ?? "Videollamada"]].map(([icon, label, value]) => <div key={label} className="flex items-center gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-white/[.07]"><Icon name={icon as Parameters<typeof Icon>[0]["name"]} className="h-4 w-4 text-white/72" /></span><div><div className="text-[8px] uppercase tracking-[.1em] text-white/32">{label}</div><div className="mt-1 text-xs font-bold">{value}</div></div></div>)}</div><div className="mt-6 rounded-[15px] bg-white/[.055] p-4"><div className="flex gap-2.5"><Icon name="info" className="h-4 w-4 shrink-0 text-[#ffd000]" /><p className="text-[9px] leading-4 text-white/45">{confirmed ? "La cita quedó registrada en esta sesión." : "Confirma cuando hayas revisado los datos de la cita."}</p></div></div>{confirmed ? <button onClick={() => setConfirmed(false)} className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/15 text-sm font-bold text-white">Modificar cita</button> : <button onClick={() => setConfirmed(true)} className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#ffd000] text-sm font-extrabold text-[#111820] transition hover:-translate-y-0.5">Confirmar cita <Icon name="check" className="h-4 w-4" /></button>}</section>
         </aside>
       </div>
     </PublicFlowShell>

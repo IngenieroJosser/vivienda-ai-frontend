@@ -34,8 +34,8 @@ export default function Home() {
               </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Link href="/vivienda/inicio" prefetch className="liquid-primary-button group inline-flex h-[52px] items-center justify-center gap-3 rounded-full bg-[#111820] px-7 text-sm font-bold text-white shadow-[0_18px_42px_rgba(17,24,32,.22)] transition hover:-translate-y-1 hover:bg-[#0067b1]">
-                  Perfilarme ahora
+                <Link href="/vivienda/proyectos" prefetch className="liquid-primary-button group inline-flex h-[52px] items-center justify-center gap-3 rounded-full bg-[#111820] px-7 text-sm font-bold text-white shadow-[0_18px_42px_rgba(17,24,32,.22)] transition hover:-translate-y-1 hover:bg-[#0067b1]">
+                  Explorar proyectos
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-white/12 transition group-hover:translate-x-0.5"><Icon name="arrow" className="h-4 w-4" /></span>
                 </Link>
                 <Link href="/vivienda/proyectos" prefetch className="inline-flex h-[52px] items-center justify-center gap-2 rounded-full border border-black/12 bg-white/48 px-6 text-sm font-bold text-black/66 shadow-[0_14px_38px_rgba(17,24,32,.08)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/72 hover:text-[#0067b1]">
@@ -89,7 +89,7 @@ export default function Home() {
             <AnimatedHeroBackground variant="dark" compact />
             <div className="relative z-10 grid items-center gap-10 lg:grid-cols-[1fr_auto]">
               <div><div className="text-xs font-extrabold uppercase tracking-[.18em] text-[#ffd000]">Empieza ahora</div><h2 className="mt-5 max-w-4xl text-4xl font-medium leading-[.95] tracking-[-.06em] sm:text-7xl">Una recomendación creada alrededor de tu realidad.</h2><p className="mt-6 max-w-2xl text-sm leading-6 text-white/62">Tus resultados son orientativos y no constituyen aprobación de crédito ni asignación garantizada de subsidios.</p></div>
-              <Link href="/vivienda/inicio" prefetch className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-bold text-[#0c1620] shadow-xl transition hover:-translate-y-1 hover:bg-[#ffd000]">Crear mi perfil <Icon name="arrow" className="h-4 w-4" /></Link>
+              <Link href="/vivienda/proyectos" prefetch className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-bold text-[#0c1620] shadow-xl transition hover:-translate-y-1 hover:bg-[#ffd000]">Explorar proyectos <Icon name="arrow" className="h-4 w-4" /></Link>
             </div>
           </div>
         </section>

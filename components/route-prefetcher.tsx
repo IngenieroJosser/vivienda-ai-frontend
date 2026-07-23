@@ -1,16 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
-
-const routeMap: Record<string, string[]> = {
-  "/vivienda/inicio": ["/vivienda/perfilamiento"],
-  "/vivienda/perfilamiento": ["/vivienda/documentos"],
-  "/vivienda/documentos": ["/vivienda/analizando"],
-  "/vivienda/analizando": ["/vivienda/resultado"],
-  "/vivienda/resultado": ["/vivienda/proyectos", "/vivienda/agendar"],
-  "/vivienda/agendar": ["/vivienda/confirmacion"],
-};
+import { useRouter } from "next/navigation";
 
 type NetworkInformation = {
   saveData?: boolean;
@@ -32,11 +23,10 @@ type WindowWithIdleCallback = Window & {
  * con los recursos críticos de la pantalla actual.
  */
 export function RoutePrefetcher({ routes }: { routes?: string[] }) {
-  const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
-    const targets = routes ?? routeMap[pathname] ?? [];
+    const targets = routes ?? [];
     if (!targets.length) return;
 
     const connection = (navigator as NavigatorWithConnection).connection;
@@ -54,7 +44,7 @@ export function RoutePrefetcher({ routes }: { routes?: string[] }) {
 
     const timer = window.setTimeout(prefetch, 1200);
     return () => window.clearTimeout(timer);
-  }, [pathname, router, routes]);
+  }, [router, routes]);
 
   return null;
 }
