@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "./icon";
 import {
   createProjectGalleryImages,
@@ -31,12 +32,16 @@ export function ProjectMediaGallery({
         closeButtonRef.current?.focus();
       }
     };
-    const previousOverflow = document.body.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousDocumentOverflow =
+      document.documentElement.style.overflow;
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
     closeButtonRef.current?.focus();
     window.addEventListener("keydown", onKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousDocumentOverflow;
       window.removeEventListener("keydown", onKeyDown);
       fullscreenTrigger?.focus();
     };
@@ -119,39 +124,54 @@ export function ProjectMediaGallery({
         </div>
       ) : null}
 
-      {fullscreenOpen ? (
-        <div
-          className="project-gallery-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Vista ampliada de ${project.name}`}
-        >
-          <button
-            ref={closeButtonRef}
-            type="button"
-            onClick={() => setFullscreenOpen(false)}
-            className="project-gallery-modal__close"
-            aria-label="Cerrar pantalla completa"
-          >
-            <Icon name="close" className="h-5 w-5" />
-            Cerrar
-          </button>
-          <div className="project-gallery-modal__image">
-            <Image
-              src={image.image}
-              alt={`Vista principal del proyecto ${project.name}`}
-              fill
-              sizes="100vw"
-              quality={92}
-              className="object-contain"
-            />
-          </div>
-          <div className="project-gallery-modal__caption">
-            <strong>{project.name}</strong>
-            <span>{image.label}</span>
-          </div>
-        </div>
-      ) : null}
+      {fullscreenOpen
+        ? createPortal(
+            <div
+              className="project-gallery-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="project-gallery-modal-title"
+              aria-describedby="project-gallery-modal-description"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) {
+                  setFullscreenOpen(false);
+                }
+              }}
+            >
+              <button
+                ref={closeButtonRef}
+                type="button"
+                onClick={() => setFullscreenOpen(false)}
+                className="project-gallery-modal__close"
+                aria-label="Cerrar pantalla completa"
+              >
+                <Icon name="close" className="h-5 w-5" />
+                Cerrar
+              </button>
+              <div className="project-gallery-modal__content">
+                <div className="project-gallery-modal__image">
+                  <Image
+                    src={image.image}
+                    alt={`Vista principal del proyecto ${project.name}`}
+                    fill
+                    sizes="100vw"
+                    quality={92}
+                    className="object-contain"
+                  />
+                </div>
+                <div className="project-gallery-modal__caption">
+                  <strong id="project-gallery-modal-title">
+                    {project.name}
+                  </strong>
+                  <span id="project-gallery-modal-description">
+                    {image.label}
+                  </span>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </section>
   );
 }
