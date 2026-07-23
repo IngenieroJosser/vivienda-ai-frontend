@@ -4,18 +4,17 @@ import Image from "next/image";
 import {
   useCallback,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { createPortal } from "react-dom";
 import { Icon } from "./icon";
 import {
   createProjectGalleryImages,
   createProjectResources,
 } from "./project-media-gallery-model";
 import { ProjectResourceViewer } from "./project-resource-viewer";
+import { ProjectImageViewer } from "./project-image-viewer";
 import type { ProjectResource } from "./project-media-gallery-model";
 import type { HousingProject } from "@/lib/housing-catalog";
 
@@ -27,15 +26,11 @@ export function ProjectMediaGallery({
   const images = useMemo(() => createProjectGalleryImages(project), [project]);
   const resources = useMemo(() => createProjectResources(project), [project]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const [fullscreenStartIndex, setFullscreenStartIndex] =
+    useState<number | null>(null);
   const [activeResource, setActiveResource] =
     useState<ProjectResource | null>(null);
-  const fullscreenTriggerRef = useRef<HTMLButtonElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
   const mobileTrackRef = useRef<HTMLDivElement>(null);
-  const modalTitleId = useId();
-  const modalDescriptionId = useId();
   const image = images[activeIndex] ?? images[0];
   const showPrevious = useCallback(() => {
     setActiveIndex((current) => (current - 1 + images.length) % images.length);
@@ -56,46 +51,6 @@ export function ProjectMediaGallery({
       behavior: reducedMotion ? "auto" : "smooth",
     });
   }, [activeIndex]);
-
-  useEffect(() => {
-    if (!fullscreenOpen) return;
-    const fullscreenTrigger = fullscreenTriggerRef.current;
-    const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === "Escape") setFullscreenOpen(false);
-      if (event.key === "ArrowLeft") showPrevious();
-      if (event.key === "ArrowRight") showNext();
-      if (event.key === "Tab") {
-        const focusable = Array.from(
-          modalRef.current?.querySelectorAll<HTMLElement>(
-            "button:not([disabled]), a[href]",
-          ) ?? [],
-        );
-        const first = focusable[0];
-        const last = focusable.at(-1);
-        if (!first || !last) return;
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
-    };
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousDocumentOverflow =
-      document.documentElement.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-    closeButtonRef.current?.focus();
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousBodyOverflow;
-      document.documentElement.style.overflow = previousDocumentOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-      fullscreenTrigger?.focus();
-    };
-  }, [fullscreenOpen, showNext, showPrevious]);
 
   return (
     <section className="project-gallery" aria-labelledby="project-gallery-title">
@@ -227,9 +182,8 @@ export function ProjectMediaGallery({
         </div>
         <div className="project-gallery__actions">
           <button
-            ref={fullscreenTriggerRef}
             type="button"
-            onClick={() => setFullscreenOpen(true)}
+            onClick={() => setFullscreenStartIndex(activeIndex)}
             className="project-gallery__action project-gallery__action--primary"
           >
             <Icon name="eye" className="h-4 w-4" />
@@ -291,75 +245,14 @@ export function ProjectMediaGallery({
         </div>
       ) : null}
 
-      {fullscreenOpen
-        ? createPortal(
-            <div
-              ref={modalRef}
-              className="project-gallery-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby={modalTitleId}
-              aria-describedby={modalDescriptionId}
-              onMouseDown={(event) => {
-                if (event.target === event.currentTarget) {
-                  setFullscreenOpen(false);
-                }
-              }}
-            >
-              <div
-                className="project-gallery-modal__content glass-elevated"
-                data-media-kind={image.kind}
-              >
-                <button
-                  ref={closeButtonRef}
-                  type="button"
-                  onClick={() => setFullscreenOpen(false)}
-                  className="project-gallery-modal__close"
-                  aria-label="Cerrar imagen ampliada"
-                >
-                  <Icon name="close" className="h-5 w-5" />
-                  Cerrar
-                </button>
-                <div className="project-gallery-modal__image">
-                  <span className="project-gallery-modal__media-frame">
-                    <Image
-                      src={image.image}
-                      alt={`${image.label} de ${project.name}`}
-                      fill
-                      sizes="100vw"
-                      quality={100}
-                      className="object-contain"
-                    />
-                  </span>
-                </div>
-                <div className="project-gallery-modal__caption">
-                  <span>
-                    <strong id={modalTitleId}>{project.name}</strong>
-                    <span id={modalDescriptionId}>{image.label}</span>
-                  </span>
-                  <span className="project-gallery-modal__navigation">
-                    <button
-                      type="button"
-                      onClick={showPrevious}
-                      aria-label="Ver imagen anterior"
-                    >
-                      <Icon name="arrow" className="h-4 w-4 rotate-180" />
-                    </button>
-                    <span>{activeIndex + 1} de {images.length}</span>
-                    <button
-                      type="button"
-                      onClick={showNext}
-                      aria-label="Ver imagen siguiente"
-                    >
-                      <Icon name="arrow" className="h-4 w-4" />
-                    </button>
-                  </span>
-                </div>
-              </div>
-            </div>,
-            document.body,
-          )
-        : null}
+      {fullscreenStartIndex !== null ? (
+        <ProjectImageViewer
+          images={images}
+          initialIndex={fullscreenStartIndex}
+          projectName={project.name}
+          onClose={() => setFullscreenStartIndex(null)}
+        />
+      ) : null}
 
       {activeResource ? (
         <ProjectResourceViewer
