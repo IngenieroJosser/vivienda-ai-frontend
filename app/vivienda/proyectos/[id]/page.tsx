@@ -79,29 +79,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               {project.typologies.map((typology) => <div key={typology.id} className="rounded-[15px] border border-[color:var(--vm-color-line)] p-4"><div className="text-xs text-[color:var(--vm-color-ink-muted)]">{typology.label}</div><div className="mt-2 text-lg font-bold">{formatTypologyArea(typology.builtAreaM2)}</div></div>)}
             </div>
           </section>
-          <section className="surface-solid p-6 sm:p-8">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[.09em] text-[color:var(--vm-color-brand-blue)]">Material oficial</p>
-                <h2 className="mt-2 text-xl font-bold">Conoce el proyecto con más detalle</h2>
-                <p className="mt-2 max-w-xl text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
-                  Consulta el folleto oficial para conocer los espacios, características y detalles del proyecto.
-                </p>
-              </div>
-              {project.brochureUrl ? (
-                <a href={project.brochureUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)] bg-white px-5 text-sm font-bold text-[color:var(--vm-color-brand-blue)] transition hover:bg-[color:var(--vm-color-brand-blue)]/[.05]">
-                  <Icon name="document" className="h-4 w-4" />
-                  Ver folleto del proyecto
-                </a>
-              ) : null}
-            </div>
-            {availableTours.length > 0 ? (
-              <div className="mt-6 rounded-[18px] bg-[color:var(--vm-color-brand-blue)]/[.05] p-4 text-sm text-[color:var(--vm-color-ink-muted)]">
-                <b className="text-[color:var(--vm-color-ink)]">{availableTours.length === 1 ? "Recorrido virtual disponible" : `${availableTours.length} recorridos virtuales disponibles`}.</b>{" "}
-                Puedes abrirlos desde la galería multimedia para explorar el proyecto.
-              </div>
-            ) : null}
-          </section>
         </section>
         <aside className="space-y-5 xl:sticky xl:top-24 xl:self-start">
           <section className="surface-card p-6">

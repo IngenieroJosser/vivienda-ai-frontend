@@ -1,88 +1,55 @@
-import {
-  formatTypologyArea,
-  type HousingProject,
-} from "../lib/housing-catalog";
+import type { HousingProject } from "../lib/housing-catalog";
 
-export type ProjectMediaItem =
-  | {
-      id: string;
-      kind: "PHOTO";
-      label: string;
-      description: string;
-      image: string;
-      url?: never;
-    }
-  | {
-      id: string;
-      kind: "TYPOLOGY";
-      label: string;
-      description: string;
-      area: string;
-      url?: never;
-    }
-  | {
-      id: string;
-      kind: "TOUR";
-      label: string;
-      description: string;
-      url: string;
-    }
-  | {
-      id: string;
-      kind: "BROCHURE";
-      label: string;
-      description: string;
-      url: string;
-    };
+export type ProjectGalleryImage = {
+  id: string;
+  label: string;
+  description: string;
+  image: string;
+};
 
-export function createProjectMedia(
+export type ProjectResource = {
+  id: string;
+  kind: "TOUR" | "BROCHURE";
+  label: string;
+  description: string;
+  url: string;
+};
+
+export function createProjectGalleryImages(
   project: HousingProject,
-): ProjectMediaItem[] {
-  const media: ProjectMediaItem[] = [
+): ProjectGalleryImage[] {
+  return [
     {
       id: `${project.id}-main-photo`,
-      kind: "PHOTO",
       label: "Vista principal",
-      description: `Imagen oficial disponible de ${project.name}.`,
+      description: `Imagen oficial disponible del proyecto ${project.name}.`,
       image: project.image,
     },
-    ...project.typologies.map((typology) => ({
-      id: typology.id,
-      kind: "TYPOLOGY" as const,
-      label: typology.label,
-      description: `${formatTypologyArea(typology.builtAreaM2)} de área construida.`,
-      area: formatTypologyArea(typology.builtAreaM2),
-    })),
-    ...project.tours
-      .filter(({ availability }) => availability === "AVAILABLE")
-      .map((tour) => ({
-        id: tour.id,
-        kind: "TOUR" as const,
-        label: tour.label,
-        description: `Explora ${project.name} mediante un recorrido virtual disponible.`,
-        url: tour.url,
-      })),
   ];
+}
+
+export function createProjectResources(
+  project: HousingProject,
+): ProjectResource[] {
+  const resources: ProjectResource[] = project.tours
+    .filter(({ availability }) => availability === "AVAILABLE")
+    .map((tour) => ({
+      id: tour.id,
+      kind: "TOUR" as const,
+      label: tour.label,
+      description: "Recorrido virtual disponible en una ventana externa.",
+      url: tour.url,
+    }));
 
   if (project.brochureUrl) {
-    media.push({
+    resources.push({
       id: `${project.id}-brochure`,
       kind: "BROCHURE",
       label: "Folleto del proyecto",
-      description:
-        "Consulta espacios, características y detalles en el material comercial aprobado.",
+      description: "Material comercial aprobado con información del proyecto.",
       url: project.brochureUrl,
     });
   }
 
-  return media;
-}
-
-export function moveProjectMediaIndex(
-  currentIndex: number,
-  itemCount: number,
-  direction: -1 | 1,
-): number {
-  if (itemCount <= 0) return 0;
-  return (currentIndex + direction + itemCount) % itemCount;
+  return resources;
 }
