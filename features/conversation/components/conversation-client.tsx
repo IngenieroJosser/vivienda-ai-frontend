@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/icon";
+import { AnimatedHeroBackground } from "@/components/animated-hero-background";
 import type { ConversationSession, ProfileField } from "../domain";
 import { getAnswerLabel, getKnownDataMessage } from "../profile-copy";
 import { allQuestions } from "../questions";
@@ -55,8 +56,9 @@ export function ConversationClient({ sessionId }: { sessionId: string }) {
   if (!question) return <ConversationState title="No pudimos cargar la siguiente pregunta." description="La sesión continúa guardada." action={{ label: "Volver al simulador", href: "/demo" }} />;
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(145deg,#f5fbff_0%,#fffdf3_52%,#f7fbfd_100%)] text-[color:var(--vm-color-ink)]">
-      <header className="border-b border-[color:var(--vm-color-line)] bg-white">
+    <div className="conversation-stage relative min-h-screen overflow-hidden bg-[linear-gradient(145deg,#f5fbff_0%,#fffdf3_52%,#f7fbfd_100%)] text-[color:var(--vm-color-ink)]">
+      <AnimatedHeroBackground variant="vivienda" className="fixed inset-0" />
+      <header className="conversation-header relative z-20 border-b border-[color:var(--vm-color-line)] bg-white">
         <div className="mx-auto flex min-h-[72px] max-w-[920px] items-center justify-between gap-4 px-5 sm:px-8">
           <div className="flex items-center gap-3">
             <span className="grid h-11 w-11 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)] text-white"><Icon name="sparkles" className="h-5 w-5" /></span>
@@ -71,7 +73,7 @@ export function ConversationClient({ sessionId }: { sessionId: string }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[920px] px-4 py-5 sm:px-8 sm:py-8">
+      <main className="relative z-10 mx-auto max-w-[920px] px-4 py-5 sm:px-8 sm:py-8">
         <div className="mb-4 flex items-center justify-between gap-3 px-1">
           <span className="text-xs font-semibold text-[color:var(--vm-color-ink-muted)]">
             {session.consent === "PENDING" ? "Antes de conversar" : `Perfilamiento ${progress}% completo`}
@@ -82,7 +84,7 @@ export function ConversationClient({ sessionId }: { sessionId: string }) {
           <div className="h-full rounded-full bg-[color:var(--vm-color-brand-blue)] transition-[width] duration-200" style={{ width: `${Math.max(session.consent === "PENDING" ? 4 : 12, progress)}%` }} />
         </div>
 
-        <section className="mt-5 min-h-[560px] rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-line)] bg-[#f8fcff] p-4 shadow-[var(--vm-shadow-low)] sm:p-7" aria-label="Conversación de perfilamiento">
+        <section className="conversation-panel mt-5 min-h-[560px] rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-line)] bg-[#f8fcff] p-4 shadow-[var(--vm-shadow-low)] sm:p-7" aria-label="Conversación de perfilamiento">
           <div className="mx-auto max-w-[720px] space-y-4">
             <AssistantMessage>
               Hola, {scenario.displayName}. Sabemos que te interesa adquirir vivienda y queremos ayudarte a encontrar el mejor camino según tus necesidades.

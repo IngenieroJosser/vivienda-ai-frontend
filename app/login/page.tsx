@@ -7,7 +7,7 @@ import { AnimatedHeroBackground } from "@/components/animated-hero-background";
 export default function LoginPage() {
   return (
     <main className="login-stage grid min-h-screen bg-[#f5f7f8] lg:grid-cols-[minmax(520px,.88fr)_1.12fr]">
-      <section className="relative flex flex-col bg-white p-6 sm:p-10 lg:p-12">
+      <section className="login-panel relative flex flex-col overflow-hidden bg-white p-6 sm:p-10 lg:p-12">
         <ProductBrand />
         <div className="mx-auto flex w-full max-w-[430px] flex-1 flex-col justify-center py-14">
           <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#0067b1]/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.15em] text-[#0067b1]"><Icon name="lock" className="h-3.5 w-3.5" />Acceso para asesores</div>
@@ -21,7 +21,7 @@ export default function LoginPage() {
           <p id="login-status" className="mt-5 text-xs leading-5 text-black/42">Se habilitará únicamente mediante el proveedor de identidad corporativo y contratos de sesión reales.</p>
         </div>
       </section>
-      <section className="relative hidden overflow-hidden bg-[#111820] text-white lg:block"><AnimatedHeroBackground variant="dark" /><div className="relative z-10 flex h-full items-end p-14"><div><div className="text-xs font-bold uppercase tracking-[.18em] text-[#ffd000]">Vivienda Match AI</div><div className="mt-5 max-w-2xl text-6xl font-semibold leading-[.9] tracking-[-.06em]">Información útil para actuar con contexto.</div></div></div></section>
+      <section className="relative hidden overflow-hidden bg-[#111820] text-white lg:block"><AnimatedHeroBackground variant="dark" /><div className="login-liquid-rings" aria-hidden="true"><span /><span /></div><div className="relative z-10 flex h-full items-end p-14"><div><div className="text-xs font-bold uppercase tracking-[.18em] text-[#ffd000]">Vivienda Match AI</div><div className="mt-5 max-w-2xl text-6xl font-semibold leading-[.9] tracking-[-.06em]">Información útil para actuar con contexto.</div></div></div></section>
     </main>
   );
 }

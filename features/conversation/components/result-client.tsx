@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { ProjectCard } from "@/components/project-card";
 import { PublicHeader } from "@/components/public-header";
+import { AnimatedHeroBackground } from "@/components/animated-hero-background";
 import { projects } from "@/lib/data";
 import type { ConversationSession } from "../domain";
 import { formatCop } from "../profile-copy";
@@ -33,9 +34,10 @@ export function ResultClient({ leadId }: { leadId: string }) {
   const hasCapacity = result.capacity.estimatedHousingPayment > 0;
 
   return (
-    <div className="public-experience min-h-screen bg-[color:var(--vm-color-canvas)]">
-      <PublicHeader />
-      <main className="mx-auto max-w-[1120px] px-5 py-9 sm:px-8 lg:py-14">
+    <div className="public-experience result-stage relative min-h-screen overflow-hidden bg-[color:var(--vm-color-canvas)]">
+      <AnimatedHeroBackground variant="vivienda" className="fixed inset-0" />
+      <div className="relative z-20"><PublicHeader /></div>
+      <main className="relative z-10 mx-auto max-w-[1120px] px-5 py-9 sm:px-8 lg:py-14">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <span className="rounded-full bg-[color:var(--vm-color-brand-yellow)]/25 px-3 py-2 text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-warning)]">DEMO_MODE · orientación, no aprobación</span>
           <Link href={`/asesor/leads/${leadId}`} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/20 bg-white px-4 text-sm font-semibold text-[color:var(--vm-color-brand-blue)]">
@@ -43,7 +45,7 @@ export function ResultClient({ leadId }: { leadId: string }) {
           </Link>
         </div>
 
-        <section className="glass-elevated overflow-hidden p-6 sm:p-9 lg:p-12">
+        <section className="result-hero glass-elevated overflow-hidden p-6 sm:p-9 lg:p-12">
           <div className="max-w-3xl">
             <div className="text-xs font-bold uppercase tracking-[.11em] text-[color:var(--vm-color-success)]">{copy.eyebrow}</div>
             <h1 className="mt-4 text-4xl font-semibold leading-[1.02] tracking-[-.05em] sm:text-5xl">{copy.title}</h1>

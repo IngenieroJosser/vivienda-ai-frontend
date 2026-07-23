@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PublicHeader } from "@/components/public-header";
+import { AnimatedHeroBackground } from "@/components/animated-hero-background";
 import { Icon } from "@/components/icon";
 import { projects } from "@/lib/data";
 
@@ -30,7 +31,8 @@ export default function Home() {
     <div className="home-page min-h-screen overflow-x-hidden bg-[color:var(--vm-color-canvas)]">
       <PublicHeader />
       <main>
-        <section className="prospect-hero relative overflow-hidden">
+        <section className="prospect-hero liquid-home-hero relative overflow-hidden">
+          <AnimatedHeroBackground variant="hero" className="absolute inset-0" />
           <div className="prospect-hero__glow" aria-hidden="true" />
           <div className="relative z-10 mx-auto grid min-h-[calc(100svh-76px)] max-w-[1460px] items-center gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(0,1.04fr)_minmax(420px,.76fr)] lg:px-12 lg:py-20">
             <div className="max-w-[760px]">
