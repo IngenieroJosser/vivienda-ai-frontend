@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   },
 
   description:
-    "Perfilamiento inteligente y recomendación personalizada de vivienda para afiliados de Colsubsidio.",
+    "Orientación personalizada y recomendación de vivienda para afiliados y no afiliados.",
 
   keywords: [
     "Vivienda",
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Vivienda Match AI | Colsubsidio",
     description:
-      "Perfilamiento inteligente y recomendación personalizada de vivienda para afiliados de Colsubsidio.",
+      "Orientación personalizada de vivienda para afiliados y no afiliados.",
     creator: "@Colsubsidio",
   },
 

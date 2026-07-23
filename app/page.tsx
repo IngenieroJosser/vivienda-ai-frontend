@@ -1,100 +1,131 @@
 import Link from "next/link";
 import { PublicHeader } from "@/components/public-header";
 import { Icon } from "@/components/icon";
-import { AnimatedHeroBackground } from "@/components/animated-hero-background";
+import { projects } from "@/lib/data";
+
+const benefits = [
+  ["≈ 5 minutos", "Orientación inicial"],
+  ["Hasta 3", "Proyectos compatibles"],
+  ["A tu ritmo", "Avanza cuando quieras"],
+  ["Con asesor", "Cuando estés preparado"],
+] as const;
 
 const steps = [
-  { n: "01", title: "Cuéntanos sobre ti", text: "Un perfilamiento conversacional breve, claro y adaptativo." },
-  { n: "02", title: "Conoce tu capacidad", text: "Estimamos capacidad y subsidios potenciales sin aprobar crédito." },
-  { n: "03", title: "Encuentra tu proyecto", text: "Mostramos máximo tres proyectos compatibles, no todo el catálogo." },
-  { n: "04", title: "Llega listo al asesor", text: "El asesor recibe un resumen listo para validar y agendar visita." },
-];
+  ["01", "Conversemos sobre ti", "Una experiencia breve que se adapta a tus respuestas."],
+  ["02", "Entendemos tus posibilidades", "Estimamos rangos orientativos sin aprobar créditos ni prometer beneficios."],
+  ["03", "Filtramos las opciones", "Comparamos tu perfil con los proyectos disponibles y presentamos máximo tres."],
+  ["04", "Te ayudamos a avanzar", "Recibes un siguiente paso claro y acompañamiento de un asesor cuando corresponda."],
+] as const;
+
+const previewAnswers = [
+  "Una cuota que pueda manejar",
+  "Buena ubicación",
+  "Espacio para mi familia",
+] as const;
 
 export default function Home() {
+  const project = projects[0];
+
   return (
-    <div className="home-page min-h-screen overflow-x-hidden bg-[#fafafa]">
+    <div className="home-page min-h-screen overflow-x-hidden bg-[color:var(--vm-color-canvas)]">
       <PublicHeader />
       <main>
-        <section className="liquid-home-hero relative mx-auto min-h-[calc(100svh-72px)] max-w-[1900px] overflow-hidden border-b border-black/[.06]">
-          <AnimatedHeroBackground variant="hero" />
-
-          <div className="relative z-10 mx-auto flex min-h-[calc(100svh-72px)] max-w-[1500px] items-center px-5 py-16 sm:px-8 lg:px-12 lg:py-20">
-            <div className="hero-copy max-w-[920px]">
-              <div className="liquid-eyebrow inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/42 px-4 py-2 text-[10px] font-extrabold uppercase tracking-[.16em] text-black/62 shadow-[0_10px_35px_rgba(17,24,32,.08)] backdrop-blur-xl">
-                <span className="h-2 w-2 rounded-full bg-[#0067b1] shadow-[0_0_0_5px_rgba(0,103,177,.10)]" />
-                Vivienda Match AI · Colsubsidio
+        <section className="prospect-hero relative overflow-hidden">
+          <div className="prospect-hero__glow" aria-hidden="true" />
+          <div className="relative z-10 mx-auto grid min-h-[calc(100svh-76px)] max-w-[1460px] items-center gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(0,1.04fr)_minmax(420px,.76fr)] lg:px-12 lg:py-20">
+            <div className="max-w-[760px]">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)]/[.07] px-3.5 py-2 text-[11px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
+                <span className="h-2 w-2 rounded-full bg-[color:var(--vm-color-brand-yellow)]" />
+                Vivienda Match AI · Orientación personalizada
               </div>
-
-              <h1 className="mt-7 max-w-[920px] text-[clamp(4.25rem,8.5vw,9.6rem)] font-medium leading-[.82] tracking-[-.078em] text-[#080b0d]">
-                Leads pagos que llegan listos para cerrar.
+              <h1 className="mt-7 text-[clamp(3.25rem,6.8vw,7.2rem)] font-semibold leading-[.88] tracking-[-.065em] text-[color:var(--vm-color-ink)]">
+                Encuentra una vivienda que sí encaje contigo.
               </h1>
-
-              <p className="mt-8 max-w-2xl text-base font-medium leading-7 text-black/58 sm:text-lg lg:text-xl lg:leading-8">
-                Perfilamos cada lead antes del asesor: distinguimos afiliación, estimamos capacidad, recomendamos proyectos y definimos si debe pasar a cierre o a una ruta de nutrición.
+              <p className="mt-7 max-w-[680px] text-base leading-7 text-[color:var(--vm-color-ink-muted)] sm:text-lg sm:leading-8">
+                Cuéntanos qué buscas y cuál es tu momento. En aproximadamente cinco minutos te orientamos con hasta tres proyectos compatibles y un siguiente paso claro, seas afiliado o no.
               </p>
-
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Link href="/vivienda/proyectos" prefetch className="liquid-primary-button group inline-flex h-[52px] items-center justify-center gap-3 rounded-full bg-[#111820] px-7 text-sm font-bold text-white shadow-[0_18px_42px_rgba(17,24,32,.22)] transition hover:-translate-y-1 hover:bg-[#0067b1]">
-                  Explorar proyectos
-                  <span className="grid h-7 w-7 place-items-center rounded-full bg-white/12 transition group-hover:translate-x-0.5"><Icon name="arrow" className="h-4 w-4" /></span>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link href="/demo" prefetch className="inline-flex min-h-13 items-center justify-center gap-3 rounded-full bg-[color:var(--vm-color-ink)] px-7 text-sm font-bold text-white shadow-[var(--vm-shadow-medium)] transition duration-200 hover:-translate-y-0.5 hover:bg-[color:var(--vm-color-brand-blue)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]">
+                  Empezar mi orientación <Icon name="arrow" className="h-4 w-4" />
                 </Link>
-                <Link href="/vivienda/proyectos" prefetch className="inline-flex h-[52px] items-center justify-center gap-2 rounded-full border border-black/12 bg-white/48 px-6 text-sm font-bold text-black/66 shadow-[0_14px_38px_rgba(17,24,32,.08)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/72 hover:text-[#0067b1]">
-                  Explorar proyectos <Icon name="building" className="h-4 w-4" />
+                <Link href="/vivienda/proyectos" prefetch className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-7 text-sm font-bold text-[color:var(--vm-color-ink)] transition duration-200 hover:border-[color:var(--vm-color-brand-blue)] hover:text-[color:var(--vm-color-brand-blue)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]">
+                  Explorar proyectos
                 </Link>
               </div>
+              <p className="mt-5 flex items-center gap-2 text-xs font-semibold tracking-[.01em] text-[color:var(--vm-color-ink-muted)]">
+                <Icon name="shield" className="h-4 w-4 text-[color:var(--vm-color-brand-blue)]" />
+                No necesitas documentos para comenzar · Resultados orientativos
+              </p>
             </div>
 
-            <div className="liquid-hero-insight absolute bottom-7 left-5 right-5 z-20 grid gap-3 sm:left-auto sm:right-8 sm:w-[520px] sm:grid-cols-[1fr_auto] lg:bottom-10 lg:right-12">
-              <div className="rounded-[26px] border border-white/45 bg-white/42 p-5 shadow-[0_24px_70px_rgba(17,24,32,.12)] backdrop-blur-2xl">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <div className="text-[9px] font-extrabold uppercase tracking-[.16em] text-black/42">Experiencia guiada</div>
-                    <div className="mt-1 text-sm font-bold text-[#111820]">Afiliación, capacidad y ruta en aproximadamente 5 minutos</div>
-                  </div>
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[15px] bg-[#ffd000] text-[#111820] shadow-[0_12px_30px_rgba(255,208,0,.30)]"><Icon name="sparkles" className="h-5 w-5" /></span>
+            <article className="glass-elevated prospect-conversation relative overflow-hidden p-5 sm:p-7" aria-label="Vista previa de la conversación">
+              <div className="flex items-center justify-between border-b border-black/[.07] pb-5">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-11 w-11 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)] text-white"><Icon name="sparkles" className="h-5 w-5" /></span>
+                  <div><div className="text-sm font-bold">Asesor digital de vivienda</div><div className="mt-1 flex items-center gap-1.5 text-[10px] font-semibold tracking-[.02em] text-[color:var(--vm-color-success)]"><span className="h-1.5 w-1.5 rounded-full bg-current" />Orientación guiada</div></div>
+                </div>
+                <span className="rounded-full bg-black/[.045] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">Vista previa</span>
+              </div>
+              <div className="mt-6 space-y-4">
+                <div className="max-w-[88%] rounded-[18px_18px_18px_6px] bg-white p-4 text-sm leading-6 shadow-[var(--vm-shadow-low)]">Hola, quiero ayudarte a encontrar una opción que se ajuste a ti.</div>
+                <div className="max-w-[92%] rounded-[18px_18px_18px_6px] bg-white p-4 text-sm leading-6 shadow-[var(--vm-shadow-low)]">Empecemos por lo importante: ¿qué necesitas de tu próxima vivienda?</div>
+                <div className="space-y-2.5 pt-1" aria-label="Ejemplos de respuesta">
+                  {previewAnswers.map((answer) => <div key={answer} className="rounded-[14px] border border-[color:var(--vm-color-brand-blue)]/15 bg-[color:var(--vm-color-brand-blue)]/[.045] px-4 py-3 text-sm font-semibold text-[color:var(--vm-color-ink)]">{answer}</div>)}
                 </div>
               </div>
-              <div className="grid grid-cols-3 rounded-[26px] border border-white/30 bg-[#111820]/92 px-4 py-4 text-white shadow-[0_24px_70px_rgba(17,24,32,.18)] backdrop-blur-xl sm:grid-cols-1 sm:px-5">
-                <div className="text-center sm:text-left"><div className="text-lg font-bold text-[#ffd000]">24/7</div><div className="text-[9px] text-white/45">Disponible</div></div>
-                <div className="text-center sm:hidden"><div className="text-lg font-bold">100%</div><div className="text-[9px] text-white/45">Explicable</div></div>
-                <div className="text-center sm:hidden"><div className="text-lg font-bold">5 min</div><div className="text-[9px] text-white/45">Promedio</div></div>
-              </div>
-            </div>
+              <Link href="/demo" prefetch className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white transition duration-200 hover:bg-[color:var(--vm-color-brand-blue-deep)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]">
+                Iniciar conversación <Icon name="arrow" className="h-4 w-4" />
+              </Link>
+            </article>
           </div>
         </section>
 
-        <section id="como-funciona" className="relative mx-auto max-w-[1500px] px-5 py-24 sm:px-8 lg:px-12 lg:py-36">
-          <div className="section-orb section-orb--yellow" aria-hidden="true" />
-          <div className="relative grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
-            <div>
-              <div className="text-xs font-extrabold uppercase tracking-[.18em] text-[#0067b1]">Cómo funciona</div>
-              <h2 className="mt-5 max-w-lg text-5xl font-medium leading-[.94] tracking-[-.065em] sm:text-7xl">De lead pago a oportunidad de cierre.</h2>
-            </div>
-            <p className="max-w-xl self-end text-lg leading-8 text-black/48">El sistema recibe leads multicanal, pregunta solo lo necesario y entrega al asesor únicamente los perfiles que están preparados para avanzar.</p>
-          </div>
-
-          <div className="relative mt-16 overflow-hidden rounded-[34px] border border-black/[.07] bg-white/72 shadow-[0_28px_90px_rgba(17,24,32,.07)] backdrop-blur-xl">
-            {steps.map((step) => (
-              <div key={step.n} className="step-row group grid gap-5 border-b border-black/[.065] px-6 py-9 transition last:border-b-0 hover:bg-[#fff8d4]/55 lg:grid-cols-[120px_1fr_1fr] lg:px-9">
-                <span className="font-mono text-xl font-semibold text-[#0067b1]">{step.n}</span>
-                <h3 className="text-2xl font-semibold tracking-[-.04em]">{step.title}</h3>
-                <div className="flex items-start justify-between gap-6"><p className="max-w-md text-sm leading-6 text-black/50">{step.text}</p><span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-black/10 bg-white transition group-hover:rotate-[-8deg] group-hover:border-[#ffd000] group-hover:bg-[#ffd000]"><Icon name="arrow" className="h-4 w-4" /></span></div>
-              </div>
-            ))}
+        <section aria-label="Beneficios de la orientación" className="border-y border-black/[.07] bg-[color:var(--vm-color-ink)] text-white">
+          <div className="mx-auto grid max-w-[1460px] grid-cols-2 px-5 sm:px-8 lg:grid-cols-4 lg:px-12">
+            {benefits.map(([value, label]) => <div key={label} className="border-white/10 px-3 py-7 text-center even:border-l lg:border-l lg:first:border-l-0 lg:py-8"><div className="text-xl font-bold tracking-[-.03em] text-[color:var(--vm-color-brand-yellow)] sm:text-2xl">{value}</div><div className="mt-1 text-xs tracking-[.01em] text-white/62">{label}</div></div>)}
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1500px] px-5 pb-24 sm:px-8 lg:px-12 lg:pb-36">
-          <div className="liquid-cta relative overflow-hidden rounded-[44px] bg-[#0c1620] px-7 py-16 text-white shadow-[0_35px_110px_rgba(17,24,32,.20)] sm:px-12 lg:px-20 lg:py-24">
-            <AnimatedHeroBackground variant="dark" compact />
-            <div className="relative z-10 grid items-center gap-10 lg:grid-cols-[1fr_auto]">
-              <div><div className="text-xs font-extrabold uppercase tracking-[.18em] text-[#ffd000]">Empieza ahora</div><h2 className="mt-5 max-w-4xl text-4xl font-medium leading-[.95] tracking-[-.06em] sm:text-7xl">Una recomendación creada alrededor de tu realidad.</h2><p className="mt-6 max-w-2xl text-sm leading-6 text-white/62">Tus resultados son orientativos y no constituyen aprobación de crédito ni asignación garantizada de subsidios.</p></div>
-              <Link href="/vivienda/proyectos" prefetch className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-bold text-[#0c1620] shadow-xl transition hover:-translate-y-1 hover:bg-[#ffd000]">Explorar proyectos <Icon name="arrow" className="h-4 w-4" /></Link>
-            </div>
+        <section id="como-funciona" className="mx-auto max-w-[1460px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
+          <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
+            <div><div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Cómo funciona</div><h2 className="mt-4 text-4xl font-semibold leading-[.95] tracking-[-.05em] sm:text-6xl">Menos preguntas. Más claridad.</h2></div>
+            <p className="max-w-2xl text-base leading-7 text-[color:var(--vm-color-ink-muted)] lg:justify-self-end">Te preguntamos únicamente lo necesario para comprender tu búsqueda y mostrarte una ruta clara.</p>
+          </div>
+          <div className="surface-solid mt-12 overflow-hidden">
+            {steps.map(([number, title, description]) => <article key={number} className="grid gap-4 border-b border-black/[.07] p-6 last:border-b-0 sm:p-8 lg:grid-cols-[90px_.8fr_1.2fr] lg:items-center"><span className="font-mono text-sm font-bold text-[color:var(--vm-color-brand-blue)]">{number}</span><h3 className="text-xl font-semibold tracking-[-.025em]">{title}</h3><p className="text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{description}</p></article>)}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-[1460px] px-5 pb-20 sm:px-8 lg:px-12 lg:pb-28">
+          <div className="surface-solid relative overflow-hidden p-7 sm:p-10 lg:grid lg:grid-cols-[.8fr_1.2fr] lg:gap-14 lg:p-14">
+            <div><div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Una orientación para todos</div><h2 className="mt-4 text-3xl font-semibold leading-tight tracking-[-.04em] sm:text-5xl">Seas afiliado o no, empezamos por escucharte.</h2></div>
+            <p className="mt-6 self-end text-base leading-8 text-[color:var(--vm-color-ink-muted)] lg:mt-0">La afiliación puede influir en los beneficios disponibles, pero nunca reduce la calidad de la orientación ni del acompañamiento.</p>
+          </div>
+        </section>
+
+        <section className="bg-[#f2f7fa]">
+          <div className="mx-auto max-w-[1460px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
+            <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end"><div><div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Proyectos</div><h2 className="mt-4 text-4xl font-semibold tracking-[-.05em] sm:text-6xl">Explora los proyectos disponibles.</h2><p className="mt-5 max-w-2xl text-base leading-7 text-[color:var(--vm-color-ink-muted)]">Conoce sus características, ubicación y espacios antes de iniciar tu orientación personalizada.</p></div><Link href="/vivienda/proyectos" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-6 text-sm font-bold text-white">Ver proyectos <Icon name="arrow" className="h-4 w-4" /></Link></div>
+            <article className="surface-solid mt-10 grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div><div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">{project.city} · {project.zone}</div><h3 className="mt-2 text-3xl font-semibold tracking-[-.04em]">{project.name}</h3><p className="mt-4 max-w-2xl text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Consulta la información vigente del fixture antes de iniciar tu orientación.</p></div>
+              <dl className="grid grid-cols-3 gap-3 text-center"><div className="rounded-[14px] bg-black/[.035] p-4"><dt className="text-[10px] text-black/45">Precio</dt><dd className="mt-1 text-sm font-bold">{project.priceLabel}</dd></div><div className="rounded-[14px] bg-black/[.035] p-4"><dt className="text-[10px] text-black/45">Área</dt><dd className="mt-1 text-sm font-bold">{project.area}</dd></div><div className="rounded-[14px] bg-black/[.035] p-4"><dt className="text-[10px] text-black/45">Espacios</dt><dd className="mt-1 text-sm font-bold">{project.rooms}</dd></div></dl>
+            </article>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-[1460px] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
+          <div className="relative overflow-hidden rounded-[var(--vm-radius-elevated)] bg-[color:var(--vm-color-ink)] p-8 text-white shadow-[var(--vm-shadow-high)] sm:p-12 lg:flex lg:items-end lg:justify-between lg:gap-12 lg:p-16">
+            <div><div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-yellow)]">Tu siguiente paso</div><h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-[.96] tracking-[-.05em] sm:text-6xl">Tu búsqueda puede empezar con una conversación.</h2><p className="mt-5 max-w-2xl text-sm leading-7 text-white/64">En pocos minutos podrás entender qué opciones podrían ajustarse a ti y cuál es el mejor siguiente paso.</p></div>
+            <Link href="/demo" className="mt-8 inline-flex min-h-13 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-bold text-[color:var(--vm-color-ink)] transition hover:bg-[color:var(--vm-color-brand-yellow)] lg:mt-0 lg:w-auto">Empezar mi orientación <Icon name="arrow" className="h-4 w-4" /></Link>
           </div>
         </section>
       </main>
-      <footer className="border-t border-black/[.07] px-5 py-8 text-xs text-black/45 sm:px-8 lg:px-12"><div className="mx-auto flex max-w-[1500px] flex-col justify-between gap-4 sm:flex-row"><span>© 2026 Colsubsidio · Prototipo Vivienda Match AI</span><span>Privacidad · Tratamiento de datos · Accesibilidad</span></div></footer>
+      <footer className="border-t border-black/[.07] px-5 py-8 text-xs text-[color:var(--vm-color-ink-muted)] sm:px-8 lg:px-12">
+        <div className="mx-auto flex max-w-[1460px] flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <span>Prototipo presentado para el Reto de Vivienda Colsubsidio × 30X.</span>
+          <a href="https://www.colsubsidio.com/transparencia-acceso-informacion/tratamiento-datos-personales" className="font-semibold text-[color:var(--vm-color-brand-blue)] underline-offset-4 hover:underline">Tratamiento de información</a>
+        </div>
+      </footer>
     </div>
   );
 }

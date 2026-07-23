@@ -25,6 +25,7 @@ El repositorio todavía no tiene una suite de pruebas automatizadas.
 ### Públicas
 
 - `/` — Landing.
+- `/demo` — Selector funcional de los tres escenarios aprobados.
 - `/login` — Entrada visual del asesor; permanece deshabilitada hasta conectar identidad real.
 - `/vivienda/proyectos` — Catálogo asociado a escenarios aprobados.
 - `/vivienda/proyectos/[id]` — Detalle de proyecto.
@@ -56,7 +57,7 @@ El repositorio todavía no tiene una suite de pruebas automatizadas.
     └── /comparador
 ```
 
-Falta construir `/demo`, `/conversacion/[sessionId]`, `/resultado/[leadId]`, `/asesor/resumen` y `/asesor/nutricion`.
+Falta construir `/conversacion/[sessionId]`, `/resultado/[leadId]`, `/asesor/resumen` y `/asesor/nutricion`.
 
 ## Escenarios sintéticos aprobados
 
