@@ -19,6 +19,8 @@ import {
 } from "@/lib/housing-catalog";
 import { createFunnelEvent, trackFunnelEvent } from "../analytics";
 import type { ProspectSession } from "../domain";
+import type { ProspectContactRequest } from "../handoff";
+import { loadContactRequest } from "../handoff-storage";
 import { getCapacityRange } from "../capacity";
 import { loadProspectSession } from "../storage";
 
@@ -26,11 +28,14 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
   const [session, setSession] = useState<ProspectSession | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [showResult, setShowResult] = useState(false);
+  const [contactRequest, setContactRequest] =
+    useState<ProspectContactRequest>();
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const stored = loadProspectSession(sessionId) ?? null;
       setSession(stored);
+      setContactRequest(loadContactRequest(sessionId));
       setLoaded(true);
       if (stored?.evaluation) {
         const viewedKey = `vivienda-match:result-viewed:${stored.id}`;
@@ -67,7 +72,11 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
   const actionHref = readyForAdvisor
     ? `/vivienda/agendar?from=orientacion&sessionId=${encodeURIComponent(session.id)}`
     : "#plan-preparacion";
-  const actionLabel = readyForAdvisor ? "Continuar con un asesor" : "Ver mi plan de preparación";
+  const actionLabel = readyForAdvisor
+    ? contactRequest
+      ? "Ver estado de mi solicitud"
+      : "Solicitar contacto"
+    : "Ver mi plan de preparación";
   const profileSummary = buildProfileSummary(evaluation);
 
   function trackAction() {
@@ -148,8 +157,21 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
 
         <section className="result-reveal result-reveal--4 mt-10 rounded-[var(--vm-radius-elevated)] bg-[linear-gradient(135deg,#fff7bd,#eef8ff)] p-7 shadow-[var(--vm-shadow-medium)] sm:flex sm:items-end sm:justify-between sm:gap-8 sm:p-10">
           <div>
-            <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Tu siguiente acción</div>
-            <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-[-.04em]">{readyForAdvisor ? "Ya puedes continuar acompañado." : "Avanza a tu ritmo con una meta clara."}</h2>
+            <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
+              {contactRequest ? "Solicitud en proceso" : "Tu siguiente acción"}
+            </div>
+            <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-[-.04em]">
+              {contactRequest
+                ? "Tu preferencia de contacto quedó registrada."
+                : readyForAdvisor
+                  ? "Ya puedes solicitar acompañamiento."
+                  : "Avanza a tu ritmo con una meta clara."}
+            </h2>
+            {contactRequest ? (
+              <p className="mt-3 max-w-xl text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+                El equipo de vivienda deberá revisar tu orientación y confirmar el contacto.
+              </p>
+            ) : null}
           </div>
           <Link href={actionHref} onClick={trackAction} className="mt-6 inline-flex min-h-13 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-6 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[color:var(--vm-color-brand-blue-deep)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)] sm:mt-0 sm:w-auto">
             {actionLabel}<Icon name="arrow" className="h-4 w-4" />

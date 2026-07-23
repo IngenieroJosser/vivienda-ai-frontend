@@ -240,6 +240,7 @@ describe("paid acquisition prospect journey", () => {
       "PROFILING_COMPLETED",
       "RESULT_VIEWED",
       "NEXT_ACTION_CLICKED",
+      "CONTACT_REQUEST_CREATED",
     ] as const;
     const events = names.map((name) => createFunnelEvent({
       name,
@@ -251,6 +252,7 @@ describe("paid acquisition prospect journey", () => {
       arrivals: 1,
       completions: 1,
       nextActions: 1,
+      contactRequests: 1,
       completionRate: 1,
     });
   });

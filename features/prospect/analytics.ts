@@ -39,6 +39,7 @@ export function summarizeFunnelByCampaign(events: FunnelEvent[]): Record<string,
   completions: number;
   results: number;
   nextActions: number;
+  contactRequests: number;
   completionRate: number;
 }> {
   const campaigns = [...new Set(events.map((event) => event.campaign))];
@@ -55,6 +56,7 @@ export function summarizeFunnelByCampaign(events: FunnelEvent[]): Record<string,
       completions,
       results: count("RESULT_VIEWED"),
       nextActions: count("NEXT_ACTION_CLICKED"),
+      contactRequests: count("CONTACT_REQUEST_CREATED"),
       completionRate: arrivals ? Number((completions / arrivals).toFixed(4)) : 0,
     }];
   }));

@@ -6,6 +6,7 @@ import {
   selectNextBestAction,
 } from "./conversation-policy";
 import type { CampaignExperience, ProspectSession } from "./domain";
+import type { ProspectContactRequest } from "./handoff";
 import { extractProspectSignals } from "./signal-extractor";
 
 const PUBLIC_PROFILE_FIELDS: ProfileField[] = [
@@ -127,7 +128,10 @@ export function answerProspectMessage(
   };
 }
 
-export function buildPublicScenario(session: ProspectSession): Scenario {
+export function buildPublicScenario(
+  session: ProspectSession,
+  contactRequest?: ProspectContactRequest,
+): Scenario {
   const campaignProjectId = campaignExperiences[session.campaignId].projectId;
   return {
     id: `public-${session.id}`,
@@ -144,8 +148,35 @@ export function buildPublicScenario(session: ProspectSession): Scenario {
       `Llegó desde ${session.acquisition.source}`,
       `Campaña ${session.acquisition.campaign}`,
       `Contenido ${session.acquisition.content}`,
+      ...(contactRequest
+        ? [
+            `Solicitó contacto por ${contactChannelForAdvisor(contactRequest.channel)}`,
+            `Prefiere contacto ${contactTimeForAdvisor(contactRequest.timePreference)}`,
+          ]
+        : []),
     ],
     ...(campaignProjectId ? { campaignProjectId } : {}),
     requiredFields: PUBLIC_PROFILE_FIELDS,
   };
+}
+
+function contactChannelForAdvisor(
+  channel: ProspectContactRequest["channel"],
+): string {
+  return {
+    WHATSAPP: "WhatsApp",
+    PHONE: "llamada",
+    EMAIL: "correo electrónico",
+  }[channel];
+}
+
+function contactTimeForAdvisor(
+  preference: ProspectContactRequest["timePreference"],
+): string {
+  return {
+    WEEKDAY_MORNING: "entre semana en la mañana",
+    WEEKDAY_AFTERNOON: "entre semana en la tarde",
+    SATURDAY: "el sábado",
+    ANY: "en cualquier horario",
+  }[preference];
 }

@@ -73,7 +73,8 @@ export type FunnelEventName =
   | "QUESTION_ABANDONED"
   | "PROFILING_COMPLETED"
   | "RESULT_VIEWED"
-  | "NEXT_ACTION_CLICKED";
+  | "NEXT_ACTION_CLICKED"
+  | "CONTACT_REQUEST_CREATED";
 
 export type FunnelEvent = {
   name: FunnelEventName;

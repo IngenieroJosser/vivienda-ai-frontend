@@ -5,6 +5,7 @@ import type { QualifiedLead } from "../qualified-leads";
 import { getQualifiedScenarioLeads } from "../qualified-leads";
 import { getStoredSessions } from "../storage";
 import { buildPublicScenario } from "@/features/prospect/engine";
+import { getStoredContactRequests } from "@/features/prospect/handoff-storage";
 import { getStoredProspectSessions } from "@/features/prospect/storage";
 
 export function useQualifiedLeads(): QualifiedLead[] {
@@ -13,7 +14,16 @@ export function useQualifiedLeads(): QualifiedLead[] {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const completedSessions = getStoredSessions().filter((session) => session.evaluation);
-      const publicSessions = getStoredProspectSessions().filter((session) => session.evaluation && session.status === "COMPLETED");
+      const contactRequests = getStoredContactRequests();
+      const contactRequestsBySession = new Map(
+        contactRequests.map((request) => [request.sessionId, request]),
+      );
+      const publicSessions = getStoredProspectSessions().filter(
+        (session) =>
+          session.evaluation &&
+          session.status === "COMPLETED" &&
+          contactRequestsBySession.has(session.id),
+      );
 
       setQualifiedLeads((current) => {
         const canonical = current.map((qualifiedLead) => {
@@ -25,7 +35,13 @@ export function useQualifiedLeads(): QualifiedLead[] {
             : qualifiedLead;
         });
         const publicQualified = publicSessions.flatMap((session) => session.evaluation
-          ? [{ scenario: buildPublicScenario(session), evaluation: session.evaluation }]
+          ? [{
+              scenario: buildPublicScenario(
+                session,
+                contactRequestsBySession.get(session.id),
+              ),
+              evaluation: session.evaluation,
+            }]
           : []);
         const canonicalIds = new Set(canonical.map(({ scenario }) => scenario.leadId));
         return [...canonical, ...publicQualified.filter(({ scenario }) => !canonicalIds.has(scenario.leadId))];
