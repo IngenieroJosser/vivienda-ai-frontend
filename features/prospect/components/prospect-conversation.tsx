@@ -385,7 +385,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
       >
       <div className="mx-auto grid max-w-[1180px] gap-8 px-4 pb-12 pt-6 sm:px-6 lg:grid-cols-[280px_minmax(0,800px)] lg:gap-12 lg:px-8 lg:pt-9">
         <aside className="hidden lg:block">
-          <div className="orientation-chat-aside sticky top-3">
+          <div className="orientation-chat-aside">
             <HousingWindow compact />
             <div className="px-2 pt-7">
               <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.14em] text-[color:var(--vm-color-brand-blue)]">
