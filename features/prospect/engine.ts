@@ -88,9 +88,9 @@ export function answerProspectMessage(
   const answers: ProfileAnswers = { ...session.answers, ...extraction.profile };
   const discovery = { ...session.discovery, ...extraction.discovery };
   const profile = { ...session.knownProfile, ...answers };
-  const turnCount = session.turns.length + 1;
-  const selectedAction = selectNextBestAction(profile, discovery, turnCount);
-  const completed = extraction.wantsToFinish || selectedAction === "COMPLETE";
+  const messageSequence = session.turns.length + 1;
+  const selectedAction = selectNextBestAction(profile, discovery);
+  const completed = selectedAction === "COMPLETE";
   const draft: ProspectSession = {
     ...session,
     answers,
@@ -112,7 +112,7 @@ export function answerProspectMessage(
     turns: [
       ...session.turns,
       {
-        id: `${session.id}-turn-${turnCount}`,
+        id: `${session.id}-message-${messageSequence}`,
         userText,
         assistantText,
         extractedFields: extraction.fields,

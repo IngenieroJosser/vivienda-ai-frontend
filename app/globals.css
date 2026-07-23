@@ -85,6 +85,10 @@
   --vm-motion-slow: 360ms;
   --vm-ease-standard: cubic-bezier(.2, .72, .24, 1);
   --vm-ease-exit: cubic-bezier(.4, 0, 1, 1);
+  --motion-fast: 160ms;
+  --motion-normal: 280ms;
+  --motion-slow: 480ms;
+  --ease-natural: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* Guided and compact density tokens remain opt-in during migration. */
   --vm-guided-control-height: 52px;
@@ -182,6 +186,178 @@ button:disabled { cursor: not-allowed; }
   border-radius: 0;
 }
 
+.prospect-landing {
+  background:
+    linear-gradient(132deg, rgba(255, 247, 189, 0.7), rgba(238, 248, 255, 0.86) 54%, rgba(255, 255, 255, 0.96));
+}
+
+.prospect-landing__ambient {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 208, 0, 0.22), transparent 36%),
+    radial-gradient(circle at 68% 76%, rgba(0, 103, 177, 0.13), transparent 42%);
+  background-size: 130% 130%;
+  animation: vm-ambient-shift 18s var(--ease-natural) infinite alternate;
+  pointer-events: none;
+}
+
+.prospect-entry-composer {
+  width: min(100%, 650px);
+  margin-top: 32px;
+  padding: 14px 14px 14px 18px;
+  border: 1px solid rgba(0, 103, 177, 0.14);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--vm-shadow-medium);
+  view-transition-name: prospect-composer;
+}
+
+.prospect-landing-textarea,
+.prospect-textarea {
+  field-sizing: content;
+  width: 100%;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.prospect-landing-textarea {
+  min-height: 34px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--vm-color-ink);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.prospect-landing-textarea::placeholder {
+  color: var(--vm-color-ink-muted);
+}
+
+.prospect-chat-composer {
+  view-transition-name: prospect-composer;
+}
+
+.prospect-chat-header {
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
+  transition:
+    background-color var(--motion-fast) var(--ease-natural),
+    box-shadow var(--motion-fast) var(--ease-natural);
+}
+
+.prospect-chat-header--scrolled {
+  box-shadow: var(--vm-shadow-low);
+}
+
+.motion-rise {
+  animation: vm-rise var(--motion-slow) var(--ease-natural) both;
+}
+
+.motion-delay-1 { animation-delay: 70ms; }
+.motion-delay-2 { animation-delay: 140ms; }
+.motion-delay-3 { animation-delay: 210ms; }
+
+.prospect-message-right {
+  animation: vm-message-right 180ms var(--ease-natural) both;
+}
+
+.prospect-message-left {
+  animation: vm-message-left 240ms var(--ease-natural) both;
+}
+
+.typing-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 4px;
+  border-radius: 999px;
+  background: var(--vm-color-brand-blue);
+  animation: vm-typing 900ms ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 120ms; }
+.typing-dot:nth-child(3) {
+  margin-right: 0;
+  animation-delay: 240ms;
+}
+
+.result-transition {
+  animation: vm-rise var(--motion-slow) var(--ease-natural) both;
+}
+
+.result-reveal {
+  animation: vm-rise var(--motion-normal) var(--ease-natural) both;
+}
+
+.result-reveal--1 { animation-delay: 0ms; }
+.result-reveal--2 { animation-delay: 90ms; }
+.result-reveal--3 { animation-delay: 180ms; }
+.result-reveal--4 { animation-delay: 270ms; }
+
+@keyframes vm-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes vm-message-right {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes vm-message-left {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes vm-typing {
+  0%, 60%, 100% {
+    opacity: 0.4;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes vm-ambient-shift {
+  from { background-position: 0% 0%; }
+  to { background-position: 100% 100%; }
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(prospect-composer),
+::view-transition-new(prospect-composer) {
+  animation-duration: var(--motion-normal);
+  animation-timing-function: var(--ease-natural);
+}
+
 @media (max-width: 767px) {
   .prospect-hero {
     background:
@@ -277,6 +453,27 @@ button:disabled { cursor: not-allowed; }
     background: var(--vm-surface-solid);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .motion-rise,
+  .prospect-message-right,
+  .prospect-message-left,
+  .result-transition,
+  .result-reveal,
+  .typing-dot,
+  .prospect-landing__ambient {
+    animation: none !important;
+  }
+
+  ::view-transition-old(prospect-composer),
+  ::view-transition-new(prospect-composer) {
+    animation-duration: 1ms;
   }
 }
 

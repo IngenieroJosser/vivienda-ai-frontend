@@ -1,4 +1,3 @@
-import { questionBank } from "../conversation/questions";
 import type { ProfileAnswers, ProfileField } from "../conversation/domain";
 import type { ConversationAction, DiscoveryContext } from "./domain";
 
@@ -7,7 +6,6 @@ export type SignalExtraction = {
   discovery: DiscoveryContext;
   fields: ProfileField[];
   requestsAdvisor: boolean;
-  wantsToFinish: boolean;
 };
 
 export function extractProspectSignals(
@@ -18,7 +16,6 @@ export function extractProspectSignals(
   const profile: ProfileAnswers = {};
   const discovery = extractDiscovery(message, text, expectedAction);
 
-  applyExpectedAnswer(profile, text, expectedAction);
   extractAffiliation(profile, text);
   extractConcern(profile, text);
   extractLocation(profile, text);
@@ -34,24 +31,7 @@ export function extractProspectSignals(
     discovery,
     fields: Object.keys(profile) as ProfileField[],
     requestsAdvisor: /(asesor|asesora|que me llamen|llamenme|contactenme|hablar con (alguien|una persona))/i.test(text),
-    wantsToFinish: /(eso es todo|no tengo mas|ver (mi )?resultado|terminar|finalizar|ya esta)/i.test(text),
   };
-}
-
-function applyExpectedAnswer(
-  profile: ProfileAnswers,
-  text: string,
-  expectedAction: ConversationAction,
-): void {
-  if (
-    expectedAction === "OPEN_DISCOVERY"
-    || expectedAction === "DISCOVER_MOTIVATION"
-    || expectedAction === "DISCOVER_OBSTACLE"
-    || expectedAction === "DISCOVER_ADVANCE_NEED"
-    || expectedAction === "COMPLETE"
-  ) return;
-  const option = questionBank[expectedAction].options.find(({ label }) => normalize(label) === text);
-  if (option) profile[expectedAction] = option.value;
 }
 
 function extractDiscovery(

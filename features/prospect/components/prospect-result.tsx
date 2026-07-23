@@ -15,6 +15,7 @@ import { loadProspectSession } from "../storage";
 export function ProspectResult({ sessionId }: { sessionId: string }) {
   const [session, setSession] = useState<ProspectSession | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [showResult, setShowResult] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -37,9 +38,17 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
     return () => window.clearTimeout(timer);
   }, [sessionId]);
 
+  useEffect(() => {
+    if (!loaded || !session?.evaluation || session.status !== "COMPLETED") return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const timer = window.setTimeout(() => setShowResult(true), reduceMotion ? 0 : 480);
+    return () => window.clearTimeout(timer);
+  }, [loaded, session]);
+
   if (!loaded) return <ResultState title="Preparando tu orientación…" description="Estamos organizando lo que entendimos y el siguiente paso." />;
   if (!session) return <ResultState title="No encontramos esta orientación." description="El resultado está disponible en el dispositivo donde completaste la conversación." action={{ label: "Empezar orientación", href: "/orientacion" }} />;
-  if (session.status !== "COMPLETED" || !session.evaluation) return <ResultState title="La conversación todavía no ha terminado." description="Completa las preguntas para recibir una orientación responsable." action={{ label: "Continuar", href: `/orientacion/${session.id}` }} />;
+  if (session.status !== "COMPLETED" || !session.evaluation) return <ResultState title="La conversación todavía no ha terminado." description="Continúa conversando para que podamos comprender tu situación y darte una orientación responsable." action={{ label: "Continuar", href: `/orientacion/${session.id}` }} />;
+  if (!showResult) return <ResultTransition />;
 
   const evaluation = session.evaluation;
   const campaign = campaignExperiences[session.campaignId];
@@ -71,7 +80,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
       </header>
 
       <main className="mx-auto max-w-[980px] px-5 py-8 sm:px-8 lg:py-12">
-        <section className="surface-solid overflow-hidden p-6 sm:p-9 lg:p-11">
+        <section className="result-reveal result-reveal--1 overflow-hidden border-b border-[color:var(--vm-color-line)] pb-8 sm:pb-10">
           <div className="max-w-3xl">
             <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-success)]">
               {session.firstName ? `Tu orientación, ${session.firstName}` : "Tu orientación personalizada"}
@@ -79,19 +88,16 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
             <h1 className="mt-4 text-4xl font-semibold leading-[1.04] tracking-[-.04em] sm:text-5xl">
               {readyForAdvisor ? "Tu perfil parece listo para avanzar." : preparationTitle(evaluation.route)}
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-[color:var(--vm-color-ink-muted)]">
+            <p className="result-reveal result-reveal--2 mt-5 max-w-2xl text-base leading-7 text-[color:var(--vm-color-ink-muted)]">
               {capacityRange
                 ? `Estimamos que podrías destinar entre ${formatCop(capacityRange.minimum)} y ${formatCop(capacityRange.maximum)} al mes para vivienda.`
                 : "Todavía necesitamos fortalecer o completar información antes de estimar una cuota responsable."}
             </p>
-            <Link href={actionHref} onClick={trackAction} className="mt-7 inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-6 text-sm font-bold text-white transition hover:bg-[color:var(--vm-color-brand-blue-deep)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)] sm:w-auto">
-              {actionLabel}<Icon name="arrow" className="h-4 w-4" />
-            </Link>
             <p className="mt-4 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">El rango es orientativo y no constituye aprobación de crédito, subsidio o disponibilidad.</p>
           </div>
         </section>
 
-        <section className="surface-solid mt-5 p-6 sm:p-8">
+        <section className="result-reveal result-reveal--2 mt-8 border-b border-[color:var(--vm-color-line)] pb-8 sm:pb-10">
           <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Lo que entendimos</div>
           <h2 className="mt-2 text-2xl font-semibold">Este es tu punto de partida.</h2>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -99,7 +105,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
           </div>
         </section>
 
-        <section className="surface-solid mt-5 p-6 sm:p-8">
+        <section className="result-reveal result-reveal--3 mt-8 border-b border-[color:var(--vm-color-line)] pb-8 sm:pb-10">
           <h2 className="text-2xl font-semibold">Beneficios con total claridad</h2>
           <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Separamos lo que ya está confirmado de aquello que todavía requiere una revisión.</p>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -109,7 +115,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
         </section>
 
         {matchedProjects.length ? (
-          <section className="mt-8">
+          <section className="result-reveal result-reveal--3 mt-8">
             <div className="max-w-2xl">
               <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Proyecto para explorar</div>
               <h2 className="mt-3 text-3xl font-semibold tracking-[-.035em]">Una opción que coincide con tu búsqueda.</h2>
@@ -120,7 +126,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
         ) : null}
 
         {!readyForAdvisor ? (
-          <section id="plan-preparacion" className="surface-solid mt-8 scroll-mt-6 p-6 sm:p-8">
+          <section id="plan-preparacion" className="result-reveal result-reveal--3 mt-8 scroll-mt-6 border-t border-[color:var(--vm-color-line)] pt-8">
             <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-warning)]">Tu plan de preparación</div>
             <h2 className="mt-2 text-3xl font-semibold tracking-[-.035em]">Avanza con una meta concreta.</h2>
             <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -130,7 +136,30 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
             </div>
           </section>
         ) : null}
+
+        <section className="result-reveal result-reveal--4 mt-10 rounded-[var(--vm-radius-elevated)] bg-[linear-gradient(135deg,#fff7bd,#eef8ff)] p-7 shadow-[var(--vm-shadow-medium)] sm:flex sm:items-end sm:justify-between sm:gap-8 sm:p-10">
+          <div>
+            <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Tu siguiente acción</div>
+            <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-[-.04em]">{readyForAdvisor ? "Ya puedes continuar acompañado." : "Avanza a tu ritmo con una meta clara."}</h2>
+          </div>
+          <Link href={actionHref} onClick={trackAction} className="mt-6 inline-flex min-h-13 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-6 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[color:var(--vm-color-brand-blue-deep)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)] sm:mt-0 sm:w-auto">
+            {actionLabel}<Icon name="arrow" className="h-4 w-4" />
+          </Link>
+        </section>
       </main>
+    </div>
+  );
+}
+
+function ResultTransition() {
+  return (
+    <div className="grid min-h-screen place-items-center bg-[linear-gradient(145deg,#fffef8,#eef8ff)] px-5 text-[color:var(--vm-color-ink)]">
+      <section className="result-transition text-center" role="status" aria-live="polite">
+        <span className="mx-auto block h-2 w-2 rounded-full bg-[color:var(--vm-color-brand-yellow)]" />
+        <h1 className="mt-5 max-w-xl text-3xl font-semibold leading-tight tracking-[-.04em] sm:text-4xl">
+          Ya tenemos suficiente información para orientarte.
+        </h1>
+      </section>
     </div>
   );
 }

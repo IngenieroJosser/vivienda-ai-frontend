@@ -2,15 +2,15 @@ import Link from "next/link";
 
 export function Brand({ compact = false, dark = false }: { compact?: boolean; dark?: boolean }) {
   return (
-    <Link href="/" prefetch className="inline-flex items-center gap-2.5" aria-label="Inicio Colsubsidio Vivienda Match AI">
-      <svg className={compact ? "h-7 w-7" : "h-9 w-9"} viewBox="0 0 40 40" fill="none" aria-hidden="true">
+    <Link href="/" prefetch className="inline-flex min-h-11 shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]" aria-label="Inicio Vivienda Colsubsidio">
+      <svg className={compact ? "h-8 w-8" : "h-9 w-9"} viewBox="0 0 40 40" fill="none" aria-hidden="true">
         <path d="M4 20 18 5v9h16L20 35v-9H4Z" fill="#ffd000" />
         <path d="M18 14 8 20l10 6Z" fill="#0067b1" />
       </svg>
       <span className="flex items-center gap-1.5 sm:gap-2">
-        <span className={`font-extrabold tracking-[-0.04em] ${compact ? "text-sm sm:text-lg" : "text-xl"} ${dark ? "text-white" : "text-[#0067b1]"}`}>Colsubsidio</span>
-        <span className={dark ? "text-white/40" : "text-[#0067b1]/35"}>×</span>
-        <span className={`font-black tracking-[-0.045em] ${compact ? "text-xs sm:text-base" : "text-lg"} ${dark ? "text-white" : "text-[#004f8c]"}`}>Vivienda Match AI</span>
+        <span className={`font-extrabold tracking-[-0.04em] ${compact ? "text-base sm:text-xl" : "text-xl"} ${dark ? "text-white" : "text-[#0067b1]"}`}>Colsubsidio</span>
+        <span className={dark ? "text-white/40" : "text-[#0067b1]/35"}>·</span>
+        <span className={`font-black tracking-[-0.045em] ${compact ? "text-sm sm:text-lg" : "text-lg"} ${dark ? "text-white" : "text-[#004f8c]"}`}>Vivienda</span>
       </span>
     </Link>
   );

@@ -107,6 +107,27 @@ describe("paid acquisition prospect journey", () => {
     expect(detailed.turns[0]?.extractedFields.length).toBeGreaterThan(vague.turns[0]?.extractedFields.length ?? 0);
   });
 
+  it("keeps listening when evidence is incomplete regardless of message count", () => {
+    let session = acceptProspectConsent(createProspectSession({
+      id: "open-ended-conversation",
+      acquisition: sanitizeAcquisitionContext({ utm_campaign: "general" }),
+      campaign: campaignExperiences.general,
+      timestamp: "2026-07-23T12:00:00.000Z",
+    }), "2026-07-23T12:00:01.000Z");
+
+    for (let index = 0; index < 8; index += 1) {
+      session = answerProspectMessage(
+        session,
+        "Todavía lo estoy pensando y quiero contarte un poco más.",
+        `2026-07-23T12:${String(index + 1).padStart(2, "0")}:00.000Z`,
+      );
+    }
+
+    expect(session.status).toBe("ACTIVE");
+    expect(session.evaluation).toBeUndefined();
+    expect(session.turns).toHaveLength(8);
+  });
+
   it("keeps unknown visitors anonymous until explicit consent", () => {
     const session = createProspectSession({
       id: "anonymous-session",
@@ -152,7 +173,7 @@ describe("paid acquisition prospect journey", () => {
       },
     ] as const;
 
-    const turnCounts = cases.map(({ leadId, campaign, messages, expectedRoute }) => {
+    const messageCounts = cases.map(({ leadId, campaign, messages, expectedRoute }) => {
       let session = acceptProspectConsent(createProspectSession({
         id: `session-${leadId}`,
         acquisition: sanitizeAcquisitionContext({ utm_campaign: campaign.id, leadId }),
@@ -169,7 +190,7 @@ describe("paid acquisition prospect journey", () => {
       return session.turns.length;
     });
 
-    expect(new Set(turnCounts).size).toBeGreaterThan(1);
+    expect(new Set(messageCounts).size).toBeGreaterThan(1);
   });
 
   it("does not transfer to a human before commercial qualification", () => {

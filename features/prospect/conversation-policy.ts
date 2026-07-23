@@ -14,14 +14,11 @@ const REQUIRED_EVIDENCE: ProfileField[] = [
   "savings",
 ];
 
-export const MAX_CONVERSATION_TURNS = 6;
-
 export function selectNextBestAction(
   profile: ProfileAnswers,
   discovery: DiscoveryContext,
-  turnCount: number,
 ): ConversationAction {
-  if (hasSufficientEvidence(profile, discovery) || turnCount >= MAX_CONVERSATION_TURNS) return "COMPLETE";
+  if (hasSufficientEvidence(profile, discovery)) return "COMPLETE";
 
   if (!discovery.housingVision) return "OPEN_DISCOVERY";
   if (!discovery.motivation) return "DISCOVER_MOTIVATION";
@@ -62,32 +59,6 @@ export function getInitialMessage(session: ProspectSession): string {
     return `Hola, ${session.firstName}. Cuéntame qué buscas en tu próxima vivienda y qué te gustaría tener claro para poder avanzar.`;
   }
   return "Hola. Soy el orientador virtual de Vivienda Colsubsidio. Cuéntame qué buscas en tu próxima vivienda y qué te gustaría aclarar para tomar una decisión.";
-}
-
-export function getSuggestions(action: ConversationAction): string[] {
-  const suggestions: Partial<Record<ConversationAction, string[]>> = {
-    OPEN_DISCOVERY: [
-      "Un hogar para mi familia",
-      "Algo propio para dejar de pagar arriendo",
-      "Una vivienda cerca de mi trabajo",
-    ],
-    DISCOVER_MOTIVATION: ["Quiero dejar de pagar arriendo", "Mi familia necesita más espacio", "Quiero independizarme"],
-    DISCOVER_OBSTACLE: ["Me preocupa la cuota inicial", "No sé si mi ingreso alcanza", "Necesito revisar subsidios"],
-    DISCOVER_ADVANCE_NEED: ["Entender mi capacidad", "Conocer beneficios", "Encontrar un proyecto"],
-    mainConcern: [
-      "Me preocupa la cuota",
-      "Necesito espacio para mi familia",
-      "Quiero revisar beneficios",
-    ],
-    affiliation: ["Sí, soy afiliado", "No soy afiliado", "No estoy seguro"],
-    location: ["Me interesa Soacha", "Busco en Bogotá", "Aún no sé la zona"],
-    horizon: ["En los próximos 3 meses", "Entre 3 y 6 meses", "Después de un año"],
-    householdSize: ["Viviría solo", "Somos 2 personas", "Somos 4 personas"],
-    incomeRange: ["Hasta 2 salarios mínimos", "Entre 2 y 4 salarios mínimos", "Más de 4 salarios mínimos"],
-    obligations: ["No tengo deudas", "Tengo algunas deudas", "Más del 30% está comprometido"],
-    savings: ["Ya tengo una base de ahorro", "Estoy ahorrando", "No tengo ahorro todavía"],
-  };
-  return suggestions[action]?.slice(0, 3) ?? [];
 }
 
 export function buildContextualResponse(input: {

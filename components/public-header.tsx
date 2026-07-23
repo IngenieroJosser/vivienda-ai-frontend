@@ -1,42 +1,43 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { Brand } from "./brand";
 import { Icon } from "./icon";
+import { PublicMobileNavigation } from "./public-mobile-navigation";
 
 const links = [
-  ["Cómo funciona", "/#como-funciona"],
-  ["Proyectos", "/vivienda/proyectos"],
+  ["Proyecto Versalles", "/vivienda/proyectos/versalles"],
 ] as const;
 
 export function PublicHeader() {
-  const [open, setOpen] = useState(false);
-
   return (
-    <header className="public-header glass-subtle sticky top-0 z-50">
-      <div className="mx-auto flex h-[76px] max-w-[1460px] items-center justify-between px-5 sm:px-8 lg:px-12">
+    <header className="public-header glass-subtle sticky top-0 z-50" aria-label="Encabezado principal">
+      <div className="mx-auto flex min-h-20 max-w-[1460px] items-center justify-between gap-6 px-5 sm:px-8 lg:px-12">
         <Brand compact />
-        <nav aria-label="Navegación principal" className="hidden items-center gap-8 lg:flex">
-          {links.map(([label, href]) => <Link key={href} href={href} prefetch className="text-sm font-semibold tracking-[.01em] text-[color:var(--vm-color-ink-muted)] transition hover:text-[color:var(--vm-color-brand-blue)]">{label}</Link>)}
+
+        <nav aria-label="Navegación pública" className="hidden items-center gap-1 xl:flex">
+          {links.map(([label, href]) => (
+            <Link
+              key={href}
+              href={href}
+              prefetch
+              className="inline-flex min-h-11 items-center rounded-full px-4 text-[15px] font-bold tracking-[.01em] text-[color:var(--vm-color-ink-muted)] transition duration-150 hover:bg-[color:var(--vm-color-brand-blue)]/[.06] hover:text-[color:var(--vm-color-brand-blue)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]"
+            >
+              {label}
+            </Link>
+          ))}
         </nav>
-        <div className="hidden items-center gap-3 sm:flex">
-          <Link href="/login" prefetch className="rounded-full px-4 py-2.5 text-sm font-semibold text-[color:var(--vm-color-ink-muted)] transition hover:bg-[color:var(--vm-color-brand-blue)]/[.06] hover:text-[color:var(--vm-color-brand-blue)]">Acceso para asesores</Link>
-          <Link href="/orientacion" prefetch className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white transition hover:bg-[color:var(--vm-color-brand-blue-deep)]">Comenzar <Icon name="arrow" className="h-4 w-4" /></Link>
+
+        <div className="hidden items-center xl:flex">
+          <Link
+            href="/orientacion"
+            prefetch
+            className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-[15px] font-bold tracking-[.01em] text-white shadow-[var(--vm-shadow-low)] transition duration-150 hover:bg-[color:var(--vm-color-brand-blue-deep)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]"
+          >
+            Iniciar conversación <Icon name="arrow" className="h-4 w-4" />
+          </Link>
         </div>
-        <button type="button" onClick={() => setOpen((value) => !value)} className="grid h-11 w-11 place-items-center rounded-full border border-[color:var(--vm-color-brand-blue)]/15 bg-white text-[color:var(--vm-color-brand-blue)] sm:hidden" aria-label={open ? "Cerrar menú" : "Abrir menú"} aria-expanded={open} aria-controls="public-mobile-nav">
-          <Icon name={open ? "close" : "menu"} />
-        </button>
+
+        <PublicMobileNavigation />
       </div>
-      {open ? (
-        <nav id="public-mobile-nav" aria-label="Navegación móvil" className="border-t border-[color:var(--vm-color-brand-blue)]/10 bg-white px-5 py-5 sm:hidden">
-          <div className="flex flex-col gap-1">
-            {links.map(([label, href]) => <Link key={href} href={href} prefetch onClick={() => setOpen(false)} className="rounded-xl px-4 py-3 text-base font-semibold hover:bg-[color:var(--vm-color-brand-blue)]/[.05]">{label}</Link>)}
-            <Link href="/login" prefetch onClick={() => setOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold">Acceso para asesores</Link>
-            <Link href="/orientacion" prefetch onClick={() => setOpen(false)} className="mt-2 rounded-xl bg-[color:var(--vm-color-brand-blue)] px-4 py-3 text-center text-sm font-bold text-white">Comenzar</Link>
-          </div>
-        </nav>
-      ) : null}
     </header>
   );
 }
