@@ -25,6 +25,7 @@ export function ProjectResourceViewer({
   const [loading, setLoading] = useState(true);
   const [slowLoading, setSlowLoading] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [offline, setOffline] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -75,8 +76,26 @@ export function ProjectResourceViewer({
   }, [onClose]);
 
   useEffect(() => {
+    const updateNetworkState = () => {
+      const isOffline = !navigator.onLine;
+      setOffline(isOffline);
+      if (isOffline) {
+        setLoading(false);
+        setFailed(true);
+      }
+    };
+    updateNetworkState();
+    window.addEventListener("online", updateNetworkState);
+    window.addEventListener("offline", updateNetworkState);
+    return () => {
+      window.removeEventListener("online", updateNetworkState);
+      window.removeEventListener("offline", updateNetworkState);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!loading) return;
-    const timer = window.setTimeout(() => setSlowLoading(true), 12_000);
+    const timer = window.setTimeout(() => setSlowLoading(true), 8_000);
     return () => window.clearTimeout(timer);
   }, [loading]);
 
@@ -134,7 +153,10 @@ export function ProjectResourceViewer({
           </span>
         </header>
 
-        <div className="project-resource-viewer__stage">
+        <div
+          className="project-resource-viewer__stage"
+          aria-busy={loading}
+        >
           {canEmbed && !failed ? (
             <iframe
               src={resource.url}
@@ -147,6 +169,7 @@ export function ProjectResourceViewer({
               onLoad={() => {
                 setLoading(false);
                 setSlowLoading(false);
+                setFailed(false);
               }}
               onError={() => {
                 setLoading(false);
@@ -187,12 +210,30 @@ export function ProjectResourceViewer({
               </span>
               <strong>No pudimos mostrar este recurso aquí.</strong>
               <span id={descriptionId}>
-                Puedes abrirlo directamente en el sitio del proveedor.
+                {offline
+                  ? "Revisa tu conexión a internet y vuelve a intentarlo."
+                  : "Puedes intentarlo nuevamente o abrirlo en el sitio del proveedor."}
               </span>
-              <a href={resource.url} target="_blank" rel="noreferrer">
-                Abrir recurso
-                <Icon name="arrow" className="h-4 w-4" />
-              </a>
+              <span className="project-resource-viewer__recovery">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOffline(!navigator.onLine);
+                    if (!navigator.onLine) return;
+                    setFailed(false);
+                    setLoading(true);
+                    setSlowLoading(false);
+                  }}
+                >
+                  Intentar nuevamente
+                </button>
+                {!offline ? (
+                  <a href={resource.url} target="_blank" rel="noreferrer">
+                    Abrir recurso
+                    <Icon name="arrow" className="h-4 w-4" />
+                  </a>
+                ) : null}
+              </span>
             </div>
           ) : (
             <span id={descriptionId} className="sr-only">

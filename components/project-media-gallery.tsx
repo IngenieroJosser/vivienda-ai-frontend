@@ -17,6 +17,17 @@ import { ProjectResourceViewer } from "./project-resource-viewer";
 import { ProjectImageViewer } from "./project-image-viewer";
 import type { ProjectResource } from "./project-media-gallery-model";
 import type { HousingProject } from "@/lib/housing-catalog";
+import {
+  getProjectEmbedConnectionHint,
+  getProjectEmbedOrigins,
+} from "@/lib/housing-catalog/connection-hints";
+
+type NavigatorWithConnection = Navigator & {
+  connection?: {
+    saveData?: boolean;
+    effectiveType?: string;
+  };
+};
 
 export function ProjectMediaGallery({
   project,
@@ -51,6 +62,25 @@ export function ProjectMediaGallery({
       behavior: reducedMotion ? "auto" : "smooth",
     });
   }, [activeIndex]);
+
+  useEffect(() => {
+    const connection = (navigator as NavigatorWithConnection).connection;
+    const hint = getProjectEmbedConnectionHint(connection);
+    if (hint === "none") return;
+
+    const origins = getProjectEmbedOrigins(
+      resources.map(({ url }) => url),
+    );
+    for (const origin of origins) {
+      const selector = `link[data-project-resource-origin="${origin}"][rel="${hint}"]`;
+      if (document.head.querySelector(selector)) continue;
+      const link = document.createElement("link");
+      link.rel = hint;
+      link.href = origin;
+      link.dataset.projectResourceOrigin = origin;
+      document.head.append(link);
+    }
+  }, [resources]);
 
   return (
     <section className="project-gallery" aria-labelledby="project-gallery-title">
