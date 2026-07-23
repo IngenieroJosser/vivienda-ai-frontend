@@ -10,11 +10,18 @@ import {
 } from "@/lib/housing-catalog";
 
 export function ProjectCard({ project, compact = false }: { project: HousingProject; compact?: boolean }) {
+  const mediaCount =
+    1 +
+    project.typologies.length +
+    project.tours.filter(({ availability }) => availability === "AVAILABLE")
+      .length +
+    (project.brochureUrl ? 1 : 0);
+
   return (
     <article className="project-card surface-card surface-card--interactive group overflow-hidden">
       <span aria-hidden="true" className="project-card__ambient" />
       <div className={`relative overflow-hidden ${compact ? "h-44" : "h-56"}`}>
-        <Image src={project.image} alt={`Vista del proyecto ${project.name}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" loading="lazy" quality={76} unoptimized={project.image.endsWith(".svg")} className="object-cover transition duration-500 ease-out group-hover:scale-[1.04]" />
+        <Image src={project.image} alt={`Vista del proyecto ${project.name}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" loading="lazy" quality={76} unoptimized={project.image.endsWith(".svg")} className="project-card__image object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--vm-color-brand-blue-deep)]/55 via-transparent to-white/5" />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
           <Pill tone="image-overlay">{getHousingTypeLabel(project.housingType)}</Pill>
@@ -24,6 +31,10 @@ export function ProjectCard({ project, compact = false }: { project: HousingProj
             </span>
           ) : null}
         </div>
+        <span className="project-card__media-count">
+          <Icon name="camera" className="h-3.5 w-3.5" />
+          {mediaCount} recursos para explorar
+        </span>
       </div>
       <div className="p-5 sm:p-6">
         <div className="flex items-start justify-between gap-4">

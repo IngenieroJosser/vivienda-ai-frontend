@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Icon } from "@/components/icon";
+import { ProjectMediaGallery } from "@/components/project-media-gallery";
 import { Pill } from "@/components/ui";
 import {
   formatProjectAreaRange,
@@ -30,18 +30,45 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const availableTours = project.tours.filter(({ availability }) => availability === "AVAILABLE");
 
   return (
-    <main className="mx-auto max-w-[1200px] px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
+    <main className="project-detail-page mx-auto max-w-[1300px] px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
       <Link href="/vivienda/proyectos" className="inline-flex items-center gap-2 rounded-full border border-[color:var(--vm-color-line)] bg-white px-3.5 py-2 text-[10px] font-bold text-[color:var(--vm-color-brand-blue)] shadow-sm"><Icon name="arrow" className="h-3.5 w-3.5 rotate-180" />Volver a proyectos</Link>
-      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <section className="space-y-5">
-          <div className="flow-panel overflow-hidden">
-            <div className="relative h-[360px] sm:h-[500px]"><Image src={project.image} alt={project.name} fill sizes="(max-width: 1280px) 100vw, 70vw" preload className="object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-[color:var(--vm-color-brand-blue-deep)]/72 via-transparent to-transparent" /><div className="absolute bottom-0 p-7 text-white"><div className="text-xs font-semibold text-[color:var(--vm-color-brand-yellow)]">{project.location.city} · {project.location.department}</div><h1 className="mt-2 text-4xl font-bold">{project.name}</h1><p className="mt-2 text-xs text-white/80">{project.location.development}</p></div></div>
+
+      <header className="mt-7 grid gap-6 border-b border-[color:var(--vm-color-line)] pb-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <div>
+          <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.13em] text-[color:var(--vm-color-brand-blue)]">
+            <Icon name="location" className="h-4 w-4" />
+            {project.location.city} · {project.location.department}
           </div>
+          <h1 className="mt-3 text-5xl font-semibold leading-[.94] tracking-[-.06em] sm:text-6xl">
+            {project.name}
+          </h1>
+          <p className="mt-4 text-sm font-semibold text-[color:var(--vm-color-ink-muted)]">
+            {project.location.development}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          <Pill tone="yellow">Material comercial aprobado</Pill>
+          <Pill tone="blue">{getHousingTypeLabel(project.housingType)}</Pill>
+          {availableTours.length ? (
+            <span className="inline-flex min-h-8 items-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/15 bg-white px-3 text-[10px] font-bold text-[color:var(--vm-color-brand-blue)]">
+              <Icon name="eye" className="h-3.5 w-3.5" />
+              {availableTours.length === 1
+                ? "Recorrido virtual"
+                : `${availableTours.length} recorridos virtuales`}
+            </span>
+          ) : null}
+        </div>
+      </header>
+
+      <ProjectMediaGallery project={project} />
+
+      <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <section className="space-y-5">
           <section className="surface-solid p-6 sm:p-8">
             <div className="flex flex-wrap items-center gap-3">
-              <Pill tone="yellow">Material comercial aprobado</Pill>
-              <Pill tone="blue">{getHousingTypeLabel(project.housingType)}</Pill>
-              <span className="text-xs text-[color:var(--vm-color-ink-muted)]">No confirma inventario</span>
+              <div className="text-[10px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
+                Sobre el proyecto
+              </div>
             </div>
             <p className="mt-5 text-base leading-7 text-[color:var(--vm-color-ink-muted)]">{project.summary}</p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">{project.features.map((feature) => <div key={feature} className="flex items-center gap-3 rounded-[15px] border border-[color:var(--vm-color-line)] p-3.5 text-sm font-semibold"><Icon name="check" className="h-4 w-4 shrink-0 text-[color:var(--vm-color-success)]" />{feature}</div>)}</div>
@@ -71,12 +98,12 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             {availableTours.length > 0 ? (
               <div className="mt-6 rounded-[18px] bg-[color:var(--vm-color-brand-blue)]/[.05] p-4 text-sm text-[color:var(--vm-color-ink-muted)]">
                 <b className="text-[color:var(--vm-color-ink)]">{availableTours.length === 1 ? "Recorrido virtual disponible" : `${availableTours.length} recorridos virtuales disponibles`}.</b>{" "}
-                Los mostraremos dentro de la orientación cuando este proyecto sea compatible contigo.
+                Puedes abrirlos desde la galería multimedia para explorar el proyecto.
               </div>
             ) : null}
           </section>
         </section>
-        <aside className="space-y-5">
+        <aside className="space-y-5 xl:sticky xl:top-24 xl:self-start">
           <section className="surface-card p-6">
             <div className="text-[10px] uppercase tracking-[.12em] text-[color:var(--vm-color-ink-muted)]">Información del proyecto</div>
             <div className="mt-5 space-y-3 text-xs">
