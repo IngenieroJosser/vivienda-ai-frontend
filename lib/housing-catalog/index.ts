@@ -53,6 +53,14 @@ export function formatProjectPrice(project: HousingProject): string {
   }).format(project.priceFromCop.value);
 }
 
+export function getHousingTypeLabel(
+  housingType: HousingProject["housingType"],
+): string {
+  if (housingType === "VIS") return "Vivienda de interés social";
+  if (housingType === "NO_VIS") return "Proyecto residencial";
+  return "Proyecto de vivienda";
+}
+
 export function formatProjectAreaRange(project: HousingProject): string {
   const areas = project.typologies.map((typology) => typology.builtAreaM2);
   const minimum = Math.min(...areas);

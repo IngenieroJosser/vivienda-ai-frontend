@@ -9,6 +9,7 @@ import {
   formatTypologyArea,
   formatVerificationDate,
   getHousingProject,
+  getHousingTypeLabel,
   getProjectEvidence,
   getValidityLabel,
   housingProjects,
@@ -39,7 +40,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <section className="surface-solid p-6 sm:p-8">
             <div className="flex flex-wrap items-center gap-3">
               <Pill tone="yellow">Material comercial aprobado</Pill>
-              {project.housingType ? <Pill tone="blue">{project.housingType}</Pill> : null}
+              <Pill tone="blue">{getHousingTypeLabel(project.housingType)}</Pill>
               <span className="text-xs text-[color:var(--vm-color-ink-muted)]">No confirma inventario</span>
             </div>
             <p className="mt-5 text-base leading-7 text-[color:var(--vm-color-ink-muted)]">{project.summary}</p>

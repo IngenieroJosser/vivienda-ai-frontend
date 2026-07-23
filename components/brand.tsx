@@ -1,16 +1,20 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export function Brand({ compact = false, dark = false }: { compact?: boolean; dark?: boolean }) {
   return (
-    <Link href="/" prefetch className="inline-flex min-h-11 shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]" aria-label="Inicio Vivienda Colsubsidio">
-      <svg className={compact ? "h-8 w-8" : "h-9 w-9"} viewBox="0 0 40 40" fill="none" aria-hidden="true">
-        <path d="M4 20 18 5v9h16L20 35v-9H4Z" fill="#ffd000" />
-        <path d="M18 14 8 20l10 6Z" fill="#0067b1" />
-      </svg>
-      <span className="flex items-center gap-1.5 sm:gap-2">
-        <span className={`font-extrabold tracking-[-0.04em] ${compact ? "text-base sm:text-xl" : "text-xl"} ${dark ? "text-white" : "text-[#0067b1]"}`}>Colsubsidio</span>
-        <span className={dark ? "text-white/40" : "text-[#0067b1]/35"}>·</span>
-        <span className={`font-black tracking-[-0.045em] ${compact ? "text-sm sm:text-lg" : "text-lg"} ${dark ? "text-white" : "text-[#004f8c]"}`}>Vivienda</span>
+    <Link href="/" prefetch className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)] sm:gap-3" aria-label="Inicio Vivienda Colsubsidio">
+      <Image
+        src="/brand/colsubsidio-logo.svg"
+        alt="Colsubsidio"
+        width={181}
+        height={36}
+        priority
+        className={`w-auto ${compact ? "h-7 sm:h-8" : "h-8 sm:h-9"} ${dark ? "brightness-0 invert" : ""}`}
+      />
+      <span className={`hidden h-6 w-px sm:block ${dark ? "bg-white/30" : "bg-[color:var(--vm-color-brand-blue)]/20"}`} aria-hidden="true" />
+      <span className={`hidden font-bold tracking-[-.035em] sm:block ${compact ? "text-base lg:text-lg" : "text-lg"} ${dark ? "text-white" : "text-[color:var(--vm-color-brand-blue-deep)]"}`}>
+        Vivienda
       </span>
     </Link>
   );

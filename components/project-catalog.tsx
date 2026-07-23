@@ -3,7 +3,10 @@
 import { useMemo, useState } from "react";
 import { Icon } from "./icon";
 import { ProjectCard } from "./project-card";
-import type { HousingProject } from "@/lib/housing-catalog";
+import {
+  getHousingTypeLabel,
+  type HousingProject,
+} from "@/lib/housing-catalog";
 
 type LocationFilter = "Todos" | string;
 
@@ -28,7 +31,7 @@ export function ProjectCatalog({ projects }: { projects: readonly HousingProject
         project.location.department,
         project.location.development,
         project.summary,
-        project.housingType ?? "",
+        getHousingTypeLabel(project.housingType),
       ].join(" "));
 
       return matchesLocation && searchable.includes(normalizedQuery);
