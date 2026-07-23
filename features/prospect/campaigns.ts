@@ -1,4 +1,9 @@
-import type { AcquisitionContext, CampaignExperience } from "./domain";
+import type {
+  AcquisitionContext,
+  CampaignExperience,
+  CustomerRelationship,
+  KnownHousing,
+} from "./domain";
 import type { ProfileAnswers } from "../conversation/domain";
 
 const MAX_PARAM_LENGTH = 80;
@@ -37,26 +42,31 @@ export const campaignExperiences: Record<CampaignExperience["id"], CampaignExper
 
 type KnownProspect = {
   firstName: string;
+  customerRelationship: CustomerRelationship;
   profile: ProfileAnswers;
   knownBenefits: string[];
   engagementSignals: string[];
+  knownHousing?: KnownHousing;
 };
 
 const knownProspects: Record<string, KnownProspect> = {
   vm_Jonathan30X1: {
     firstName: "Jonathan",
+    customerRelationship: "AFFILIATE",
     profile: { affiliation: "AFFILIATE", incomeRange: "MID", householdSize: "3" },
     knownBenefits: ["Subsidio familiar de vivienda por validar", "Acompañamiento Pertenecer"],
     engagementSignals: ["Respondió una pauta de vivienda", "Consultó información del proyecto Versalles"],
   },
   vm_Laura30X2026: {
     firstName: "Laura",
+    customerRelationship: "NON_AFFILIATE",
     profile: { affiliation: "NON_AFFILIATE" },
     knownBenefits: [],
     engagementSignals: ["Consultó información de financiación"],
   },
   vm_Camila30X2026: {
     firstName: "Camila",
+    customerRelationship: "AFFILIATE",
     profile: {
       affiliation: "AFFILIATE",
       dreamGoal: "PREPARE",
@@ -65,6 +75,25 @@ const knownProspects: Record<string, KnownProspect> = {
     },
     knownBenefits: ["Subsidio familiar de vivienda por validar", "Acompañamiento Pertenecer"],
     engagementSignals: ["Guardó contenido sobre subsidios"],
+  },
+  vm_AndresBuyer2026: {
+    firstName: "Andrés",
+    customerRelationship: "PREVIOUS_BUYER",
+    profile: {
+      affiliation: "AFFILIATE",
+      incomeRange: "MID",
+      householdSize: "3",
+    },
+    knownBenefits: ["Acompañamiento Pertenecer"],
+    engagementSignals: [
+      "Compró anteriormente un proyecto de vivienda Colsubsidio",
+      "Registra una nueva consulta de vivienda",
+    ],
+    knownHousing: {
+      projectName: "Ciudadela Maiporé",
+      city: "Soacha",
+      purchaseYear: 2021,
+    },
   },
 };
 

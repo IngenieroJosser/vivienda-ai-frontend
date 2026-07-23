@@ -2,6 +2,7 @@ import type { ProfileAnswers, ProfileField } from "../conversation/domain";
 import { formatCop } from "../conversation/profile-copy";
 import { getCapacityRange } from "./capacity";
 import type { ConversationAction, DiscoveryContext, ProspectSession } from "./domain";
+import { getPreviousBuyerIntentPrompt } from "./customer-journey";
 import type { SignalExtraction } from "./signal-extractor";
 
 const REQUIRED_EVIDENCE: ProfileField[] = [
@@ -52,6 +53,25 @@ export function hasSufficientEvidence(
 }
 
 export function getInitialMessage(session: ProspectSession): string {
+  if (session.customerRelationship === "PREVIOUS_BUYER") {
+    const previousHome = session.knownHousing
+      ? ` Tenemos registrada tu compra en ${session.knownHousing.projectName}.`
+      : "";
+    return `Hola, ${session.firstName ?? ""}.${previousHome} Para orientarte sin repetir información, primero quiero entender qué necesitas ahora. ${getPreviousBuyerIntentPrompt()}`.replace(
+      "Hola, .",
+      "Hola.",
+    );
+  }
+  if (session.firstName && session.customerRelationship === "AFFILIATE") {
+    const campaignContext =
+      session.campaignId === "versalles"
+        ? " También vimos tu interés en Versalles."
+        : "";
+    return `Hola, ${session.firstName}. Tenemos registrada tu afiliación a Colsubsidio; si cambió, puedes contármelo.${campaignContext} Cuéntame qué buscas en tu próxima vivienda y qué te gustaría tener claro para avanzar.`;
+  }
+  if (session.firstName && session.customerRelationship === "NON_AFFILIATE") {
+    return `Hola, ${session.firstName}. Tenemos registrado que actualmente no estás afiliada; si cambió, puedes contármelo. Recibirás la misma calidad de orientación. ¿Qué buscas en tu próxima vivienda y qué te gustaría aclarar para avanzar?`;
+  }
   if (session.firstName && session.campaignId === "versalles") {
     return `Hola, ${session.firstName}. Vimos que estás interesado en adquirir vivienda y encontramos algunos beneficios que podrían ayudarte. Queremos entender qué estás buscando para orientarte mejor. Cuéntame, ¿cómo imaginas la vivienda que quieres para ti y tu familia?`;
   }
@@ -106,6 +126,7 @@ function buildReflection(profile: ProfileAnswers): string {
 function getPrompt(action: ConversationAction): string {
   const prompts: Partial<Record<ConversationAction, string>> = {
     OPEN_DISCOVERY: "¿Cómo imaginas la vivienda que quieres y para quién sería?",
+    DISCOVER_PREVIOUS_BUYER_INTENT: getPreviousBuyerIntentPrompt(),
     DISCOVER_MOTIVATION: "¿Qué te motivó a buscar vivienda justo ahora?",
     DISCOVER_OBSTACLE: "¿Qué sientes que podría impedirte avanzar hoy?",
     DISCOVER_ADVANCE_NEED: "¿Qué necesitarías tener claro para sentirte preparado para avanzar?",

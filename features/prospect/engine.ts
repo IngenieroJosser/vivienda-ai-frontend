@@ -6,6 +6,11 @@ import {
   selectNextBestAction,
 } from "./conversation-policy";
 import type { CampaignExperience, ProspectSession } from "./domain";
+import {
+  buildServiceGuidance,
+  detectPreviousBuyerIntent,
+  getPreviousBuyerIntentPrompt,
+} from "./customer-journey";
 import type { ProspectContactRequest } from "./handoff";
 import { extractProspectSignals } from "./signal-extractor";
 
@@ -42,8 +47,17 @@ export function createProspectSession(input: {
     knownProfile,
     knownBenefits: knownProspect?.knownBenefits ?? [],
     knownEngagementSignals: knownProspect?.engagementSignals ?? [],
+    customerRelationship:
+      knownProspect?.customerRelationship ??
+      relationshipFromKnownProfile(knownProfile),
+    ...(knownProspect?.knownHousing
+      ? { knownHousing: knownProspect.knownHousing }
+      : {}),
     status: "CONSENT",
-    nextAction: "OPEN_DISCOVERY",
+    nextAction:
+      knownProspect?.customerRelationship === "PREVIOUS_BUYER"
+        ? "DISCOVER_PREVIOUS_BUYER_INTENT"
+        : "OPEN_DISCOVERY",
     turns: [],
     answers: {},
     discovery: {},
@@ -88,6 +102,10 @@ export function answerProspectMessage(
     .replace(/\n{3,}/g, "\n\n")
     .slice(0, 600);
   if (!userText) return session;
+
+  if (session.nextAction === "DISCOVER_PREVIOUS_BUYER_INTENT") {
+    return answerPreviousBuyerIntent(session, userText, timestamp);
+  }
 
   const extraction = extractProspectSignals(userText, session.nextAction);
   const answers: ProfileAnswers = { ...session.answers, ...extraction.profile };
@@ -148,6 +166,14 @@ export function buildPublicScenario(
       `Llegó desde ${session.acquisition.source}`,
       `Campaña ${session.acquisition.campaign}`,
       `Contenido ${session.acquisition.content}`,
+      ...(session.customerRelationship === "PREVIOUS_BUYER"
+        ? ["Comprador anterior reconocido con datos locales simulados"]
+        : []),
+      ...(session.knownHousing
+        ? [
+            `Compra anterior: ${session.knownHousing.projectName}, ${session.knownHousing.purchaseYear}`,
+          ]
+        : []),
       ...(contactRequest
         ? [
             `Solicitó contacto por ${contactChannelForAdvisor(contactRequest.channel)}`,
@@ -158,6 +184,77 @@ export function buildPublicScenario(
     ...(campaignProjectId ? { campaignProjectId } : {}),
     requiredFields: PUBLIC_PROFILE_FIELDS,
   };
+}
+
+function answerPreviousBuyerIntent(
+  session: ProspectSession,
+  userText: string,
+  timestamp: string,
+): ProspectSession {
+  const intent = detectPreviousBuyerIntent(userText);
+  const messageSequence = session.turns.length + 1;
+
+  if (!intent) {
+    return {
+      ...session,
+      updatedAt: timestamp,
+      turns: [
+        ...session.turns,
+        {
+          id: `${session.id}-message-${messageSequence}`,
+          userText,
+          assistantText: `Quiero dirigir tu solicitud al lugar correcto. ${getPreviousBuyerIntentPrompt()}`,
+          extractedFields: [],
+          createdAt: timestamp,
+        },
+      ],
+    };
+  }
+
+  if (intent === "BUY_AGAIN") {
+    return answerProspectMessage(
+      {
+        ...session,
+        previousBuyerIntent: intent,
+        nextAction: "OPEN_DISCOVERY",
+        updatedAt: timestamp,
+      },
+      userText,
+      timestamp,
+    );
+  }
+
+  return {
+    ...session,
+    previousBuyerIntent: intent,
+    serviceGuidance: buildServiceGuidance({
+      intent,
+      knownHousing: session.knownHousing,
+      knownBenefits: session.knownBenefits,
+    }),
+    nextAction: "COMPLETE",
+    status: "COMPLETED",
+    updatedAt: timestamp,
+    turns: [
+      ...session.turns,
+      {
+        id: `${session.id}-message-${messageSequence}`,
+        userText,
+        assistantText:
+          "Entendido. No necesitas repetir un perfilamiento de compra. Ya organicé una ruta específica usando la información que conocemos de tu vivienda anterior.",
+        extractedFields: [],
+        createdAt: timestamp,
+      },
+    ],
+  };
+}
+
+function relationshipFromKnownProfile(
+  profile: ProfileAnswers,
+): ProspectSession["customerRelationship"] {
+  if (profile.affiliation === "AFFILIATE") return "AFFILIATE";
+  if (profile.affiliation === "NON_AFFILIATE") return "NON_AFFILIATE";
+  return "UNKNOWN";
 }
 
 function contactChannelForAdvisor(

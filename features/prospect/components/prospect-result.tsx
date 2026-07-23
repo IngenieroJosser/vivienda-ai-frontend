@@ -18,7 +18,7 @@ import {
   type HousingProject,
 } from "@/lib/housing-catalog";
 import { createFunnelEvent, trackFunnelEvent } from "../analytics";
-import type { ProspectSession } from "../domain";
+import type { ProspectSession, ServiceGuidance } from "../domain";
 import type { ProspectContactRequest } from "../handoff";
 import { loadContactRequest } from "../handoff-storage";
 import { getCapacityRange } from "../capacity";
@@ -37,7 +37,10 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
       setSession(stored);
       setContactRequest(loadContactRequest(sessionId));
       setLoaded(true);
-      if (stored?.evaluation) {
+      if (
+        stored?.status === "COMPLETED" &&
+        (stored.evaluation || stored.serviceGuidance)
+      ) {
         const viewedKey = `vivienda-match:result-viewed:${stored.id}`;
         if (!window.sessionStorage.getItem(viewedKey)) {
           trackFunnelEvent(createFunnelEvent({
@@ -54,7 +57,14 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
   }, [sessionId]);
 
   useEffect(() => {
-    if (!loaded || !session?.evaluation || session.status !== "COMPLETED") return;
+    if (
+      !loaded ||
+      !session ||
+      session.status !== "COMPLETED" ||
+      (!session.evaluation && !session.serviceGuidance)
+    ) {
+      return;
+    }
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const timer = window.setTimeout(() => setShowResult(true), reduceMotion ? 0 : 480);
     return () => window.clearTimeout(timer);
@@ -62,10 +72,23 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
 
   if (!loaded) return <ResultState title="Preparando tu orientación…" description="Estamos organizando lo que entendimos y el siguiente paso." />;
   if (!session) return <ResultState title="No encontramos esta orientación." description="El resultado está disponible en el dispositivo donde completaste la conversación." action={{ label: "Empezar orientación", href: "/orientacion" }} />;
-  if (session.status !== "COMPLETED" || !session.evaluation) return <ResultState title="La conversación todavía no ha terminado." description="Continúa conversando para que podamos comprender tu situación y darte una orientación responsable." action={{ label: "Continuar", href: `/orientacion/${session.id}` }} />;
+  if (
+    session.status !== "COMPLETED" ||
+    (!session.evaluation && !session.serviceGuidance)
+  ) {
+    return <ResultState title="La conversación todavía no ha terminado." description="Continúa conversando para que podamos comprender tu situación y darte una orientación responsable." action={{ label: "Continuar", href: `/orientacion/${session.id}` }} />;
+  }
   if (!showResult) return <ResultTransition />;
+  if (session.serviceGuidance) {
+    return (
+      <ServiceGuidanceResult
+        firstName={session.firstName}
+        guidance={session.serviceGuidance}
+      />
+    );
+  }
 
-  const evaluation = session.evaluation;
+  const evaluation = session.evaluation!;
   const capacityRange = getCapacityRange(evaluation.capacity.estimatedHousingPayment);
   const matchedProjects = resolveProjectMatches(evaluation.projectMatches);
   const readyForAdvisor = evaluation.route === "ADVISOR_NOW" || evaluation.route === "NON_AFFILIATE_PRIORITY";
@@ -179,6 +202,117 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
         </section>
       </main>
     </div>
+  );
+}
+
+function ServiceGuidanceResult({
+  firstName,
+  guidance,
+}: {
+  firstName?: string;
+  guidance: ServiceGuidance;
+}) {
+  return (
+    <div className="min-h-screen bg-[color:var(--vm-color-canvas)] text-[color:var(--vm-color-ink)]">
+      <header className="border-b border-[color:var(--vm-color-line)] bg-white">
+        <div className="mx-auto flex min-h-[64px] max-w-[980px] items-center justify-between px-5 sm:px-8">
+          <div className="inline-flex items-center gap-2 text-sm font-bold text-[color:var(--vm-color-brand-blue)]">
+            <Icon name="home" className="h-4 w-4" /> Vivienda Colsubsidio
+          </div>
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-[color:var(--vm-color-success)]">
+            <Icon name="check" className="h-4 w-4" /> Ruta identificada
+          </span>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-[980px] px-5 py-8 sm:px-8 lg:py-12">
+        <section className="result-reveal result-reveal--1 border-b border-[color:var(--vm-color-line)] pb-8 sm:pb-10">
+          <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-success)]">
+            {firstName ? `Tu orientación, ${firstName}` : "Tu orientación"}
+          </div>
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.04] tracking-[-.04em] sm:text-5xl">
+            {guidance.title}
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-[color:var(--vm-color-ink-muted)]">
+            {guidance.description}
+          </p>
+        </section>
+
+        <section className="result-reveal result-reveal--2 mt-8 border-b border-[color:var(--vm-color-line)] pb-8 sm:pb-10">
+          <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
+            Información reconocida
+          </div>
+          <h2 className="mt-2 text-2xl font-semibold">
+            Partimos de tu relación anterior con Colsubsidio.
+          </h2>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            {guidance.knownContext.map((item) => (
+              <div
+                key={item}
+                className="rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.04] p-4 text-sm font-semibold leading-6"
+              >
+                {item}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="result-reveal result-reveal--3 mt-8 grid gap-4 md:grid-cols-3">
+          <GuidanceSummary
+            icon="money"
+            label="Capacidad preliminar"
+            value={guidance.capacitySummary}
+          />
+          <GuidanceSummary
+            icon="check"
+            label="Beneficios y apoyos"
+            value={guidance.benefitSummary.join(" ")}
+          />
+          <GuidanceSummary
+            icon="building"
+            label="Proyectos"
+            value={guidance.projectSummary}
+          />
+        </section>
+
+        <section className="result-reveal result-reveal--4 mt-8 rounded-[var(--vm-radius-elevated)] bg-[linear-gradient(135deg,#fff7bd,#eef8ff)] p-7 shadow-[var(--vm-shadow-medium)] sm:p-10">
+          <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
+            Siguiente paso
+          </div>
+          <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-.04em]">
+            {guidance.nextAction}
+          </h2>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+            Esta demostración guarda la orientación únicamente en este dispositivo
+            y no crea una solicitud real en los canales de servicio.
+          </p>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+function GuidanceSummary({
+  icon,
+  label,
+  value,
+}: {
+  icon: Parameters<typeof Icon>[0]["name"];
+  label: string;
+  value: string;
+}) {
+  return (
+    <article className="surface-solid p-5">
+      <span className="grid h-10 w-10 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]">
+        <Icon name={icon} className="h-4 w-4" />
+      </span>
+      <div className="mt-4 text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">
+        {label}
+      </div>
+      <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+        {value}
+      </p>
+    </article>
   );
 }
 

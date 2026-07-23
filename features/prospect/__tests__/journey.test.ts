@@ -253,6 +253,7 @@ describe("paid acquisition prospect journey", () => {
       completions: 1,
       nextActions: 1,
       contactRequests: 1,
+      serviceRoutes: 0,
       completionRate: 1,
     });
   });

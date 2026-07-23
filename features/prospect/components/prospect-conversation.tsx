@@ -62,7 +62,9 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
       completedRef.current = true;
       trackFunnelEvent(
         createFunnelEvent({
-          name: "PROFILING_COMPLETED",
+          name: updated.serviceGuidance
+            ? "SERVICE_ROUTE_IDENTIFIED"
+            : "PROFILING_COMPLETED",
           acquisition: updated.acquisition,
           sessionId: updated.id,
           occurredAt: updated.updatedAt,
@@ -376,8 +378,8 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
             </div>
             <div className="truncate text-[11px] text-[color:var(--vm-color-ink-muted)]">
               {chatState.phase === "typing"
-                ? "Escribiendo…"
-                : "Orientación virtual · A tu ritmo"}
+                ? "Preparando respuesta…"
+                : "Asistente virtual de vivienda · A tu ritmo"}
             </div>
           </div>
         </div>
@@ -685,7 +687,7 @@ function TypingIndicator() {
   return (
     <div className="prospect-message-left w-fit" role="status">
       <div className="mb-1.5 text-[10px] font-bold text-[color:var(--vm-color-brand-blue)]">
-        Colsubsidio está escribiendo…
+        Preparando respuesta…
       </div>
       <div
         className="rounded-[18px_18px_18px_5px] border border-[color:var(--vm-color-line)] bg-white px-4 py-3"
