@@ -22,54 +22,68 @@ describe("project media gallery model", () => {
     expect(images.slice(1)).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: "versalles-brochure-page-9",
+          id: "versalles-brochure-page-10",
           kind: "BROCHURE_PLAN",
-          label: "Planta general",
-          sourcePage: 9,
+          label: "Apartamento tipo A",
+          sourcePage: 10,
         }),
         expect.objectContaining({
-          id: "versalles-brochure-page-18",
-          kind: "BROCHURE_SPACE",
-          label: "Salón comunal",
-          sourcePage: 18,
+          id: "versalles-brochure-page-11",
+          kind: "BROCHURE_PLAN",
+          label: "Apartamento tipo B",
+          sourcePage: 11,
         }),
       ]),
     );
-    expect(images).toHaveLength(4);
+    expect(images).toHaveLength(3);
   });
 
-  it("provides brochure-backed gallery material for every catalog project", () => {
-    const projectIds = [
-      "abeto",
-      "araucaria",
-      "los-nogales",
-      "pamplona",
-      "la-macarena",
-      "mongui",
-      "versalles",
-      "zarzal",
-      "bosque-de-arrayan",
-      "bosque-de-turpial",
-      "inari",
-      "reserva-de-guayacan",
-      "saman",
-      "payande",
-      "vibo-once",
-      "karakali",
-      "la-arboleda",
-      "verde-esperanza",
-    ];
+  it("uses only verified apartment plans as brochure-backed gallery material", () => {
+    const verifiedPlanCountByProject = {
+      abeto: 0,
+      araucaria: 2,
+      "los-nogales": 2,
+      pamplona: 2,
+      "la-macarena": 2,
+      mongui: 2,
+      versalles: 2,
+      zarzal: 2,
+      "bosque-de-arrayan": 2,
+      "bosque-de-turpial": 2,
+      inari: 2,
+      "reserva-de-guayacan": 2,
+      saman: 2,
+      payande: 2,
+      "vibo-once": 2,
+      karakali: 2,
+      "la-arboleda": 0,
+      "verde-esperanza": 1,
+    } as const;
 
-    for (const projectId of projectIds) {
+    for (const [projectId, verifiedPlanCount] of Object.entries(
+      verifiedPlanCountByProject,
+    )) {
       const images = createProjectGalleryImages(getHousingProject(projectId)!);
-      expect(images.length).toBeGreaterThanOrEqual(3);
+      expect(images).toHaveLength(verifiedPlanCount + 1);
       expect(images.slice(1).every(({ sourcePage }) => sourcePage !== null)).toBe(
+        true,
+      );
+      expect(images.slice(1).every(({ kind }) => kind === "BROCHURE_PLAN")).toBe(
         true,
       );
       expect(images.every(({ image }) => image.startsWith("/images/projects/"))).toBe(
         true,
       );
     }
+  });
+
+  it("exposes the two verified Los Nogales apartment types", () => {
+    const images = createProjectGalleryImages(getHousingProject("los-nogales")!);
+
+    expect(images.slice(1).map(({ label }) => label)).toEqual([
+      "Apartamento tipo A",
+      "Apartamento tipo B",
+    ]);
   });
 
   it("keeps tours and brochures separate from project images", () => {

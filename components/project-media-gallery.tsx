@@ -303,7 +303,10 @@ export function ProjectMediaGallery({
                 }
               }}
             >
-              <div className="project-gallery-modal__content glass-elevated">
+              <div
+                className="project-gallery-modal__content glass-elevated"
+                data-media-kind={image.kind}
+              >
                 <button
                   ref={closeButtonRef}
                   type="button"

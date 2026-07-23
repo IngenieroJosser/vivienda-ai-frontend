@@ -42,7 +42,7 @@ export type VirtualTour = {
 
 export type ProjectGalleryMedia = {
   id: string;
-  kind: "PROJECT_VIEW" | "BROCHURE_PLAN" | "BROCHURE_SPACE";
+  kind: "PROJECT_VIEW" | "BROCHURE_PLAN";
   label: string;
   description: string;
   image: string;

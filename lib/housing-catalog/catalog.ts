@@ -18,7 +18,6 @@ type ProjectSeed = {
   image?: string;
   galleryPages?: readonly {
     page: number;
-    kind: "BROCHURE_PLAN" | "BROCHURE_SPACE";
     label: string;
     description: string;
   }[];
@@ -47,10 +46,6 @@ const seeds: readonly ProjectSeed[] = [
     development: "Ciudadela Colsubsidio Calle 80",
     housingType: "NO_VIS",
     image: "/images/projects/abeto.webp",
-    galleryPages: [
-      { page: 8, kind: "BROCHURE_SPACE", label: "Vista exterior", description: "Render exterior incluido en el folleto multiproyecto." },
-      { page: 9, kind: "BROCHURE_SPACE", label: "Zonas sociales", description: "Vista de zonas comunes incluida en el folleto multiproyecto." },
-    ],
     summary: "Una torre residencial cerca de parques y de Unicentro de Occidente, donde naturaleza y ciudad conviven.",
     totalUnits: 144,
     towers: 1,
@@ -68,9 +63,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "NO_VIS",
     image: "/images/projects/araucaria.webp",
     galleryPages: [
-      { page: 7, kind: "BROCHURE_PLAN", label: "Planta general", description: "Distribución general del proyecto presentada en el folleto." },
-      { page: 8, kind: "BROCHURE_PLAN", label: "Apartamento tipo C", description: "Plano y propuesta de distribución del apartamento tipo C." },
-      { page: 13, kind: "BROCHURE_SPACE", label: "Gimnasio", description: "Render del gimnasio incluido en el folleto." },
+      { page: 9, label: "Apartamento tipo B", description: "Plano y distribución del apartamento tipo B." },
+      { page: 10, label: "Apartamento tipo A1", description: "Plano y distribución del apartamento tipo A1." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/26d2b013cf.html",
     summary: "Apartamentos con acabados, parqueadero privado y depósito dentro de la Ciudadela Calle 80.",
@@ -92,9 +86,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "NO_VIS",
     image: "/images/projects/los-nogales.webp",
     galleryPages: [
-      { page: 7, kind: "BROCHURE_PLAN", label: "Planta general", description: "Implantación general de las torres y zonas comunes." },
-      { page: 12, kind: "BROCHURE_PLAN", label: "Apartamento tipo A", description: "Plano y propuesta de distribución del apartamento tipo A." },
-      { page: 15, kind: "BROCHURE_SPACE", label: "Lobby", description: "Render del lobby presentado en el folleto." },
+      { page: 12, label: "Apartamento tipo A", description: "Plano y distribución del apartamento tipo A." },
+      { page: 13, label: "Apartamento tipo B", description: "Plano y distribución del apartamento tipo B." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/9dd9bf814e.html",
     summary: "Proyecto arquitectónico en la Ciudadela Calle 80 con apartamentos de tres habitaciones y acabados.",
@@ -116,9 +109,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "VIS",
     image: "/images/projects/pamplona.webp",
     galleryPages: [
-      { page: 8, kind: "BROCHURE_PLAN", label: "Planta general", description: "Implantación general del proyecto y sus zonas compartidas." },
-      { page: 10, kind: "BROCHURE_PLAN", label: "Apartamento tipo A", description: "Plano del apartamento tipo A con sugerencia de acabados." },
-      { page: 14, kind: "BROCHURE_SPACE", label: "Zona BBQ", description: "Render de una de las zonas sociales del proyecto." },
+      { page: 10, label: "Apartamento tipo A", description: "Plano y distribución del apartamento tipo A." },
+      { page: 11, label: "Apartamento tipo B", description: "Plano y distribución del apartamento tipo B." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/c159d5d733.html",
     summary: "Proyecto sostenible en Maiporé con cuatro tipologías, zonas verdes y espacios para la comunidad.",
@@ -140,9 +132,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "VIS",
     image: "/images/projects/la-macarena.webp",
     galleryPages: [
-      { page: 8, kind: "BROCHURE_PLAN", label: "Planta general", description: "Vista de la implantación y las áreas comunes." },
-      { page: 10, kind: "BROCHURE_PLAN", label: "Apartamento tipo A", description: "Plano del apartamento tipo A presentado en el folleto." },
-      { page: 13, kind: "BROCHURE_SPACE", label: "Cancha múltiple", description: "Render de la cancha múltiple y su entorno residencial." },
+      { page: 10, label: "Apartamento tipo A", description: "Plano y distribución del apartamento tipo A." },
+      { page: 11, label: "Apartamento tipo B", description: "Plano y distribución del apartamento tipo B." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/b168b2f5ba.html",
     summary: "Propuesta coliving con espacios para convivencia, bienestar y crecimiento personal.",
@@ -161,9 +152,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "VIS",
     image: "/images/projects/mongui.webp",
     galleryPages: [
-      { page: 8, kind: "BROCHURE_PLAN", label: "Planta general", description: "Implantación general del conjunto residencial." },
-      { page: 10, kind: "BROCHURE_PLAN", label: "Apartamento tipo A", description: "Plano del apartamento tipo A con sugerencia de acabados." },
-      { page: 14, kind: "BROCHURE_SPACE", label: "Juegos infantiles", description: "Render de la zona infantil incluida en el folleto." },
+      { page: 10, label: "Apartamento tipo A", description: "Plano y distribución del apartamento tipo A." },
+      { page: 11, label: "Apartamento tipo B", description: "Plano y distribución del apartamento tipo B." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/866af8f6a6.html",
     summary: "Proyecto rodeado de naturaleza y cercano al futuro portal de TransMilenio.",
@@ -183,9 +173,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "VIS",
     image: "/images/projects/versalles.webp",
     galleryPages: [
-      { page: 9, kind: "BROCHURE_PLAN", label: "Planta general", description: "Distribución de las torres, accesos y zonas comunes." },
-      { page: 10, kind: "BROCHURE_PLAN", label: "Apartamento tipo A", description: "Plano del apartamento tipo A y propuesta de ambientación." },
-      { page: 18, kind: "BROCHURE_SPACE", label: "Salón comunal", description: "Render del salón comunal presentado en el folleto." },
+      { page: 10, label: "Apartamento tipo A", description: "Plano y distribución del apartamento tipo A." },
+      { page: 11, label: "Apartamento tipo B", description: "Plano y distribución del apartamento tipo B." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/be784b0d5c.html",
     summary: "Proyecto VIS con tres tipologías, amplias zonas recreativas y certificación de construcción sostenible.",
@@ -215,9 +204,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "VIS",
     image: "/images/projects/zarzal.webp",
     galleryPages: [
-      { page: 7, kind: "BROCHURE_PLAN", label: "Planta general", description: "Implantación general del proyecto." },
-      { page: 8, kind: "BROCHURE_PLAN", label: "Apartamento tipo 1", description: "Plano del apartamento tipo 1 con sugerencia de acabados." },
-      { page: 13, kind: "BROCHURE_SPACE", label: "Terraza", description: "Render de la terraza común incluida en el folleto." },
+      { page: 8, label: "Apartamento tipo 1", description: "Plano y distribución del apartamento tipo 1." },
+      { page: 9, label: "Apartamento tipo 2", description: "Plano y distribución del apartamento tipo 2." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/56764c1e33.html",
     summary: "Vivienda de interés social en Maiporé con apartamentos funcionales y espacios al aire libre.",
@@ -238,9 +226,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "VIS",
     image: "/images/projects/bosque-arrayan.webp",
     galleryPages: [
-      { page: 6, kind: "BROCHURE_PLAN", label: "Planta general", description: "Vista general de torres, accesos y espacios compartidos." },
-      { page: 8, kind: "BROCHURE_PLAN", label: "Apartamento tipo D", description: "Plano del apartamento tipo D con sugerencia de acabados." },
-      { page: 12, kind: "BROCHURE_SPACE", label: "Zonas sociales", description: "Render de las zonas comunes del proyecto." },
+      { page: 8, label: "Apartamento tipo D", description: "Plano y distribución del apartamento tipo D." },
+      { page: 9, label: "Apartamento tipo E", description: "Plano y distribución del apartamento tipo E." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/7f3c85cf46.html",
     summary: "Proyecto sostenible creado en armonía con el entorno verde de la Sabana.",
@@ -262,9 +249,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "VIS",
     image: "/images/projects/bosque-turpial.webp",
     galleryPages: [
-      { page: 8, kind: "BROCHURE_PLAN", label: "Planta general", description: "Implantación general del conjunto residencial." },
-      { page: 10, kind: "BROCHURE_PLAN", label: "Apartamento tipo A", description: "Plano del apartamento tipo A con sugerencia de acabados." },
-      { page: 14, kind: "BROCHURE_SPACE", label: "Zonas sociales", description: "Render de las zonas comunes y recreativas." },
+      { page: 10, label: "Apartamento tipo A", description: "Plano y distribución del apartamento tipo A." },
+      { page: 11, label: "Apartamento tipo B", description: "Plano y distribución del apartamento tipo B." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/5eec0a2afc.html",
     summary: "Vivienda sostenible en Tocancipá con varias tipologías y completas zonas sociales.",
@@ -287,9 +273,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "VIS",
     image: "/images/projects/inari.webp",
     galleryPages: [
-      { page: 6, kind: "BROCHURE_PLAN", label: "Planta general", description: "Vista general del proyecto y sus áreas compartidas." },
-      { page: 8, kind: "BROCHURE_PLAN", label: "Apartamento tipo A", description: "Distribución tridimensional del apartamento tipo A." },
-      { page: 11, kind: "BROCHURE_SPACE", label: "Interior de apartamento", description: "Propuesta de ambientación interior incluida en el folleto." },
+      { page: 8, label: "Apartamento tipo A", description: "Plano y distribución del apartamento tipo A." },
+      { page: 9, label: "Apartamento tipo B", description: "Plano y distribución del apartamento tipo B." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/8b6615372f.html",
     summary: "Proyecto urbano a pocas cuadras del parque principal de Chía, universidades y servicios.",
@@ -309,9 +294,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "VIS",
     image: "/images/projects/reserva-aguayacan.webp",
     galleryPages: [
-      { page: 6, kind: "BROCHURE_PLAN", label: "Planta general", description: "Implantación general de torres y zonas sociales." },
-      { page: 8, kind: "BROCHURE_PLAN", label: "Apartamento tipo A", description: "Plano del apartamento tipo A incluido en el folleto." },
-      { page: 18, kind: "BROCHURE_SPACE", label: "Piscinas", description: "Render de las piscinas para adultos y niños." },
+      { page: 8, label: "Apartamento tipo A", description: "Plano y distribución del apartamento tipo A." },
+      { page: 9, label: "Apartamento tipo B", description: "Plano y distribución del apartamento tipo B." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/aa430852c2.html",
     summary: "Proyecto de clima cálido con ubicación estratégica y diferentes opciones de apartamento.",
@@ -332,9 +316,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "VIS",
     image: "/images/projects/saman.webp",
     galleryPages: [
-      { page: 6, kind: "BROCHURE_PLAN", label: "Planta general", description: "Distribución general de las torres y áreas comunes." },
-      { page: 10, kind: "BROCHURE_PLAN", label: "Apartamento tipo A", description: "Plano y propuesta tridimensional del apartamento tipo A." },
-      { page: 15, kind: "BROCHURE_SPACE", label: "Zona social y piscina", description: "Render del espacio social y la piscina." },
+      { page: 10, label: "Apartamento tipo A · Plano", description: "Plano y distribución del apartamento tipo A." },
+      { page: 11, label: "Apartamento tipo A · Vista", description: "Vista tridimensional de la distribución del apartamento tipo A." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/1daa8c80c5.html",
     summary: "Entorno cálido con senderos ecológicos, cuerpo de agua y parqueadero comunal 1:1.",
@@ -355,9 +338,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: null,
     image: "/images/projects/payande.webp",
     galleryPages: [
-      { page: 6, kind: "BROCHURE_PLAN", label: "Planta general", description: "Implantación general de las torres y áreas comunes." },
-      { page: 8, kind: "BROCHURE_PLAN", label: "Apartamento tipo 3", description: "Plano del apartamento tipo 3 incluido en el folleto." },
-      { page: 14, kind: "BROCHURE_SPACE", label: "Piscina", description: "Render de la piscina y sus zonas complementarias." },
+      { page: 8, label: "Apartamento tipo 3", description: "Plano y distribución del apartamento tipo 3." },
+      { page: 9, label: "Apartamento tipo 4", description: "Plano y distribución del apartamento tipo 4." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/34ac4d8a9e.html",
     summary: "Proyecto de clima cálido para vivienda, descanso o inversión cerca de Bogotá.",
@@ -379,9 +361,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "VIS",
     image: "/images/projects/vibo-once.webp",
     galleryPages: [
-      { page: 6, kind: "BROCHURE_PLAN", label: "Planta general", description: "Implantación del proyecto sobre la Avenida Caracas." },
-      { page: 10, kind: "BROCHURE_PLAN", label: "Apartamento tipo A", description: "Distribución tridimensional del apartamento tipo A." },
-      { page: 16, kind: "BROCHURE_SPACE", label: "Terraza con fogata", description: "Render de la terraza común con fogata." },
+      { page: 8, label: "Apartamento tipo A", description: "Plano y distribución del apartamento tipo A." },
+      { page: 9, label: "Apartamento tipo B2", description: "Plano y distribución del apartamento tipo B2." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/d3d1f61d6b.html",
     summary: "Proyecto frente a la futura estación Once del Metro, conectado con la transformación del centro.",
@@ -402,9 +383,8 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "VIS",
     image: "/images/projects/karakali.webp",
     galleryPages: [
-      { page: 6, kind: "BROCHURE_PLAN", label: "Planta general", description: "Distribución de las áreas comunes del proyecto." },
-      { page: 8, kind: "BROCHURE_PLAN", label: "Apartamento tipo 1", description: "Plano del apartamento tipo 1 incluido en el folleto." },
-      { page: 16, kind: "BROCHURE_SPACE", label: "Coworking", description: "Render del espacio de coworking." },
+      { page: 8, label: "Apartamento tipo 1", description: "Plano y distribución del apartamento tipo 1." },
+      { page: 9, label: "Apartamento tipo 2", description: "Plano y distribución del apartamento tipo 2." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/5083a3d46c.html",
     summary: "Proyecto coliving cerca del corazón de Bogotá con apartaestudios y amplias zonas sociales.",
@@ -423,10 +403,6 @@ const seeds: readonly ProjectSeed[] = [
     development: "San Cristóbal Sur",
     housingType: "VIS",
     image: "/images/projects/la-arboleda.webp",
-    galleryPages: [
-      { page: 56, kind: "BROCHURE_SPACE", label: "Vista exterior", description: "Render exterior incluido en el folleto multiproyecto." },
-      { page: 57, kind: "BROCHURE_SPACE", label: "Zonas sociales", description: "Vista de zonas comunes incluida en el folleto multiproyecto." },
-    ],
     summary: "Proyecto en una zona de alta valorización de San Cristóbal Sur, con proyección de nuevas conexiones viales.",
     totalUnits: 1502,
     towers: 14,
@@ -445,9 +421,7 @@ const seeds: readonly ProjectSeed[] = [
     housingType: "VIS",
     image: "/images/projects/verde-esperanza.webp",
     galleryPages: [
-      { page: 7, kind: "BROCHURE_PLAN", label: "Planta general", description: "Implantación general de torres y espacios compartidos." },
-      { page: 9, kind: "BROCHURE_PLAN", label: "Apartamento tipo A", description: "Plano del apartamento tipo A con sugerencia de acabados." },
-      { page: 10, kind: "BROCHURE_SPACE", label: "Juegos infantiles", description: "Render de la zona de juegos infantiles." },
+      { page: 9, label: "Apartamento tipo A", description: "Plano y distribución del apartamento tipo A." },
     ],
     brochureUrl: "https://heyzine.com/flip-book/ea1997d7ae.html",
     summary: "Proyecto rodeado de entorno natural en Ubaté, con amplios espacios verdes.",
@@ -559,7 +533,7 @@ function buildProject(seed: ProjectSeed): HousingProject {
       },
       ...(seed.galleryPages ?? []).map((media) => ({
         id: `${seed.id}-brochure-page-${media.page}`,
-        kind: media.kind,
+        kind: "BROCHURE_PLAN" as const,
         label: media.label,
         description: media.description,
         image: `/images/projects/${seed.id}/brochure-page-${media.page}.webp`,
