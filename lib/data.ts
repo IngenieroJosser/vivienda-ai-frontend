@@ -1,3 +1,4 @@
+import type { QualifiedLead } from "@/features/conversation/qualified-leads";
 import { getQualifiedScenarioLeads, isCommercialOpportunity } from "@/features/conversation/qualified-leads";
 
 export const projects = [
@@ -25,12 +26,12 @@ export const projects = [
 ] as const;
 
 const routeLabels = {
-  ADVISOR_NOW: "Asesor ahora",
-  NON_AFFILIATE_PRIORITY: "Prioridad no afiliado",
-  NURTURE_FINANCIAL: "Nutrición financiera",
-  NURTURE_BENEFITS: "Nutrición de beneficios",
-  NURTURE_LONG_TERM: "Nutrición a largo plazo",
-  NEEDS_DATA: "Información pendiente",
+  ADVISOR_NOW: "Oportunidad comercial",
+  NON_AFFILIATE_PRIORITY: "Oportunidad comercial",
+  NURTURE_FINANCIAL: "Acompañamiento",
+  NURTURE_BENEFITS: "Acompañamiento",
+  NURTURE_LONG_TERM: "Acompañamiento",
+  NEEDS_DATA: "Acompañamiento",
   OPTED_OUT: "Sin contacto",
 } as const;
 
@@ -48,7 +49,7 @@ const goalLabels: Record<string, string> = {
   BENEFITS: "Conocer beneficios y subsidios",
 };
 
-export const leads = getQualifiedScenarioLeads().map(({ scenario, evaluation }) => {
+export function toAdvisorLeadRow({ scenario, evaluation }: QualifiedLead) {
   const project = projects.find((item) => evaluation.projectIds.includes(item.id));
   const profile = evaluation.profileSnapshot;
 
@@ -75,4 +76,6 @@ export const leads = getQualifiedScenarioLeads().map(({ scenario, evaluation }) 
     blocker: evaluation.blockers[0] ?? "Sin bloqueo principal",
     nextAction: evaluation.nextAction,
   };
-});
+}
+
+export const leads = getQualifiedScenarioLeads().map(toAdvisorLeadRow);

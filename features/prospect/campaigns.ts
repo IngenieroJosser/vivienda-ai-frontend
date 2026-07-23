@@ -28,7 +28,7 @@ export const campaignExperiences: Record<CampaignExperience["id"], CampaignExper
     id: "general",
     eyebrow: "Orientación personalizada de vivienda",
     title: "Encuentra una vivienda acorde con tus posibilidades.",
-    description: "Responde unas preguntas y conoce tu capacidad orientativa, beneficios por validar y proyectos que podrían ajustarse a ti.",
+    description: "Conversemos para conocer tu capacidad orientativa, los beneficios por validar y los proyectos que podrían ajustarse a ti.",
     promise: "A tu ritmo · Información protegida",
     assistantIntro: "Quiero ayudarte a entender qué camino puede acercarte a tu vivienda, sin volver a preguntarte información que ya tengamos.",
     knownSignals: { dreamGoal: "FIND_MATCHES" },
@@ -38,16 +38,22 @@ export const campaignExperiences: Record<CampaignExperience["id"], CampaignExper
 type KnownProspect = {
   firstName: string;
   profile: ProfileAnswers;
+  knownBenefits: string[];
+  engagementSignals: string[];
 };
 
 const knownProspects: Record<string, KnownProspect> = {
   vm_Jonathan30X1: {
     firstName: "Jonathan",
     profile: { affiliation: "AFFILIATE", incomeRange: "MID", householdSize: "3" },
+    knownBenefits: ["Subsidio familiar de vivienda por validar", "Acompañamiento Pertenecer"],
+    engagementSignals: ["Respondió una pauta de vivienda", "Consultó información del proyecto Versalles"],
   },
   vm_Laura30X2026: {
     firstName: "Laura",
     profile: { affiliation: "NON_AFFILIATE" },
+    knownBenefits: [],
+    engagementSignals: ["Consultó información de financiación"],
   },
   vm_Camila30X2026: {
     firstName: "Camila",
@@ -57,6 +63,8 @@ const knownProspects: Record<string, KnownProspect> = {
       horizon: "12_PLUS",
       savings: "NONE",
     },
+    knownBenefits: ["Subsidio familiar de vivienda por validar", "Acompañamiento Pertenecer"],
+    engagementSignals: ["Guardó contenido sobre subsidios"],
   },
 };
 

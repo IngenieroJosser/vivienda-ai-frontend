@@ -7,28 +7,43 @@ import { Pill, ProgressBar } from "@/components/ui";
 import { projects } from "@/lib/data";
 import type { EvaluationResult } from "../domain";
 import { formatCop, getProfileValue } from "../profile-copy";
-import { getQualifiedScenarioLead } from "../qualified-leads";
+import { getQualifiedScenarioLead, isCommercialOpportunity, type QualifiedLead } from "../qualified-leads";
 import { findSessionByLeadId } from "../storage";
+import { buildPublicScenario } from "@/features/prospect/engine";
+import type { ProspectSession } from "@/features/prospect/domain";
+import { findProspectSessionByLeadId } from "@/features/prospect/storage";
 
 const routeLabels: Record<EvaluationResult["route"], string> = {
-  ADVISOR_NOW: "Asesor ahora",
-  NON_AFFILIATE_PRIORITY: "Prioridad no afiliado",
-  NURTURE_FINANCIAL: "Nutrición financiera",
-  NURTURE_BENEFITS: "Nutrición de beneficios",
-  NURTURE_LONG_TERM: "Nutrición a largo plazo",
-  NEEDS_DATA: "Información pendiente",
+  ADVISOR_NOW: "Oportunidad comercial",
+  NON_AFFILIATE_PRIORITY: "Oportunidad comercial",
+  NURTURE_FINANCIAL: "Acompañamiento",
+  NURTURE_BENEFITS: "Acompañamiento",
+  NURTURE_LONG_TERM: "Acompañamiento",
+  NEEDS_DATA: "Acompañamiento",
   OPTED_OUT: "Sin contacto",
 };
 
 export function AdvisorIntelligence({ leadId }: { leadId: string }) {
-  const qualifiedLead = getQualifiedScenarioLead(leadId);
+  const [qualifiedLead, setQualifiedLead] = useState<QualifiedLead | undefined>(() => getQualifiedScenarioLead(leadId));
+  const [prospectSession, setProspectSession] = useState<ProspectSession>();
   const scenario = qualifiedLead?.scenario;
-  const [evaluation, setEvaluation] = useState(qualifiedLead?.evaluation);
+  const evaluation = qualifiedLead?.evaluation;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const session = findSessionByLeadId(leadId);
-      if (session?.evaluation) setEvaluation(session.evaluation);
+      const canonicalLead = getQualifiedScenarioLead(leadId);
+      if (session?.evaluation && canonicalLead) {
+        setQualifiedLead({ ...canonicalLead, evaluation: session.evaluation });
+      }
+      const publicSession = findProspectSessionByLeadId(leadId);
+      if (publicSession?.evaluation) {
+        setProspectSession(publicSession);
+        setQualifiedLead({
+          scenario: buildPublicScenario(publicSession),
+          evaluation: publicSession.evaluation,
+        });
+      }
     }, 0);
     return () => window.clearTimeout(timer);
   }, [leadId]);
@@ -65,6 +80,24 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
           </div>
           <div className="mt-6"><ProgressBar value={evaluation.readinessScore} label="Preparación comercial" /></div>
         </section>
+
+        {prospectSession ? (
+          <section className="surface-solid p-6 sm:p-8">
+            <h2 className="text-lg font-semibold">Lo que descubrió la conversación</h2>
+            <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Contexto declarado por el prospecto, separado de los datos que Colsubsidio ya conocía.</p>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <ProfileItem label="Sueño de vivienda" value={prospectSession.discovery.housingVision ?? "Por completar"} />
+              <ProfileItem label="Para quién" value={prospectSession.discovery.intendedFor ?? "Por completar"} />
+              <ProfileItem label="Motivación actual" value={prospectSession.discovery.motivation ?? "Por completar"} />
+              <ProfileItem label="Principal barrera" value={prospectSession.discovery.obstacle ?? evaluation.blockers[0] ?? "Por completar"} />
+              <ProfileItem label="Qué necesita para avanzar" value={prospectSession.discovery.advanceNeed ?? "Por completar"} />
+            </div>
+            <div className="mt-5 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] p-4">
+              <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Último mensaje del prospecto</div>
+              <p className="mt-2 text-sm leading-6">{prospectSession.turns.at(-1)?.userText ?? "Sin mensajes registrados"}</p>
+            </div>
+          </section>
+        ) : null}
 
         <section className="surface-solid p-6 sm:p-8">
           <h2 className="text-lg font-semibold">Lo que sabemos del prospecto</h2>
@@ -112,7 +145,9 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
           </div>
           <h3 className="mt-5 text-2xl font-semibold tracking-[-.04em]">{evaluation.nextAction}</h3>
           <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{evaluation.blockers[0] ?? "No se identificaron bloqueos principales."}</p>
-          <Link href="/asesor/agenda" className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white">Abrir agenda <Icon name="calendar" className="h-4 w-4" /></Link>
+          <Link href={isCommercialOpportunity(evaluation) ? "/asesor/agenda" : "/asesor/nutricion"} className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white">
+            {isCommercialOpportunity(evaluation) ? "Abrir agenda" : "Abrir acompañamiento"} <Icon name={isCommercialOpportunity(evaluation) ? "calendar" : "heart"} className="h-4 w-4" />
+          </Link>
         </section>
 
         {project ? (

@@ -32,18 +32,20 @@ export function createProspectSession(input: {
   };
 
   return {
-    version: 3,
+    version: 4,
     id: input.id,
     ...(knownProspect?.firstName ? { firstName: knownProspect.firstName } : {}),
     acquisition: input.acquisition,
     campaignId: input.campaign.id,
     leadReference: input.acquisition.leadReference ?? `vm_local_${input.id}`,
     knownProfile,
+    knownBenefits: knownProspect?.knownBenefits ?? [],
+    knownEngagementSignals: knownProspect?.engagementSignals ?? [],
     status: "CONSENT",
     nextAction: "OPEN_DISCOVERY",
     turns: [],
     answers: {},
-    handoffRequested: false,
+    discovery: {},
     createdAt: input.timestamp,
     updatedAt: input.timestamp,
   };
@@ -84,16 +86,15 @@ export function answerProspectMessage(
 
   const extraction = extractProspectSignals(userText, session.nextAction);
   const answers: ProfileAnswers = { ...session.answers, ...extraction.profile };
+  const discovery = { ...session.discovery, ...extraction.discovery };
   const profile = { ...session.knownProfile, ...answers };
   const turnCount = session.turns.length + 1;
-  const selectedAction = selectNextBestAction(profile, turnCount);
-  const completed = extraction.requestsAdvisor
-    || extraction.wantsToFinish
-    || selectedAction === "COMPLETE";
+  const selectedAction = selectNextBestAction(profile, discovery, turnCount);
+  const completed = extraction.wantsToFinish || selectedAction === "COMPLETE";
   const draft: ProspectSession = {
     ...session,
     answers,
-    handoffRequested: session.handoffRequested || extraction.requestsAdvisor,
+    discovery,
     nextAction: completed ? "COMPLETE" : selectedAction,
     status: completed ? "COMPLETED" : "ACTIVE",
     updatedAt: timestamp,
@@ -127,13 +128,14 @@ export function buildPublicScenario(session: ProspectSession): Scenario {
     id: `public-${session.id}`,
     leadId: `lead-${session.leadReference}`,
     displayName: session.firstName ?? "Prospecto",
-    leadSource: "META",
+    leadSource: session.acquisition.source === "meta" ? "META" : "ORGANIC",
     capturedAt: session.createdAt,
     routeLabel: "Orientación pública",
     description: "Prospecto proveniente de una campaña digital.",
     knownProfile: session.knownProfile,
-    knownBenefits: [],
+    knownBenefits: session.knownBenefits,
     engagementSignals: [
+      ...session.knownEngagementSignals,
       `Llegó desde ${session.acquisition.source}`,
       `Campaña ${session.acquisition.campaign}`,
       `Contenido ${session.acquisition.content}`,

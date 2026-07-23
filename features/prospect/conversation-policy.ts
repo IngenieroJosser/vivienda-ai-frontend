@@ -1,7 +1,7 @@
 import type { ProfileAnswers, ProfileField } from "../conversation/domain";
 import { formatCop } from "../conversation/profile-copy";
 import { getCapacityRange } from "./capacity";
-import type { ConversationAction, ProspectSession } from "./domain";
+import type { ConversationAction, DiscoveryContext, ProspectSession } from "./domain";
 import type { SignalExtraction } from "./signal-extractor";
 
 const REQUIRED_EVIDENCE: ProfileField[] = [
@@ -14,13 +14,18 @@ const REQUIRED_EVIDENCE: ProfileField[] = [
   "savings",
 ];
 
-export const MAX_CONVERSATION_TURNS = 7;
+export const MAX_CONVERSATION_TURNS = 6;
 
 export function selectNextBestAction(
   profile: ProfileAnswers,
+  discovery: DiscoveryContext,
   turnCount: number,
 ): ConversationAction {
-  if (hasSufficientEvidence(profile) || turnCount >= MAX_CONVERSATION_TURNS) return "COMPLETE";
+  if (hasSufficientEvidence(profile, discovery) || turnCount >= MAX_CONVERSATION_TURNS) return "COMPLETE";
+
+  if (!discovery.housingVision) return "OPEN_DISCOVERY";
+  if (!discovery.motivation) return "DISCOVER_MOTIVATION";
+  if (!discovery.obstacle && !profile.mainConcern) return "DISCOVER_OBSTACLE";
 
   const contextualOrder: ProfileField[] = profile.mainConcern === "PAYMENT"
     ? ["incomeRange", "obligations", "savings", "horizon", "location", "affiliation"]
@@ -30,18 +35,28 @@ export function selectNextBestAction(
         ? ["householdSize", "location", "horizon", "incomeRange", "obligations", "savings", "affiliation"]
         : ["mainConcern", "horizon", "location", "incomeRange", "obligations", "savings", "affiliation"];
 
-  return contextualOrder.find((field) => !profile[field])
-    ?? REQUIRED_EVIDENCE.find((field) => !profile[field])
-    ?? "COMPLETE";
+  const missingProfileField = contextualOrder.find((field) => !profile[field])
+    ?? REQUIRED_EVIDENCE.find((field) => !profile[field]);
+
+  if (missingProfileField) return missingProfileField;
+  if (!discovery.advanceNeed) return "DISCOVER_ADVANCE_NEED";
+  return "COMPLETE";
 }
 
-export function hasSufficientEvidence(profile: ProfileAnswers): boolean {
-  return REQUIRED_EVIDENCE.every((field) => Boolean(profile[field]));
+export function hasSufficientEvidence(
+  profile: ProfileAnswers,
+  discovery: DiscoveryContext,
+): boolean {
+  return REQUIRED_EVIDENCE.every((field) => Boolean(profile[field]))
+    && Boolean(discovery.housingVision)
+    && Boolean(discovery.motivation)
+    && Boolean(discovery.obstacle || profile.mainConcern)
+    && Boolean(discovery.advanceNeed);
 }
 
 export function getInitialMessage(session: ProspectSession): string {
   if (session.firstName && session.campaignId === "versalles") {
-    return `Hola, ${session.firstName}. Vi que te interesó Versalles. Cuéntame, ¿qué fue lo que más te llamó la atención del proyecto y qué te gustaría aclarar antes de tomar una decisión?`;
+    return `Hola, ${session.firstName}. Vimos que estás interesado en adquirir vivienda y encontramos algunos beneficios que podrían ayudarte. Queremos entender qué estás buscando para orientarte mejor. Cuéntame, ¿cómo imaginas la vivienda que quieres para ti y tu familia?`;
   }
   if (session.firstName) {
     return `Hola, ${session.firstName}. Cuéntame qué buscas en tu próxima vivienda y qué te gustaría tener claro para poder avanzar.`;
@@ -52,10 +67,13 @@ export function getInitialMessage(session: ProspectSession): string {
 export function getSuggestions(action: ConversationAction): string[] {
   const suggestions: Partial<Record<ConversationAction, string[]>> = {
     OPEN_DISCOVERY: [
-      "Quiero saber si la cuota me alcanza",
-      "Quiero revisar posibles subsidios",
-      "Quiero conocer mejor el proyecto",
+      "Un hogar para mi familia",
+      "Algo propio para dejar de pagar arriendo",
+      "Una vivienda cerca de mi trabajo",
     ],
+    DISCOVER_MOTIVATION: ["Quiero dejar de pagar arriendo", "Mi familia necesita más espacio", "Quiero independizarme"],
+    DISCOVER_OBSTACLE: ["Me preocupa la cuota inicial", "No sé si mi ingreso alcanza", "Necesito revisar subsidios"],
+    DISCOVER_ADVANCE_NEED: ["Entender mi capacidad", "Conocer beneficios", "Encontrar un proyecto"],
     mainConcern: [
       "Me preocupa la cuota",
       "Necesito espacio para mi familia",
@@ -79,9 +97,6 @@ export function buildContextualResponse(input: {
   estimatedHousingPayment: number;
 }): string {
   if (input.nextAction === "COMPLETE") {
-    if (input.extraction.requestsAdvisor) {
-      return "Claro. Preparé una orientación con lo que me contaste para que puedas solicitar contacto con un asesor sin repetir toda la conversación.";
-    }
     return "Gracias. Ya tengo contexto suficiente para mostrarte una orientación útil y un siguiente paso acorde con tu momento.";
   }
 
@@ -92,10 +107,13 @@ export function buildContextualResponse(input: {
     : "";
   const prompt = getPrompt(input.nextAction);
 
-  if (!input.extraction.fields.length) {
-    return `Quiero asegurarme de entenderte bien. ${prompt}`;
+  const advisorBoundary = input.extraction.requestsAdvisor
+    ? "Entiendo que prefieres hablar con una persona. Primero confirmemos si hoy existen condiciones para que esa conversación sea útil. "
+    : "";
+  if (!input.extraction.fields.length && !Object.keys(input.extraction.discovery).length) {
+    return `${advisorBoundary}Quiero asegurarme de entenderte bien. ${prompt}`;
   }
-  return `${reflection}${value} ${prompt}`.trim();
+  return `${advisorBoundary}${reflection}${value} ${prompt}`.trim();
 }
 
 function buildReflection(profile: ProfileAnswers): string {
@@ -116,6 +134,10 @@ function buildReflection(profile: ProfileAnswers): string {
 
 function getPrompt(action: ConversationAction): string {
   const prompts: Partial<Record<ConversationAction, string>> = {
+    OPEN_DISCOVERY: "¿Cómo imaginas la vivienda que quieres y para quién sería?",
+    DISCOVER_MOTIVATION: "¿Qué te motivó a buscar vivienda justo ahora?",
+    DISCOVER_OBSTACLE: "¿Qué sientes que podría impedirte avanzar hoy?",
+    DISCOVER_ADVANCE_NEED: "¿Qué necesitarías tener claro para sentirte preparado para avanzar?",
     mainConcern: "¿Qué es lo que más necesitas aclarar antes de elegir una vivienda?",
     affiliation: "¿Actualmente estás afiliado a Colsubsidio?",
     location: "¿En qué zona te gustaría vivir?",

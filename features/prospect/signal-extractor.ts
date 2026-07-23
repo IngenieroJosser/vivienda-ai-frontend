@@ -1,9 +1,10 @@
 import { questionBank } from "../conversation/questions";
 import type { ProfileAnswers, ProfileField } from "../conversation/domain";
-import type { ConversationAction } from "./domain";
+import type { ConversationAction, DiscoveryContext } from "./domain";
 
 export type SignalExtraction = {
   profile: ProfileAnswers;
+  discovery: DiscoveryContext;
   fields: ProfileField[];
   requestsAdvisor: boolean;
   wantsToFinish: boolean;
@@ -15,6 +16,7 @@ export function extractProspectSignals(
 ): SignalExtraction {
   const text = normalize(message);
   const profile: ProfileAnswers = {};
+  const discovery = extractDiscovery(message, text, expectedAction);
 
   applyExpectedAnswer(profile, text, expectedAction);
   extractAffiliation(profile, text);
@@ -29,6 +31,7 @@ export function extractProspectSignals(
 
   return {
     profile,
+    discovery,
     fields: Object.keys(profile) as ProfileField[],
     requestsAdvisor: /(asesor|asesora|que me llamen|llamenme|contactenme|hablar con (alguien|una persona))/i.test(text),
     wantsToFinish: /(eso es todo|no tengo mas|ver (mi )?resultado|terminar|finalizar|ya esta)/i.test(text),
@@ -40,9 +43,50 @@ function applyExpectedAnswer(
   text: string,
   expectedAction: ConversationAction,
 ): void {
-  if (expectedAction === "OPEN_DISCOVERY" || expectedAction === "COMPLETE") return;
+  if (
+    expectedAction === "OPEN_DISCOVERY"
+    || expectedAction === "DISCOVER_MOTIVATION"
+    || expectedAction === "DISCOVER_OBSTACLE"
+    || expectedAction === "DISCOVER_ADVANCE_NEED"
+    || expectedAction === "COMPLETE"
+  ) return;
   const option = questionBank[expectedAction].options.find(({ label }) => normalize(label) === text);
   if (option) profile[expectedAction] = option.value;
+}
+
+function extractDiscovery(
+  rawMessage: string,
+  text: string,
+  expectedAction: ConversationAction,
+): DiscoveryContext {
+  const message = rawMessage.trim().replace(/\s+/g, " ").slice(0, 600);
+  const discovery: DiscoveryContext = {};
+
+  if (expectedAction === "OPEN_DISCOVERY") discovery.housingVision = message;
+  if (expectedAction === "DISCOVER_MOTIVATION") discovery.motivation = message;
+  if (expectedAction === "DISCOVER_OBSTACLE") discovery.obstacle = message;
+  if (expectedAction === "DISCOVER_ADVANCE_NEED") discovery.advanceNeed = message;
+
+  if (/(mi hij[oa]|mis hij[oa]s)/.test(text)) discovery.intendedFor = "Para vivir con sus hijos";
+  else if (/(mi familia|nuestra familia)/.test(text)) discovery.intendedFor = "Para vivir con su familia";
+  else if (/(mi pareja|mi espos[oa])/.test(text)) discovery.intendedFor = "Para vivir con su pareja";
+  else if (/(solo yo|para mi solo|para mi sola)/.test(text)) discovery.intendedFor = "Para vivir de manera independiente";
+
+  if (
+    /(pago arriendo|dejar de (arrendar|pagar arriendo)|familia crecio|necesita mas espacio|nacio|independizar|ahora que|cambio de trabajo)/.test(
+      text,
+    )
+  ) {
+    discovery.motivation = message;
+  }
+  if (/(me preocupa|me frena|obstaculo|no tengo ahorro|cuota inicial|muchas deudas)/.test(text)) {
+    discovery.obstacle = message;
+  }
+  if (/(necesito (saber|entender|aclarar)|quiero saber|me ayudaria|para avanzar)/.test(text)) {
+    discovery.advanceNeed = message;
+  }
+
+  return discovery;
 }
 
 function extractAffiliation(profile: ProfileAnswers, text: string): void {

@@ -46,11 +46,10 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
   const capacityRange = getCapacityRange(evaluation.capacity.estimatedHousingPayment);
   const matchedProjects = projects.filter((project) => evaluation.projectIds.includes(project.id)).slice(0, 3);
   const readyForAdvisor = evaluation.route === "ADVISOR_NOW" || evaluation.route === "NON_AFFILIATE_PRIORITY";
-  const shouldOfferAdvisor = readyForAdvisor || session.handoffRequested;
-  const actionHref = shouldOfferAdvisor
+  const actionHref = readyForAdvisor
     ? `/vivienda/agendar?from=orientacion&sessionId=${encodeURIComponent(session.id)}`
     : "#plan-preparacion";
-  const actionLabel = shouldOfferAdvisor ? "Solicitar contacto de un asesor" : "Ver mi plan de preparación";
+  const actionLabel = readyForAdvisor ? "Continuar con un asesor" : "Ver mi plan de preparación";
   const profileSummary = buildProfileSummary(evaluation);
 
   function trackAction() {
@@ -78,7 +77,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
               {session.firstName ? `Tu orientación, ${session.firstName}` : "Tu orientación personalizada"}
             </div>
             <h1 className="mt-4 text-4xl font-semibold leading-[1.04] tracking-[-.04em] sm:text-5xl">
-              {readyForAdvisor ? "Tu perfil parece listo para avanzar." : session.handoffRequested ? "Un asesor puede continuar contigo." : preparationTitle(evaluation.route)}
+              {readyForAdvisor ? "Tu perfil parece listo para avanzar." : preparationTitle(evaluation.route)}
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-[color:var(--vm-color-ink-muted)]">
               {capacityRange

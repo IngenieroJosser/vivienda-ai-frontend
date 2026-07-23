@@ -28,7 +28,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </section>
         <aside className="space-y-5">
           <section className="surface-card p-6"><div className="text-[10px] uppercase tracking-[.12em] text-[color:var(--vm-color-ink-muted)]">Información del proyecto</div><div className="mt-5 space-y-3 text-xs">{[["Precio publicado", project.priceLabel], ["Área", project.area], ["Habitaciones", project.rooms], ["Entrega", project.delivery]].map(([label, value]) => <div key={label} className="flex justify-between"><span className="text-[color:var(--vm-color-ink-muted)]">{label}</span><b>{value}</b></div>)}</div></section>
-          <Link href="/vivienda/agendar" className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#0067b1] text-sm font-bold text-white"><Icon name="calendar" className="h-4 w-4" />Agendar asesoría</Link>
+          <Link href="/orientacion?utm_source=portal&utm_campaign=versalles_proyecto&utm_content=ficha" className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#0067b1] text-sm font-bold text-white"><Icon name="arrow" className="h-4 w-4" />Iniciar orientación</Link>
           <section className="surface-solid p-5 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">La información es orientativa. Precio, unidades, financiación y beneficios deben validarse antes de tomar una decisión.</section>
         </aside>
       </div>

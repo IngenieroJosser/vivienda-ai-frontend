@@ -99,24 +99,12 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
     window.setTimeout(() => setIsAdvancing(false), 140);
   }
 
-  function trackAdvisorRequest() {
-    if (!session) return;
-    trackFunnelEvent(createFunnelEvent({
-      name: "NEXT_ACTION_CLICKED",
-      acquisition: session.acquisition,
-      sessionId: session.id,
-      occurredAt: new Date().toISOString(),
-    }));
-  }
-
   if (!loaded) return <PublicState title="Recuperando tu conversación…" description="Estamos leyendo el avance guardado en este dispositivo." />;
   if (!session) return <PublicState title="No encontramos esta conversación." description="Puedes iniciar una nueva orientación desde el enlace de la campaña." action={{ label: "Empezar orientación", href: "/orientacion" }} />;
   if (session.status === "DECLINED") return <PublicState title="Está bien, no continuaremos." description="No usaremos esta conversación para generar una orientación. Puedes volver cuando quieras." action={{ label: "Volver", href: "/orientacion" }} />;
   if (session.status === "COMPLETED") return <PublicState title="Tu orientación ya está lista." description="Puedes consultar nuevamente lo que entendimos y el siguiente paso." action={{ label: "Ver orientación", href: `/orientacion/resultado/${session.id}` }} />;
 
   const suggestions = getSuggestions(session.nextAction);
-  const advisorHref = `/vivienda/agendar?from=conversation&sessionId=${encodeURIComponent(session.id)}`;
-
   return (
     <div className="min-h-screen bg-[color:var(--vm-color-canvas)] text-[color:var(--vm-color-ink)]">
       <header className="sticky top-0 z-20 border-b border-[color:var(--vm-color-line)] bg-white">
@@ -128,9 +116,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
               <div className="truncate text-[11px] text-[color:var(--vm-color-ink-muted)]">Orientación virtual · A tu ritmo</div>
             </div>
           </div>
-          <Link href={advisorHref} onClick={trackAdvisorRequest} className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/20 px-3 text-xs font-bold text-[color:var(--vm-color-brand-blue)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]">
-            <Icon name="phone" className="h-4 w-4" /> <span className="hidden sm:inline">Solicitar asesor</span><span className="sm:hidden">Asesor</span>
-          </Link>
+          <span className="text-right text-[11px] font-semibold leading-4 text-[color:var(--vm-color-ink-muted)]">Usamos la información disponible<br className="hidden sm:block" /> para no repetir preguntas</span>
         </div>
       </header>
 
@@ -141,13 +127,17 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
         </div>
 
         <section className="space-y-4" aria-label="Conversación de orientación" aria-live="polite">
-          <AssistantMessage>{getInitialMessage(session)}</AssistantMessage>
-          {session.turns.map((turn) => (
-            <div key={turn.id} className="space-y-4">
-              <UserMessage>{turn.userText}</UserMessage>
-              <AssistantMessage>{turn.assistantText}</AssistantMessage>
-            </div>
-          ))}
+          {session.status === "ACTIVE" ? (
+            <>
+              <AssistantMessage>{getInitialMessage(session)}</AssistantMessage>
+              {session.turns.map((turn) => (
+                <div key={turn.id} className="space-y-4">
+                  <UserMessage>{turn.userText}</UserMessage>
+                  <AssistantMessage>{turn.assistantText}</AssistantMessage>
+                </div>
+              ))}
+            </>
+          ) : null}
           <div ref={conversationEndRef} />
         </section>
       </main>

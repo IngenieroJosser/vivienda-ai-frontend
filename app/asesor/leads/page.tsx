@@ -5,9 +5,15 @@ import Link from "next/link";
 import { PortalShell } from "@/components/portal-shell";
 import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
-import { leads } from "@/lib/data";
+import { useQualifiedLeads } from "@/features/conversation/components/use-qualified-leads";
+import { toAdvisorLeadRow } from "@/lib/data";
 
 export default function LeadsPage() {
+  const qualifiedLeads = useQualifiedLeads();
+  const leads = useMemo(
+    () => qualifiedLeads.map(toAdvisorLeadRow),
+    [qualifiedLeads],
+  );
   const [query, setQuery] = useState("");
   const [route, setRoute] = useState("Todas");
   const routes = ["Todas", ...new Set(leads.map((lead) => lead.route))];
@@ -16,11 +22,11 @@ export default function LeadsPage() {
       const matchesQuery = `${lead.name} ${lead.project} ${lead.source}`.toLowerCase().includes(query.toLowerCase());
       return matchesQuery && (route === "Todas" || lead.route === route);
     }),
-    [query, route],
+    [leads, query, route],
   );
 
   return (
-    <PortalShell role="asesor" title="Bandeja de leads" subtitle="Perfiles evaluados para revisar las rutas de atención inmediata, no afiliado y nutrición.">
+    <PortalShell role="asesor" title="Bandeja de leads" subtitle="Perfiles evaluados para atención comercial inmediata o acompañamiento hasta alcanzar condiciones de avance.">
       <div className="surface-solid overflow-hidden">
         <div className="flex flex-col gap-4 border-b border-black/[.07] p-5 lg:flex-row">
           <label className="relative flex-1">
@@ -42,7 +48,7 @@ export default function LeadsPage() {
               <tr key={lead.id}>
                 <td><Link href={`/asesor/leads/${lead.id}`} className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-[#0067b1]/10 text-xs font-bold text-[#0067b1]">{lead.initials}</span><div><div className="font-semibold">{lead.name}</div><div className="mt-0.5 text-[10px] text-black/40">{lead.source}</div></div></Link></td>
                 <td><div className="flex items-center gap-2"><b>{lead.score}/100</b><Pill tone={lead.priority === "Alta" ? "green" : "yellow"}>{lead.priority}</Pill></div></td>
-                <td><Pill tone={lead.route.includes("Nutrición") ? "yellow" : "blue"}>{lead.route}</Pill></td>
+                <td><Pill tone={lead.route === "Acompañamiento" ? "yellow" : "blue"}>{lead.route}</Pill></td>
                 <td>{lead.affiliate}</td>
                 <td>{lead.horizon}</td>
                 <td>{lead.project}</td>
@@ -51,7 +57,7 @@ export default function LeadsPage() {
             ))}</tbody>
           </table>
         </div>
-        <div className="border-t border-black/[.07] p-5 text-xs text-black/45">Mostrando {filtered.length} de {leads.length} escenarios</div>
+        <div className="border-t border-black/[.07] p-5 text-xs text-black/45">Mostrando {filtered.length} de {leads.length} prospectos perfilados</div>
       </div>
     </PortalShell>
   );

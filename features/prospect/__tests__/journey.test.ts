@@ -62,7 +62,7 @@ describe("paid acquisition prospect journey", () => {
     session = acceptProspectConsent(session, "2026-07-23T12:00:01.000Z");
     session = answerProspectMessage(
       session,
-      "Busco algo para vivir con mi hija, pero me preocupa no tener suficiente para la cuota inicial.",
+      "Busco algo para vivir con mi hija porque quiero dejar de pagar arriendo, pero me preocupa no tener suficiente para la cuota inicial.",
       "2026-07-23T12:01:00.000Z",
     );
 
@@ -73,7 +73,7 @@ describe("paid acquisition prospect journey", () => {
 
     session = answerProspectMessage(
       session,
-      "No tengo deudas y quisiera comprar entre 3 y 6 meses.",
+      "Necesito entender mi capacidad. No tengo deudas y quisiera comprar entre 3 y 6 meses.",
       "2026-07-23T12:02:00.000Z",
     );
 
@@ -97,12 +97,12 @@ describe("paid acquisition prospect journey", () => {
     );
     const detailed = answerProspectMessage(
       createAnonymous("detailed"),
-      "Busco en Soacha para vivir con mi hija y todavía no tengo ahorro.",
+      "Busco en Soacha para vivir con mi hija porque quiero dejar de pagar arriendo y todavía no tengo ahorro.",
       "2026-07-23T12:01:00.000Z",
     );
 
-    expect(vague.nextAction).toBe("mainConcern");
-    expect(detailed.nextAction).toBe("horizon");
+    expect(vague.nextAction).toBe("DISCOVER_MOTIVATION");
+    expect(detailed.nextAction).toBe("incomeRange");
     expect(vague.turns[0]?.assistantText).not.toBe(detailed.turns[0]?.assistantText);
     expect(detailed.turns[0]?.extractedFields.length).toBeGreaterThan(vague.turns[0]?.extractedFields.length ?? 0);
   });
@@ -128,7 +128,7 @@ describe("paid acquisition prospect journey", () => {
         leadId: "vm_Jonathan30X1",
         campaign: campaignExperiences.versalles,
         messages: [
-          "Quiero saber si la cuota me alcanza y ya tengo una base de ahorro.",
+          "Quiero saber si la cuota me alcanza, quiero dejar de pagar arriendo y ya tengo una base de ahorro.",
           "No tengo deudas y quiero comprar entre 3 y 6 meses.",
         ],
         expectedRoute: "ADVISOR_NOW",
@@ -137,7 +137,7 @@ describe("paid acquisition prospect journey", () => {
         leadId: "vm_Laura30X2026",
         campaign: campaignExperiences.general,
         messages: [
-          "Necesito espacio para mi esposo y dos hijos en Soacha, quiero comprar este año y ya tengo ahorro.",
+          "Necesito espacio para mi esposo y dos hijos en Soacha porque nuestra familia necesita más espacio; quiero comprar este año, ya tengo ahorro y necesito entender qué proyecto nos conviene.",
           "Recibimos más de 4 salarios mínimos y no tengo deudas.",
         ],
         expectedRoute: "NON_AFFILIATE_PRIORITY",
@@ -146,7 +146,7 @@ describe("paid acquisition prospect journey", () => {
         leadId: "vm_Camila30X2026",
         campaign: campaignExperiences.cuota,
         messages: [
-          "Me interesa Soacha para vivir con mi hija. Recibimos entre 2 y 4 salarios y tengo algunas deudas.",
+          "Me interesa Soacha para vivir con mi hija porque quiero dejar de pagar arriendo. Necesito entender si mi ingreso alcanza; recibimos entre 2 y 4 salarios y tengo algunas deudas.",
         ],
         expectedRoute: "NURTURE_FINANCIAL",
       },
@@ -172,7 +172,7 @@ describe("paid acquisition prospect journey", () => {
     expect(new Set(turnCounts).size).toBeGreaterThan(1);
   });
 
-  it("allows the user to request human help at any turn", () => {
+  it("does not transfer to a human before commercial qualification", () => {
     let session = acceptProspectConsent(createProspectSession({
       id: "human-handoff",
       acquisition,
@@ -182,9 +182,10 @@ describe("paid acquisition prospect journey", () => {
 
     session = answerProspectMessage(session, "Prefiero hablar con un asesor.", "2026-07-23T12:01:00.000Z");
 
-    expect(session.status).toBe("COMPLETED");
-    expect(session.handoffRequested).toBe(true);
+    expect(session.status).toBe("ACTIVE");
+    expect(session.nextAction).toBe("DISCOVER_MOTIVATION");
     expect(session.turns).toHaveLength(1);
+    expect(session.turns[0]?.assistantText).toContain("Primero confirmemos");
   });
 
   it("presents capacity as a prudent range below the deterministic maximum", () => {
