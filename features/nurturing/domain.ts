@@ -18,7 +18,17 @@ export type NurturingActivityType =
   | "MILESTONE_COMPLETED"
   | "MILESTONE_REOPENED"
   | "NOTE_ADDED"
-  | "REEVALUATION_SIMULATED";
+  | "REEVALUATION_SIMULATED"
+  | "JOURNEY_PAUSED"
+  | "JOURNEY_RESUMED"
+  | "REEVALUATION_REQUESTED"
+  | "CASE_ESCALATED";
+
+export type NurturingJourneyStatus =
+  | "ACTIVE"
+  | "PAUSED"
+  | "REEVALUATION_PENDING"
+  | "NEEDS_ATTENTION";
 
 export type NurturingActivity = {
   id: string;
@@ -33,6 +43,9 @@ export type NurturingState = {
   notes: string[];
   simulations: number;
   activities: NurturingActivity[];
+  journeyStatus: NurturingJourneyStatus;
+  interventionRequired: boolean;
+  requestedReevaluationAt?: string;
   updatedAt: string;
 };
 
@@ -48,6 +61,10 @@ export type NurturingPlan = {
   reevaluationAt: string | null;
   progress: number;
   missingData: string[];
+  statusLabel: string;
+  nextAutomaticAction: string;
+  lastInteractionAt: string;
+  interventionRequired: boolean;
   state: NurturingState;
 };
 
@@ -69,6 +86,8 @@ export function createNurturingState(
     notes: [],
     simulations: 0,
     activities: [],
+    journeyStatus: "ACTIVE",
+    interventionRequired: false,
     updatedAt: timestamp,
   };
 }
@@ -81,12 +100,13 @@ export function buildNurturingPlans(
     .filter(({ evaluation }) => isNurturingLead(evaluation))
     .map((lead) => {
       const barrier = classifyBarrier(lead.evaluation);
-      const state =
-        states[lead.scenario.leadId] ??
-        createNurturingState(
-          lead.scenario.leadId,
-          lead.scenario.capturedAt,
-        );
+      const initialState = createNurturingState(
+        lead.scenario.leadId,
+        lead.scenario.capturedAt,
+      );
+      const state = states[lead.scenario.leadId]
+        ? { ...initialState, ...states[lead.scenario.leadId] }
+        : initialState;
       const configuration = getBarrierConfiguration(barrier);
       const progress = Math.min(
         100,
@@ -94,6 +114,9 @@ export function buildNurturingPlans(
           state.completedMilestones.length *
             Math.ceil((100 - lead.evaluation.readinessScore) / 3),
       );
+      const missingData = getMissingData(lead.evaluation.profileSnapshot);
+      const interventionRequired =
+        state.interventionRequired || missingData.length >= 3;
 
       return {
         lead,
@@ -107,7 +130,17 @@ export function buildNurturingPlans(
         milestones: configuration.milestones,
         reevaluationAt: lead.evaluation.followUpAt,
         progress,
-        missingData: getMissingData(lead.evaluation.profileSnapshot),
+        missingData,
+        statusLabel: getJourneyStatusLabel(state.journeyStatus),
+        nextAutomaticAction: getNextAutomaticAction(
+          state,
+          configuration.resources,
+          progress,
+          missingData,
+        ),
+        lastInteractionAt:
+          state.activities[0]?.occurredAt ?? lead.scenario.capturedAt,
+        interventionRequired,
         state,
       };
     })
@@ -126,6 +159,9 @@ export function updateNurturingState(
     timestamp: string;
     milestone?: string;
     note?: string;
+    journeyStatus?: NurturingJourneyStatus;
+    interventionRequired?: boolean;
+    requestedReevaluationAt?: string;
   },
 ): NurturingState {
   const milestoneCompleted =
@@ -145,6 +181,12 @@ export function updateNurturingState(
       input.type === "REEVALUATION_SIMULATED"
         ? state.simulations + 1
         : state.simulations,
+    journeyStatus: input.journeyStatus ?? state.journeyStatus,
+    interventionRequired:
+      input.interventionRequired ?? state.interventionRequired,
+    ...(input.requestedReevaluationAt
+      ? { requestedReevaluationAt: input.requestedReevaluationAt }
+      : {}),
     activities: [
       {
         id: `${state.leadId}-${input.timestamp}-${state.activities.length + 1}`,
@@ -301,4 +343,37 @@ function buildImprovementPatch(barrier: NurturingBarrier): ProfileAnswers {
 
 function dateValue(value: string | null): number {
   return value ? new Date(value).getTime() : Number.MAX_SAFE_INTEGER;
+}
+
+function getJourneyStatusLabel(status: NurturingJourneyStatus): string {
+  return {
+    ACTIVE: "Ruta automática activa",
+    PAUSED: "Ruta pausada",
+    REEVALUATION_PENDING: "Reevaluación solicitada",
+    NEEDS_ATTENTION: "Intervención requerida",
+  }[status];
+}
+
+function getNextAutomaticAction(
+  state: NurturingState,
+  resources: string[],
+  progress: number,
+  missingData: string[],
+): string {
+  if (state.journeyStatus === "PAUSED") {
+    return "Esperar autorización para reanudar la ruta";
+  }
+  if (state.journeyStatus === "NEEDS_ATTENTION") {
+    return "Esperar revisión del equipo de acompañamiento";
+  }
+  if (state.journeyStatus === "REEVALUATION_PENDING") {
+    return "Ejecutar una nueva evaluación cuando el backend confirme la solicitud";
+  }
+  if (missingData.length) {
+    return `Solicitar automáticamente: ${missingData[0]}`;
+  }
+  if (progress >= 80) {
+    return "Programar reevaluación automática";
+  }
+  return `Enviar: ${resources[state.completedMilestones.length % resources.length]}`;
 }

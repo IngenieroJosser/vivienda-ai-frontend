@@ -22,7 +22,7 @@ export function AdvisorSummaryClient() {
     <div className="space-y-6">
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores de calificación">
         <SummaryMetric icon="target" label="Listos para asesor" value={String(opportunities.length)} detail="Requieren atención comercial" accent />
-        <SummaryMetric icon="heart" label="En nutrición" value={String(nurturing.length)} detail="Con condición de avance" />
+        <SummaryMetric icon="heart" label="En acompañamiento" value={String(nurturing.length)} detail="Con condición de avance" />
         <SummaryMetric icon="campaign" label="Pagos listos" value={String(paidReady)} detail="Leads de Meta priorizados" />
         <SummaryMetric icon="chart" label="Preparación media" value={`${averageReadiness}/100`} detail="Calculada por el motor único" />
       </section>
@@ -79,13 +79,13 @@ export function AdvisorSummaryClient() {
               </Link>
             ))}
           </div>
-          <Link href="/asesor/nutricion" className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[color:var(--vm-color-brand-blue)]">Abrir espacio de nutrición <Icon name="arrow" className="h-4 w-4" /></Link>
+          <Link href="/asesor/nutricion" className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[color:var(--vm-color-brand-blue)]">Abrir acompañamiento <Icon name="arrow" className="h-4 w-4" /></Link>
         </div>
 
         <aside className="rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/15 bg-[linear-gradient(145deg,#eef8ff,#fffdf1)] p-6 sm:p-8">
           <Icon name="chart" className="h-7 w-7 text-[color:var(--vm-color-brand-blue)]" />
           <h2 className="mt-5 text-2xl font-semibold tracking-[-.035em]">Una sola decisión explicable.</h2>
-          <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Resumen, bandeja, detalle y nutrición leen la misma evaluación. Cambiar de vista no modifica la prioridad ni recalcula la capacidad.</p>
+          <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Resumen, bandeja, detalle y acompañamiento leen la misma evaluación. Cambiar de vista no modifica la prioridad ni recalcula la capacidad.</p>
         </aside>
       </section>
     </div>

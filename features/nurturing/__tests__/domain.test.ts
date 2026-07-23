@@ -57,4 +57,24 @@ describe("nurturing workspace domain", () => {
     expect(simulation.readinessScore).toBeGreaterThan(originalScore);
     expect(plan.lead.evaluation.readinessScore).toBe(originalScore);
   });
+
+  it("tracks human exceptions without turning milestones into manual frontend work", () => {
+    const timestamp = "2026-07-23T15:00:00.000-05:00";
+    const state = createNurturingState("lead-camila", timestamp);
+    const escalated = updateNurturingState(state, {
+      type: "CASE_ESCALATED",
+      description: "Caso ambiguo escalado con justificación.",
+      timestamp,
+      journeyStatus: "NEEDS_ATTENTION",
+      interventionRequired: true,
+    });
+    const [plan] = buildNurturingPlans(getQualifiedScenarioLeads(), {
+      "lead-camila": escalated,
+    });
+
+    expect(plan.statusLabel).toBe("Intervención requerida");
+    expect(plan.interventionRequired).toBe(true);
+    expect(plan.nextAutomaticAction).toContain("revisión");
+    expect(plan.state.completedMilestones).toHaveLength(0);
+  });
 });

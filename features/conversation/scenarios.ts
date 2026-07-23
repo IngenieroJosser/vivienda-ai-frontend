@@ -41,7 +41,7 @@ export const scenarios = {
     leadSource: "META",
     capturedAt: "2026-07-23T10:00:00.000-05:00",
     routeLabel: "Afiliada en preparación",
-    description: "Lead de pauta con compra a largo plazo y ahorro pendiente. Debemos definir una nutrición útil, no enviarla a cierre.",
+    description: "Lead de pauta con compra a largo plazo y ahorro pendiente. Debemos definir un acompañamiento útil, no enviarla a cierre.",
     knownProfile: {
       affiliation: "AFFILIATE",
       dreamGoal: "PREPARE",

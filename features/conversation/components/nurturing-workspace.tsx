@@ -7,57 +7,55 @@ import { Pill, ProgressBar } from "@/components/ui";
 import {
   barrierLabels,
   buildNurturingPlans,
-  simulateReevaluation,
   updateNurturingState,
   type NurturingBarrier,
   type NurturingPlan,
 } from "@/features/nurturing/domain";
 import { useNurturingStates } from "@/features/nurturing/use-nurturing-states";
-import type { EvaluationResult } from "../domain";
 import { useQualifiedLeads } from "./use-qualified-leads";
 
-type Filter = "ALL" | NurturingBarrier;
+type Filter = "ALL" | "EXCEPTIONS" | NurturingBarrier;
 
 export function NurturingWorkspace() {
   const qualifiedLeads = useQualifiedLeads();
   const { states, status, save, retry } = useNurturingStates();
   const [filter, setFilter] = useState<Filter>("ALL");
   const [selectedLeadId, setSelectedLeadId] = useState<string>();
-  const [simulations, setSimulations] = useState<
-    Record<string, EvaluationResult>
-  >({});
   const [currentTime, setCurrentTime] = useState(0);
   const detailRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const timer = window.setTimeout(() => setCurrentTime(Date.now()), 0);
     return () => window.clearTimeout(timer);
   }, []);
+
   const plans = useMemo(
     () => buildNurturingPlans(qualifiedLeads, states),
     [qualifiedLeads, states],
   );
-  const filtered = useMemo(
-    () =>
-      filter === "ALL"
-        ? plans
-        : plans.filter(({ barrier }) => barrier === filter),
-    [filter, plans],
-  );
+  const filtered = useMemo(() => {
+    if (filter === "ALL") return plans;
+    if (filter === "EXCEPTIONS") {
+      return plans.filter(({ interventionRequired }) => interventionRequired);
+    }
+    return plans.filter(({ barrier }) => barrier === filter);
+  }, [filter, plans]);
   const selectedPlan =
     filtered.find(({ lead }) => lead.scenario.leadId === selectedLeadId) ??
     filtered[0];
   const dueSoon = plans.filter(({ reevaluationAt }) => {
-    if (!reevaluationAt) return false;
+    if (!reevaluationAt || !currentTime) return false;
     const days =
       (new Date(reevaluationAt).getTime() - currentTime) / 86_400_000;
     return days <= 30;
   }).length;
+  const exceptions = plans.filter(
+    ({ interventionRequired }) => interventionRequired,
+  ).length;
+  const active = plans.filter(
+    ({ state }) => state.journeyStatus === "ACTIVE",
+  ).length;
   const readyToReview = plans.filter(({ progress }) => progress >= 80).length;
-  const averageProgress = plans.length
-    ? Math.round(
-        plans.reduce((sum, plan) => sum + plan.progress, 0) / plans.length,
-      )
-    : 0;
 
   function selectPlan(leadId: string) {
     setSelectedLeadId(leadId);
@@ -72,59 +70,58 @@ export function NurturingWorkspace() {
   if (status === "ERROR") return <NurturingError onRetry={retry} />;
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard
-          icon="heart"
-          label="En acompañamiento"
-          value={String(plans.length)}
-          detail="Fuera de la bandeja comercial"
-          accent
+    <div className="space-y-4">
+      <section
+        className="surface-solid grid divide-y divide-[color:var(--vm-color-line)] overflow-hidden sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4"
+        aria-label="Estado del acompañamiento"
+      >
+        <CompactMetric label="Rutas activas" value={active} icon="heart" />
+        <CompactMetric
+          label="Intervención requerida"
+          value={exceptions}
+          icon="alert"
+          warning={exceptions > 0}
         />
-        <SummaryCard
-          icon="calendar"
+        <CompactMetric
           label="Reevaluación próxima"
-          value={String(dueSoon)}
-          detail="En los próximos 30 días"
+          value={dueSoon}
+          icon="calendar"
         />
-        <SummaryCard
-          icon="target"
+        <CompactMetric
           label="Listos para revisar"
-          value={String(readyToReview)}
-          detail="Progreso igual o superior al 80 %"
-        />
-        <SummaryCard
-          icon="chart"
-          label="Avance promedio"
-          value={`${averageProgress}%`}
-          detail="Sobre la ruta de preparación"
+          value={readyToReview}
+          icon="target"
         />
       </section>
 
       <section className="surface-solid">
-        <div className="border-b border-[color:var(--vm-color-line)] p-5 sm:p-6">
-          <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-end">
+        <div className="border-b border-[color:var(--vm-color-line)] p-5">
+          <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-[.13em] text-[color:var(--vm-color-warning)]">
-                Ruta de avance
+              <div className="text-[10px] font-bold uppercase tracking-[.13em] text-[color:var(--vm-color-brand-blue)]">
+                Supervisión de rutas
               </div>
-              <h2 className="mt-2 text-2xl font-semibold tracking-[-.035em]">
-                Madurar no significa descartar.
+              <h2 className="mt-1 text-xl font-semibold tracking-[-.03em]">
+                Acompañamiento automático y excepciones
               </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
-                Cada prospecto conserva una barrera concreta, una meta
-                verificable y un momento claro para volver a evaluar.
+              <p className="mt-1 max-w-2xl text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
+                El sistema propone la ruta, los contenidos y la reevaluación.
+                El equipo interviene únicamente cuando existe un bloqueo o una
+                excepción.
               </p>
             </div>
             <div
               className="flex gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible"
-              aria-label="Filtrar por barrera principal"
+              aria-label="Filtrar acompañamiento"
             >
+              <FilterButton active={filter === "ALL"} onClick={() => setFilter("ALL")}>
+                Todos
+              </FilterButton>
               <FilterButton
-                active={filter === "ALL"}
-                onClick={() => setFilter("ALL")}
+                active={filter === "EXCEPTIONS"}
+                onClick={() => setFilter("EXCEPTIONS")}
               >
-                Todas
+                Excepciones {exceptions ? `· ${exceptions}` : ""}
               </FilterButton>
               {(Object.entries(barrierLabels) as [NurturingBarrier, string][]).map(
                 ([value, label]) => (
@@ -139,10 +136,22 @@ export function NurturingWorkspace() {
               )}
             </div>
           </div>
+
+          <div className="mt-4 flex items-start gap-3 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-brand-blue)]/15 bg-[color:var(--vm-color-brand-blue)]/[.035] p-3 text-xs leading-5">
+            <Icon
+              name="info"
+              className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--vm-color-brand-blue)]"
+            />
+            <p>
+              Esta versión representa el comportamiento futuro con estado local.
+              En producción, reglas, progreso, mensajes y fechas pertenecerán al
+              backend.
+            </p>
+          </div>
         </div>
 
         {filtered.length ? (
-          <div className="grid xl:grid-cols-[minmax(280px,32fr)_minmax(0,68fr)]">
+          <div className="grid xl:grid-cols-[minmax(290px,32fr)_minmax(0,68fr)]">
             <div className="h-fit divide-y divide-[color:var(--vm-color-line)] border-b border-[color:var(--vm-color-line)] xl:sticky xl:top-[72px] xl:max-h-[calc(100vh-88px)] xl:overflow-y-auto xl:border-b-0 xl:border-r">
               {filtered.map((plan) => (
                 <NurturingLeadRow
@@ -162,19 +171,7 @@ export function NurturingWorkspace() {
                 key={selectedPlan.lead.scenario.leadId}
                 className="advisor-detail-enter min-w-0 scroll-mt-20"
               >
-                <NurturingPlanDetail
-                  plan={selectedPlan}
-                  simulation={
-                    simulations[selectedPlan.lead.scenario.leadId]
-                  }
-                  onSave={save}
-                  onSimulation={(result) =>
-                    setSimulations((current) => ({
-                      ...current,
-                      [selectedPlan.lead.scenario.leadId]: result,
-                    }))
-                  }
-                />
+                <NurturingPlanDetail plan={selectedPlan} onSave={save} />
               </div>
             ) : null}
           </div>
@@ -195,150 +192,158 @@ function NurturingLeadRow({
   selected: boolean;
   onSelect: () => void;
 }) {
-  const { scenario, evaluation } = plan.lead;
+  const { scenario } = plan.lead;
   return (
     <button
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      className={`w-full p-5 text-left transition sm:p-6 ${
+      className={`w-full p-4 text-left transition ${
         selected
-          ? "bg-[color:var(--vm-color-brand-blue)]/[.055]"
+          ? "bg-[color:var(--vm-color-brand-blue)]/[.06] shadow-[inset_3px_0_0_var(--vm-color-brand-blue)]"
           : "bg-white hover:bg-[color:var(--vm-color-brand-blue)]/[.025]"
       }`}
     >
-      <div className="flex items-start gap-4">
-        <span
-          className={`grid h-11 w-11 shrink-0 place-items-center rounded-full text-xs font-bold ${
-            selected
-              ? "bg-[color:var(--vm-color-brand-blue)] text-white"
-              : "bg-[color:var(--vm-color-brand-yellow)]/25 text-[color:var(--vm-color-warning)]"
-          }`}
-        >
-          {scenario.displayName.slice(0, 2).toUpperCase()}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h3 className="font-semibold">{scenario.displayName}</h3>
-              <p className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">
-                {scenario.leadSource === "META" ? "Meta · pauta" : "Canal propio"}
-              </p>
-            </div>
-            <Pill tone="yellow">{plan.barrierLabel}</Pill>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className="truncate text-sm font-semibold">
+              {scenario.displayName}
+            </h3>
+            {plan.interventionRequired ? (
+              <span
+                aria-label="Intervención humana requerida"
+                className="h-2 w-2 shrink-0 rounded-full bg-rose-600"
+              />
+            ) : null}
           </div>
-          <p className="mt-4 line-clamp-2 text-sm font-semibold leading-5">
-            {plan.objective}
+          <p className="mt-1 truncate text-[11px] text-[color:var(--vm-color-ink-muted)]">
+            {plan.route}
           </p>
-          <div className="mt-4">
-            <ProgressBar value={plan.progress} label="Avance hacia reevaluación" />
-          </div>
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] text-[color:var(--vm-color-ink-muted)]">
-            <span>
-              Revisión:{" "}
-              <b className="text-[color:var(--vm-color-ink)]">
-                {plan.reevaluationAt
-                  ? formatDate(plan.reevaluationAt)
-                  : "Por programar"}
-              </b>
-            </span>
-            <span>{evaluation.readinessScore}/100 en evaluación actual</span>
-          </div>
         </div>
+        <Pill tone={plan.interventionRequired ? "red" : "blue"}>
+          {plan.statusLabel}
+        </Pill>
       </div>
+      <div className="mt-3">
+        <ProgressBar value={plan.progress} label="Progreso verificable" />
+      </div>
+      <dl className="mt-3 grid gap-2 text-[11px]">
+        <div>
+          <dt className="text-[color:var(--vm-color-ink-muted)]">Barrera</dt>
+          <dd className="mt-0.5 font-semibold">{plan.barrierLabel}</dd>
+        </div>
+        <div>
+          <dt className="text-[color:var(--vm-color-ink-muted)]">
+            Próxima acción automática
+          </dt>
+          <dd className="mt-0.5 line-clamp-2 font-semibold">
+            {plan.nextAutomaticAction}
+          </dd>
+        </div>
+      </dl>
     </button>
   );
 }
 
 function NurturingPlanDetail({
   plan,
-  simulation,
   onSave,
-  onSimulation,
 }: {
   plan: NurturingPlan;
-  simulation?: EvaluationResult;
   onSave: (state: NurturingPlan["state"]) => void;
-  onSimulation: (result: EvaluationResult) => void;
 }) {
-  const [note, setNote] = useState("");
+  const [reason, setReason] = useState("");
+  const [feedback, setFeedback] = useState("");
   const { lead, state } = plan;
+  const paused = state.journeyStatus === "PAUSED";
 
-  function toggleMilestone(milestone: string, completed: boolean) {
+  function persistException(
+    action: "TOGGLE" | "REEVALUATE" | "ESCALATE",
+  ) {
+    const cleanReason = reason.trim().slice(0, 500);
+    if (!cleanReason) {
+      setFeedback("Registra un motivo antes de realizar una intervención.");
+      return;
+    }
     const timestamp = new Date().toISOString();
+    const input: Omit<
+      Parameters<typeof updateNurturingState>[1],
+      "timestamp"
+    > =
+      action === "TOGGLE"
+        ? {
+            type: paused ? "JOURNEY_RESUMED" : "JOURNEY_PAUSED",
+            description: `${paused ? "Ruta reanudada" : "Ruta pausada"}. Motivo: ${cleanReason}`,
+            journeyStatus: paused ? "ACTIVE" : "PAUSED",
+            interventionRequired: false,
+          }
+        : action === "REEVALUATE"
+          ? {
+              type: "REEVALUATION_REQUESTED",
+              description: `Reevaluación solicitada. Motivo: ${cleanReason}`,
+              journeyStatus: "REEVALUATION_PENDING",
+              interventionRequired: false,
+              requestedReevaluationAt: timestamp,
+            }
+          : {
+              type: "CASE_ESCALATED",
+              description: `Caso escalado a intervención humana. Motivo: ${cleanReason}`,
+              journeyStatus: "NEEDS_ATTENTION",
+              interventionRequired: true,
+            };
+
     onSave(
       updateNurturingState(state, {
-        type: completed ? "MILESTONE_COMPLETED" : "MILESTONE_REOPENED",
-        description: completed
-          ? `Avance registrado: ${milestone}.`
-          : `Avance reabierto: ${milestone}.`,
+        ...input,
         timestamp,
-        milestone,
       }),
     );
-  }
-
-  function addNote() {
-    const cleanNote = note.trim().slice(0, 500);
-    if (!cleanNote) return;
-    onSave(
-      updateNurturingState(state, {
-        type: "NOTE_ADDED",
-        description: `Nota de acompañamiento: ${cleanNote}`,
-        note: cleanNote,
-        timestamp: new Date().toISOString(),
-      }),
-    );
-    setNote("");
-  }
-
-  function runSimulation() {
-    const result = simulateReevaluation(plan);
-    onSimulation(result);
-    onSave(
-      updateNurturingState(state, {
-        type: "REEVALUATION_SIMULATED",
-        description: `Se simuló una reevaluación: ${result.readinessScore}/100, ruta ${getRouteLabel(result.route)}.`,
-        timestamp: new Date().toISOString(),
-      }),
+    setReason("");
+    setFeedback(
+      "Intervención registrada localmente y añadida al historial.",
     );
   }
 
   return (
-    <aside className="bg-[color:var(--vm-color-canvas)]/55 p-5 sm:p-6 xl:p-7">
-      <div className="flex items-start justify-between gap-3">
+    <aside className="bg-[color:var(--vm-color-canvas)]/45 p-5 sm:p-6 xl:p-7">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-[.13em] text-[color:var(--vm-color-brand-blue)]">
-            Plan de acompañamiento
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="text-[10px] font-bold uppercase tracking-[.13em] text-[color:var(--vm-color-brand-blue)]">
+              Ruta supervisada
+            </div>
+            {plan.interventionRequired ? (
+              <Pill tone="red">Intervención requerida</Pill>
+            ) : null}
           </div>
           <h3 className="mt-2 text-2xl font-semibold tracking-[-.035em]">
             {lead.scenario.displayName}
           </h3>
+          <p className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">
+            {plan.statusLabel}
+          </p>
         </div>
         <Link
           href={`/asesor/leads/${lead.scenario.leadId}`}
-          className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/20 bg-white px-3 text-xs font-bold text-[color:var(--vm-color-brand-blue)]"
+          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/20 bg-white px-3 text-xs font-bold text-[color:var(--vm-color-brand-blue)]"
         >
-          Ver perfil <Icon name="arrow" className="h-3.5 w-3.5" />
+          Consultar perfil <Icon name="arrow" className="h-3.5 w-3.5" />
         </Link>
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+      <section className="mt-5 grid gap-3 sm:grid-cols-2">
         <PlanFact
           icon="alert"
           label="Barrera principal"
           value={plan.barrierDescription}
           warning
         />
+        <PlanFact icon="heart" label="Ruta activa" value={plan.route} />
         <PlanFact
-          icon="target"
-          label="Objetivo para avanzar"
-          value={plan.objective}
-        />
-        <PlanFact
-          icon="heart"
-          label="Ruta recomendada"
-          value={plan.route}
+          icon="clock"
+          label="Última interacción"
+          value={formatDateTime(plan.lastInteractionAt)}
         />
         <PlanFact
           icon="calendar"
@@ -346,52 +351,77 @@ function NurturingPlanDetail({
           value={
             plan.reevaluationAt
               ? formatDate(plan.reevaluationAt)
-              : "Debe programarse manualmente"
+              : "Reevaluación por programar"
           }
         />
-      </div>
+      </section>
+
+      <section className="mt-5 rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-brand-blue)]/15 bg-white p-5">
+        <div className="flex items-start gap-3">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]">
+            <Icon name="arrow" className="h-4 w-4" />
+          </span>
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-[.11em] text-[color:var(--vm-color-brand-blue)]">
+              Próxima acción automática
+            </div>
+            <p className="mt-1 text-sm font-semibold">
+              {plan.nextAutomaticAction}
+            </p>
+          </div>
+        </div>
+      </section>
 
       {plan.missingData.length ? (
-        <div className="mt-4 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-warning)]/20 bg-[#fffaf0] p-4">
+        <div className="mt-5 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-warning)]/20 bg-[#fffaf0] p-4">
           <div className="flex items-center gap-2 text-xs font-bold text-[color:var(--vm-color-warning)]">
-            <Icon name="info" className="h-4 w-4" /> Datos incompletos
+            <Icon name="info" className="h-4 w-4" /> Motivo de bloqueo
           </div>
           <p className="mt-2 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
-            Falta confirmar: {plan.missingData.join(", ")}. El progreso es
-            orientativo hasta completar esta información.
+            Falta confirmar: {plan.missingData.join(", ")}.
           </p>
         </div>
       ) : null}
 
       <section className="mt-6">
-        <h4 className="text-sm font-semibold">Pasos de la ruta</h4>
-        <div className="mt-3 space-y-2">
-          {plan.milestones.map((milestone) => {
+        <div className="flex items-center justify-between gap-3">
+          <h4 className="text-sm font-semibold">Progreso de la ruta</h4>
+          <Pill tone="gray">Actualización automática</Pill>
+        </div>
+        <ol className="mt-3 space-y-2">
+          {plan.milestones.map((milestone, index) => {
             const completed = state.completedMilestones.includes(milestone);
+            const current =
+              !completed &&
+              index === state.completedMilestones.length &&
+              state.journeyStatus === "ACTIVE";
             return (
-              <label
+              <li
                 key={milestone}
-                className={`flex min-h-12 items-center gap-3 rounded-[var(--vm-radius-control)] border p-3 text-xs font-semibold transition ${
+                className={`flex min-h-12 items-center gap-3 rounded-[var(--vm-radius-control)] border p-3 text-xs ${
                   completed
                     ? "border-[color:var(--vm-color-success)]/25 bg-emerald-50"
-                    : "border-[color:var(--vm-color-line)] bg-white"
+                    : current
+                      ? "border-[color:var(--vm-color-brand-blue)]/20 bg-white"
+                      : "border-[color:var(--vm-color-line)] bg-white/65"
                 }`}
               >
-                <input
-                  type="checkbox"
-                  checked={completed}
-                  onChange={(event) =>
-                    toggleMilestone(milestone, event.target.checked)
-                  }
-                  className="h-4 w-4 accent-[color:var(--vm-color-brand-blue)]"
-                />
-                <span className={completed ? "text-[color:var(--vm-color-success)]" : ""}>
-                  {milestone}
+                <span
+                  className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[10px] font-bold ${
+                    completed
+                      ? "bg-[color:var(--vm-color-success)] text-white"
+                      : current
+                        ? "bg-[color:var(--vm-color-brand-blue)] text-white"
+                        : "bg-[color:var(--vm-color-line)] text-[color:var(--vm-color-ink-muted)]"
+                  }`}
+                >
+                  {completed ? <Icon name="check" className="h-3 w-3" /> : index + 1}
                 </span>
-              </label>
+                <span className="font-semibold">{milestone}</span>
+              </li>
             );
           })}
-        </div>
+        </ol>
       </section>
 
       <section className="mt-6 rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-line)] bg-white p-5">
@@ -400,7 +430,7 @@ function NurturingPlanDetail({
             name="document"
             className="h-4 w-4 text-[color:var(--vm-color-brand-blue)]"
           />
-          Contenidos y beneficios sugeridos
+          Contenidos programados por la ruta
         </div>
         <ul className="mt-3 space-y-2">
           {plan.suggestedResources.map((resource) => (
@@ -409,79 +439,66 @@ function NurturingPlanDetail({
               className="flex gap-2 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]"
             >
               <Icon
-                name="check"
-                className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--vm-color-success)]"
+                name="clock"
+                className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--vm-color-brand-blue)]"
               />
               {resource}
             </li>
           ))}
         </ul>
-        {lead.evaluation.benefitSignals.potential.length ? (
-          <div className="mt-4 border-t border-[color:var(--vm-color-line)] pt-4">
-            <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-warning)]">
-              Beneficios por validar
-            </div>
-            <p className="mt-2 text-xs leading-5">
-              {lead.evaluation.benefitSignals.potential.join(" · ")}
-            </p>
-          </div>
-        ) : null}
       </section>
 
-      <section className="mt-6 rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-brand-blue)]/15 bg-[linear-gradient(140deg,#eef8ff,#fffdf0)] p-5">
+      <section className="mt-6 rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-warning)]/20 bg-[#fffaf0] p-5">
         <div className="flex items-start gap-3">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[color:var(--vm-color-brand-blue)] shadow-sm">
-            <Icon name="chart" className="h-4 w-4" />
-          </span>
+          <Icon
+            name="shield"
+            className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--vm-color-warning)]"
+          />
           <div>
-            <h4 className="text-sm font-semibold">Simular nueva evaluación</h4>
+            <h4 className="text-sm font-semibold">Intervención excepcional</h4>
             <p className="mt-1 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
-              Proyecta qué ocurriría si se supera la barrera principal. No
-              modifica la calificación ni envía el lead al asesor.
+              Toda intervención requiere motivo y queda registrada. Estas
+              acciones son locales hasta conectar permisos y auditoría del
+              backend.
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={runSimulation}
-          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-4 text-xs font-bold text-white"
-        >
-          Simular escenario de avance <Icon name="arrow" className="h-4 w-4" />
-        </button>
-        {simulation ? (
-          <div role="status" className="mt-4 grid grid-cols-2 gap-3">
-            <SimulationFact
-              label="Preparación proyectada"
-              value={`${simulation.readinessScore}/100`}
-            />
-            <SimulationFact
-              label="Ruta proyectada"
-              value={getRouteLabel(simulation.route)}
-            />
-          </div>
-        ) : null}
-      </section>
-
-      <section className="mt-6">
-        <label className="text-xs font-semibold">
-          Nota de acompañamiento
+        <label className="mt-4 block text-xs font-semibold">
+          Motivo de la intervención
           <textarea
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
             rows={3}
             maxLength={500}
             className="mt-2 w-full resize-y rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white p-3 text-xs leading-5"
-            placeholder="Registra avances, acuerdos o información pendiente"
+            placeholder="Explica el bloqueo, la corrección o la razón de la excepción"
           />
         </label>
-        <button
-          type="button"
-          onClick={addNote}
-          disabled={!note.trim()}
-          className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/20 bg-white text-xs font-bold text-[color:var(--vm-color-brand-blue)] disabled:opacity-40"
-        >
-          <Icon name="plus" className="h-4 w-4" /> Guardar nota
-        </button>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <ExceptionButton
+            icon={paused ? "arrow" : "clock"}
+            label={paused ? "Reanudar ruta" : "Pausar ruta"}
+            onClick={() => persistException("TOGGLE")}
+          />
+          <ExceptionButton
+            icon="target"
+            label="Solicitar reevaluación"
+            onClick={() => persistException("REEVALUATE")}
+          />
+          <ExceptionButton
+            icon="user"
+            label="Escalar caso"
+            onClick={() => persistException("ESCALATE")}
+          />
+        </div>
+        {feedback ? (
+          <p
+            role="status"
+            className="advisor-toast mt-3 rounded-[var(--vm-radius-control)] bg-white p-3 text-xs"
+          >
+            {feedback}
+          </p>
+        ) : null}
       </section>
 
       <section className="mt-6 border-t border-[color:var(--vm-color-line)] pt-5">
@@ -490,7 +507,7 @@ function NurturingPlanDetail({
             name="history"
             className="h-4 w-4 text-[color:var(--vm-color-brand-blue)]"
           />
-          Historial de acompañamiento
+          Historial del acompañamiento
         </div>
         <div className="mt-4 max-h-52 space-y-3 overflow-y-auto">
           {state.activities.length ? (
@@ -507,7 +524,7 @@ function NurturingPlanDetail({
             ))
           ) : (
             <p className="text-xs text-[color:var(--vm-color-ink-muted)]">
-              Aún no hay acciones de acompañamiento registradas.
+              Sin excepciones registradas. La ruta continúa automáticamente.
             </p>
           )}
         </div>
@@ -516,50 +533,75 @@ function NurturingPlanDetail({
   );
 }
 
-function SummaryCard({
+function CompactMetric({
+  label,
+  value,
+  icon,
+  warning = false,
+}: {
+  label: string;
+  value: number;
+  icon: Parameters<typeof Icon>[0]["name"];
+  warning?: boolean;
+}) {
+  return (
+    <article className="flex items-center justify-between gap-4 px-5 py-3.5">
+      <div>
+        <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">
+          {label}
+        </div>
+        <div className={`mt-1 text-2xl font-semibold ${warning ? "text-rose-700" : ""}`}>
+          {value}
+        </div>
+      </div>
+      <Icon
+        name={icon}
+        className={`h-4 w-4 ${warning ? "text-rose-700" : "text-[color:var(--vm-color-brand-blue)]"}`}
+      />
+    </article>
+  );
+}
+
+function PlanFact({
   icon,
   label,
   value,
-  detail,
-  accent = false,
+  warning = false,
 }: {
   icon: Parameters<typeof Icon>[0]["name"];
   label: string;
   value: string;
-  detail: string;
-  accent?: boolean;
+  warning?: boolean;
 }) {
   return (
-    <article
-      className={`rounded-[var(--vm-radius-card)] border p-5 shadow-[var(--vm-shadow-low)] ${
-        accent
-          ? "border-[color:var(--vm-color-brand-blue)] bg-[color:var(--vm-color-brand-blue)] text-white"
-          : "border-[color:var(--vm-color-line)] bg-white"
-      }`}
+    <div className="rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white p-4">
+      <div className={`flex items-center gap-2 text-[9px] font-bold uppercase tracking-[.1em] ${warning ? "text-[color:var(--vm-color-warning)]" : "text-[color:var(--vm-color-ink-muted)]"}`}>
+        <Icon name={icon} className="h-3.5 w-3.5" />
+        {label}
+      </div>
+      <p className="mt-2 text-xs font-semibold leading-5">{value}</p>
+    </div>
+  );
+}
+
+function ExceptionButton({
+  icon,
+  label,
+  onClick,
+}: {
+  icon: Parameters<typeof Icon>[0]["name"];
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-warning)]/25 bg-white px-3 text-xs font-bold"
     >
-      <div className="flex items-center justify-between gap-3">
-        <div
-          className={`text-[10px] font-bold uppercase tracking-[.1em] ${
-            accent
-              ? "text-white/75"
-              : "text-[color:var(--vm-color-ink-muted)]"
-          }`}
-        >
-          {label}
-        </div>
-        <Icon name={icon} className="h-4 w-4" />
-      </div>
-      <div className="mt-3 text-3xl font-semibold">{value}</div>
-      <div
-        className={`mt-1 text-xs ${
-          accent
-            ? "text-white/75"
-            : "text-[color:var(--vm-color-ink-muted)]"
-        }`}
-      >
-        {detail}
-      </div>
-    </article>
+      <Icon name={icon} className="h-4 w-4" />
+      {label}
+    </button>
   );
 }
 
@@ -577,10 +619,10 @@ function FilterButton({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`min-h-11 shrink-0 rounded-full px-4 text-xs font-bold transition ${
+      className={`min-h-10 shrink-0 rounded-full px-4 text-xs font-bold transition ${
         active
           ? "bg-[color:var(--vm-color-brand-blue)] text-white"
-          : "border border-[color:var(--vm-color-line)] bg-white text-[color:var(--vm-color-ink-muted)] hover:border-[color:var(--vm-color-brand-blue)]"
+          : "border border-[color:var(--vm-color-line)] bg-white text-[color:var(--vm-color-ink-muted)] hover:border-[color:var(--vm-color-brand-blue)]/30 hover:text-[color:var(--vm-color-brand-blue)]"
       }`}
     >
       {children}
@@ -588,112 +630,63 @@ function FilterButton({
   );
 }
 
-function PlanFact({
-  icon,
-  label,
-  value,
-  warning = false,
-}: {
-  icon: Parameters<typeof Icon>[0]["name"];
-  label: string;
-  value: string;
-  warning?: boolean;
-}) {
+function NurturingEmpty({ filtered }: { filtered: boolean }) {
   return (
-    <div
-      className={`rounded-[var(--vm-radius-control)] border p-4 ${
-        warning
-          ? "border-[color:var(--vm-color-warning)]/20 bg-[#fffaf0]"
-          : "border-[color:var(--vm-color-line)] bg-white"
-      }`}
-    >
-      <div className="flex items-center gap-2">
-        <Icon
-          name={icon}
-          className={`h-4 w-4 ${
-            warning
-              ? "text-[color:var(--vm-color-warning)]"
-              : "text-[color:var(--vm-color-brand-blue)]"
-          }`}
-        />
-        <div className="text-[9px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">
-          {label}
-        </div>
-      </div>
-      <p className="mt-2 text-xs font-semibold leading-5">{value}</p>
-    </div>
-  );
-}
-
-function SimulationFact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[var(--vm-radius-control)] bg-white p-3">
-      <div className="text-[9px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">
-        {label}
-      </div>
-      <div className="mt-1 text-sm font-semibold">{value}</div>
+    <div className="p-10 text-center">
+      <Icon
+        name={filtered ? "filter" : "check"}
+        className="mx-auto h-7 w-7 text-[color:var(--vm-color-brand-blue)]"
+      />
+      <h3 className="mt-3 font-semibold">
+        {filtered
+          ? "No hay rutas con este filtro"
+          : "No hay prospectos en acompañamiento"}
+      </h3>
+      <p className="mt-1 text-sm text-[color:var(--vm-color-ink-muted)]">
+        {filtered
+          ? "Prueba otro criterio para consultar las rutas activas."
+          : "Las nuevas rutas aparecerán cuando una evaluación determine que el prospecto necesita preparación."}
+      </p>
     </div>
   );
 }
 
 function NurturingLoading() {
   return (
-    <section
-      aria-live="polite"
-      aria-busy="true"
-      className="surface-solid p-8"
-    >
-      <div className="h-3 w-32 animate-pulse rounded-full bg-[color:var(--vm-color-brand-blue)]/10" />
-      <div className="mt-4 h-8 w-72 max-w-full animate-pulse rounded-full bg-[color:var(--vm-color-brand-blue)]/10" />
-      <div className="mt-7 grid gap-4 lg:grid-cols-2">
-        <div className="h-44 animate-pulse rounded-[var(--vm-radius-card)] bg-[color:var(--vm-color-brand-blue)]/[.04]" />
-        <div className="h-44 animate-pulse rounded-[var(--vm-radius-card)] bg-[color:var(--vm-color-brand-blue)]/[.04]" />
+    <div aria-busy="true" className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div
+            key={index}
+            className="h-20 animate-pulse rounded-[var(--vm-radius-card)] bg-white"
+          />
+        ))}
       </div>
-      <span className="sr-only">Cargando planes de acompañamiento</span>
-    </section>
+      <div className="grid gap-4 xl:grid-cols-[32fr_68fr]">
+        <div className="h-96 animate-pulse rounded-[var(--vm-radius-card)] bg-white" />
+        <div className="h-[620px] animate-pulse rounded-[var(--vm-radius-card)] bg-white" />
+      </div>
+    </div>
   );
 }
 
 function NurturingError({ onRetry }: { onRetry: () => void }) {
   return (
     <section role="alert" className="surface-solid p-9 text-center">
-      <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-rose-50 text-rose-700">
-        <Icon name="alert" />
-      </span>
-      <h2 className="mt-4 text-xl font-semibold">
-        No pudimos cargar el acompañamiento local.
+      <Icon name="alert" className="mx-auto h-7 w-7 text-rose-700" />
+      <h2 className="mt-3 text-xl font-semibold">
+        No pudimos cargar el seguimiento local
       </h2>
       <p className="mt-2 text-sm text-[color:var(--vm-color-ink-muted)]">
-        Los resultados calculados no se modificaron. Intenta leer nuevamente el
-        estado guardado en este dispositivo.
+        Las evaluaciones originales permanecen intactas.
       </p>
       <button
         type="button"
         onClick={onRetry}
         className="mt-5 min-h-11 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white"
       >
-        Intentar de nuevo
+        Intentar nuevamente
       </button>
-    </section>
-  );
-}
-
-function NurturingEmpty({ filtered }: { filtered: boolean }) {
-  return (
-    <section className="p-10 text-center">
-      <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]">
-        <Icon name="check" />
-      </span>
-      <h2 className="mt-4 text-xl font-semibold">
-        {filtered
-          ? "No hay prospectos con esta barrera."
-          : "No hay prospectos en acompañamiento."}
-      </h2>
-      <p className="mt-2 text-sm text-[color:var(--vm-color-ink-muted)]">
-        {filtered
-          ? "Selecciona otra categoría para revisar la cola."
-          : "Las nuevas rutas de preparación aparecerán aquí después de la evaluación."}
-      </p>
     </section>
   );
 }
@@ -701,7 +694,7 @@ function NurturingEmpty({ filtered }: { filtered: boolean }) {
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("es-CO", {
     day: "numeric",
-    month: "short",
+    month: "long",
     year: "numeric",
   }).format(new Date(value));
 }
@@ -711,17 +704,4 @@ function formatDateTime(value: string): string {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
-}
-
-function getRouteLabel(route: EvaluationResult["route"]): string {
-  const labels: Record<EvaluationResult["route"], string> = {
-    ADVISOR_NOW: "Atención comercial",
-    NON_AFFILIATE_PRIORITY: "Atención comercial",
-    NURTURE_FINANCIAL: "Acompañamiento financiero",
-    NURTURE_BENEFITS: "Validación de beneficios",
-    NURTURE_LONG_TERM: "Preparación a largo plazo",
-    NEEDS_DATA: "Completar información",
-    OPTED_OUT: "Sin contacto",
-  };
-  return labels[route];
 }

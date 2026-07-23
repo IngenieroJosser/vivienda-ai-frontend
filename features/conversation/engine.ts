@@ -226,7 +226,7 @@ function buildCommercialSummary(
     : "capacidad pendiente de completar";
   const disposition = route === "ADVISOR_NOW" || route === "NON_AFFILIATE_PRIORITY"
     ? "Está listo para una conversación comercial."
-    : "Debe continuar en nutrición antes del contacto de cierre.";
+    : "Debe continuar en acompañamiento antes del contacto de cierre.";
 
   return `${scenario.displayName} llegó desde ${source}, quiere avanzar ${timing} y registra ${payment}. ${disposition}`;
 }

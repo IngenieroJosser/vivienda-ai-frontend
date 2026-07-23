@@ -407,7 +407,7 @@ function EmptyInbox() {
       <Icon name="search" className="mx-auto h-7 w-7 text-[color:var(--vm-color-brand-blue)]" />
       <h2 className="mt-3 font-semibold">No hay oportunidades con estos filtros</h2>
       <p className="mt-1 text-sm text-[color:var(--vm-color-ink-muted)]">
-        Ajusta la búsqueda o los filtros. Los prospectos en preparación permanecen en Nutrición.
+        Ajusta la búsqueda o los filtros. Los prospectos en preparación permanecen en Acompañamiento.
       </p>
     </section>
   );
