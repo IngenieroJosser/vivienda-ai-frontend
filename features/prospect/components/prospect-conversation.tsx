@@ -10,7 +10,7 @@ import { questionBank } from "@/features/conversation/questions";
 import { createFunnelEvent, trackFunnelEvent } from "../analytics";
 import { campaignExperiences } from "../campaigns";
 import type { ProspectSession } from "../domain";
-import { acceptProspectConsent, answerProspectQuestion, declineProspectConsent, MAX_PUBLIC_DECISIONS } from "../engine";
+import { acceptProspectConsent, answerProspectQuestion, declineProspectConsent } from "../engine";
 import { loadProspectSession, saveProspectSession } from "../storage";
 
 export function ProspectConversation({ sessionId }: { sessionId: string }) {
@@ -19,6 +19,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
   const [loaded, setLoaded] = useState(false);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const completedRef = useRef(false);
+  const conversationEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -34,6 +35,10 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
     () => session?.questionIds.slice(0, session.currentQuestionIndex) ?? [],
     [session],
   );
+
+  useEffect(() => {
+    conversationEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+  }, [session?.currentQuestionIndex, session?.status]);
 
   useEffect(() => {
     if (!session || session.status !== "ACTIVE" || !currentField) return;
@@ -66,7 +71,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
 
   function declineConsent() {
     if (!session || !campaign) return;
-    const updated = declineProspectConsent(session, campaign, new Date().toISOString());
+    const updated = declineProspectConsent(session, new Date().toISOString());
     saveProspectSession(updated);
     setSession(updated);
     trackFunnelEvent(createFunnelEvent({
@@ -80,7 +85,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
   function choose(value: string) {
     if (!session || !campaign || !currentField) return;
     setIsAdvancing(true);
-    const updated = answerProspectQuestion(session, campaign, value, new Date().toISOString());
+    const updated = answerProspectQuestion(session, value, new Date().toISOString());
     saveProspectSession(updated);
     setSession(updated);
 
@@ -104,82 +109,129 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
   if (session.status === "COMPLETED") return <PublicState title="Tu orientación ya está lista." description="Puedes consultar nuevamente lo que entendimos y el siguiente paso." action={{ label: "Ver orientación", href: `/orientacion/resultado/${session.id}` }} />;
 
   const currentQuestion = currentField ? questionBank[currentField] : undefined;
-  const decisionNumber = session.status === "CONSENT" ? 1 : session.currentQuestionIndex + 2;
-  const progress = Math.round((decisionNumber / MAX_PUBLIC_DECISIONS) * 100);
+  const remainingQuestions = session.status === "CONSENT"
+    ? session.questionIds.length
+    : Math.max(0, session.questionIds.length - session.currentQuestionIndex);
+  const estimatedMinutes = Math.max(1, Math.ceil(remainingQuestions * 0.25));
   const returnHref = `/orientacion?utm_source=${encodeURIComponent(session.acquisition.source)}&utm_campaign=${encodeURIComponent(session.acquisition.campaign)}&utm_content=${encodeURIComponent(session.acquisition.content)}`;
+  const greeting = session.firstName
+    ? `Hola, ${session.firstName} 👋 ${campaign.assistantIntro}`
+    : campaign.id === "general"
+      ? "Hola 👋 Soy el orientador digital de vivienda de Colsubsidio. Te ayudaré a conocer qué opciones podrían ajustarse a ti."
+      : `Hola 👋 Soy el orientador digital de vivienda de Colsubsidio. ${campaign.assistantIntro}`;
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(145deg,#f5fbff,#fffdf4_58%,#f7fbfd)] text-[color:var(--vm-color-ink)]">
-      <header className="border-b border-[color:var(--vm-color-line)] bg-white">
-        <div className="mx-auto flex min-h-[68px] max-w-[860px] items-center justify-between gap-4 px-4 sm:px-7">
+    <div className="min-h-screen bg-[color:var(--vm-color-canvas)] text-[color:var(--vm-color-ink)]">
+      <header className="sticky top-0 z-20 border-b border-[color:var(--vm-color-line)] bg-white">
+        <div className="mx-auto flex min-h-[64px] max-w-[760px] items-center justify-between gap-3 px-4 sm:px-6">
           <Brand compact />
-          <Link href={returnHref} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/15 px-4 text-xs font-semibold text-[color:var(--vm-color-brand-blue)]"><Icon name="arrow" className="h-4 w-4 rotate-180" /> Guardar y salir</Link>
+          <Link href={returnHref} className="inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]">
+            <Icon name="arrow" className="h-4 w-4 rotate-180" /> Guardar y salir
+          </Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[860px] px-3 py-4 sm:px-7 sm:py-7">
-        <div className="mb-3 flex items-center justify-between px-1 text-[11px] font-semibold text-[color:var(--vm-color-ink-muted)]">
-          <span>Orientación de vivienda</span>
-          <span>{decisionNumber} de {MAX_PUBLIC_DECISIONS}</span>
+      <main className="mx-auto max-w-[760px] px-4 pb-56 pt-5 sm:px-6 sm:pb-48">
+        <div className="mb-5 flex items-center gap-2 text-xs font-semibold text-[color:var(--vm-color-ink-muted)]">
+          <span className="h-2 w-2 rounded-full bg-[color:var(--vm-color-success)]" />
+          {session.status === "CONSENT"
+            ? "Antes de comenzar"
+            : `Te faltan aproximadamente ${estimatedMinutes} ${estimatedMinutes === 1 ? "minuto" : "minutos"}`}
         </div>
-        <div className="h-1 overflow-hidden rounded-full bg-[color:var(--vm-color-brand-blue)]/10"><div className="h-full rounded-full bg-[color:var(--vm-color-brand-blue)] transition-[width] duration-200" style={{ width: `${progress}%` }} /></div>
 
-        <section className="mt-4 min-h-[620px] rounded-[26px] border border-[color:var(--vm-color-line)] bg-[#f8fcff] p-4 shadow-[var(--vm-shadow-low)] sm:p-7" aria-label="Conversación personalizada">
-          <div className="mx-auto max-w-[690px] space-y-3">
-            <AssistantMessage>Hola, {session.firstName}. {campaign.assistantIntro}</AssistantMessage>
+        <section className="space-y-3" aria-label="Conversación personalizada">
+          <AssistantMessage>{greeting}</AssistantMessage>
 
-            {session.status === "CONSENT" ? (
-              <>
-                <AssistantMessage>
-                  Para orientarte necesitamos usar lo que nos cuentes y las señales de la campaña desde la que llegaste. Guardaremos el avance únicamente en este dispositivo durante esta validación.
-                </AssistantMessage>
-                <div className="ml-0 grid gap-2.5 pt-2 sm:ml-10 sm:max-w-[600px]">
-                  <button type="button" onClick={acceptConsent} className="flex min-h-12 items-center justify-between rounded-[18px] border border-[color:var(--vm-color-brand-blue)]/20 bg-white px-4 py-3 text-left text-sm font-semibold hover:border-[color:var(--vm-color-brand-blue)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)]">Sí, quiero continuar <Icon name="arrow" className="h-4 w-4 text-[color:var(--vm-color-brand-blue)]" /></button>
-                  <button type="button" onClick={declineConsent} className="min-h-11 px-4 text-left text-xs font-semibold text-[color:var(--vm-color-ink-muted)] underline decoration-[color:var(--vm-color-line)] underline-offset-4">No autorizo el uso de esta información</button>
-                </div>
-              </>
-            ) : (
-              <>
-                <AssistantMessage>Gracias. Serán cinco preguntas breves y no necesitas documentos para responder.</AssistantMessage>
-                {answeredFields.map((field) => {
-                  const answer = session.answers[field];
-                  if (!answer) return null;
-                  return (
-                    <div key={field} className="space-y-2.5">
-                      <AssistantMessage>{questionBank[field].prompt}</AssistantMessage>
-                      <UserMessage>{getAnswerLabel(field, answer)}</UserMessage>
-                    </div>
-                  );
-                })}
-                {currentQuestion ? (
-                  <div className="space-y-2.5 pt-1" aria-live="polite">
-                    <AssistantMessage>
-                      <span className="text-[15px] font-semibold">{currentQuestion.prompt}</span>
-                      {currentQuestion.explanation ? <span className="mt-2 block text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">{currentQuestion.explanation}</span> : null}
-                    </AssistantMessage>
-                    <div className="ml-0 flex max-w-[620px] flex-wrap gap-2 sm:ml-10">
-                      {currentQuestion.options.map((option) => (
-                        <button key={option.value} type="button" onClick={() => choose(option.value)} disabled={isAdvancing} className="min-h-11 rounded-full border border-[color:var(--vm-color-brand-blue)]/18 bg-white px-4 py-2.5 text-sm font-semibold shadow-sm transition hover:border-[color:var(--vm-color-brand-blue)] hover:bg-[color:var(--vm-color-brand-blue)]/[.04] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)] disabled:opacity-[var(--vm-opacity-disabled)]">{option.label}</button>
-                      ))}
-                    </div>
+          {session.status === "CONSENT" ? (
+            <AssistantMessage>
+              Para orientarte necesito usar lo que nos cuentes y, si llegaste desde una campaña, la información básica asociada a ese contacto. Tu avance quedará guardado en este dispositivo. ¿Nos autorizas a continuar?
+            </AssistantMessage>
+          ) : (
+            <>
+              <UserMessage>Sí, quiero continuar</UserMessage>
+              <AssistantMessage>Gracias. Solo te preguntaré lo necesario para entender tu búsqueda y darte una orientación responsable.</AssistantMessage>
+              {answeredFields.map((field) => {
+                const answer = session.answers[field];
+                if (!answer) return null;
+                return (
+                  <div key={field} className="space-y-3">
+                    <AssistantMessage>{questionBank[field].prompt}</AssistantMessage>
+                    <UserMessage>{getAnswerLabel(field, answer)}</UserMessage>
                   </div>
-                ) : null}
-              </>
-            )}
-          </div>
+                );
+              })}
+              {currentQuestion ? (
+                <AssistantMessage>
+                  <span className="text-[15px] font-semibold">{currentQuestion.prompt}</span>
+                  {currentQuestion.explanation ? <span className="mt-2 block text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">{currentQuestion.explanation}</span> : null}
+                </AssistantMessage>
+              ) : null}
+            </>
+          )}
+          <div ref={conversationEndRef} />
         </section>
-        <p className="mt-3 text-center text-[11px] leading-5 text-[color:var(--vm-color-ink-muted)]">Avance guardado en este dispositivo · Estimaciones orientativas · Sin aprobación automática</p>
       </main>
+
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[color:var(--vm-color-line)] bg-white">
+        <div className="mx-auto max-w-[760px] px-4 py-4 sm:px-6">
+          <div className="mb-3 text-[11px] font-semibold tracking-[.01em] text-[color:var(--vm-color-ink-muted)]">
+            {session.status === "CONSENT" ? "Elige cómo continuar" : "Selecciona una respuesta"}
+          </div>
+          {session.status === "CONSENT" ? (
+            <div className="flex flex-wrap gap-2">
+              <QuickReply onClick={acceptConsent}>Sí, quiero continuar</QuickReply>
+              <QuickReply onClick={declineConsent} secondary>No autorizo el uso de esta información</QuickReply>
+            </div>
+          ) : currentQuestion ? (
+            <div className="flex max-h-32 flex-wrap gap-2 overflow-y-auto pb-1">
+              {currentQuestion.options.map((option) => (
+                <QuickReply key={option.value} onClick={() => choose(option.value)} disabled={isAdvancing}>
+                  {option.label}
+                </QuickReply>
+              ))}
+            </div>
+          ) : null}
+          <p className="mt-3 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">Orientación preliminar. No constituye aprobación de crédito, subsidio o disponibilidad.</p>
+        </div>
+      </div>
     </div>
   );
 }
 
+function QuickReply({
+  children,
+  onClick,
+  disabled = false,
+  secondary = false,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  secondary?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`min-h-11 rounded-full border px-4 py-2.5 text-left text-sm font-semibold transition focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)] disabled:opacity-[var(--vm-opacity-disabled)] ${secondary ? "border-[color:var(--vm-color-line)] text-[color:var(--vm-color-ink-muted)]" : "border-[color:var(--vm-color-brand-blue)]/25 bg-[color:var(--vm-color-brand-blue)]/[.04] text-[color:var(--vm-color-brand-blue)] hover:border-[color:var(--vm-color-brand-blue)]"}`}
+    >
+      {children}
+    </button>
+  );
+}
+
 function AssistantMessage({ children }: { children: React.ReactNode }) {
-  return <div className="flex items-end gap-2"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)] text-white"><Icon name="sparkles" className="h-3.5 w-3.5" /></span><div className="max-w-[610px] rounded-[19px_19px_19px_6px] bg-white px-4 py-3 text-sm leading-6 shadow-sm">{children}</div></div>;
+  return (
+    <div className="flex items-end gap-2.5">
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)] text-white"><Icon name="sparkles" className="h-3.5 w-3.5" /></span>
+      <div className="max-w-[610px] rounded-[18px_18px_18px_5px] border border-[color:var(--vm-color-line)] bg-white px-4 py-3 text-sm leading-6 shadow-sm">{children}</div>
+    </div>
+  );
 }
 
 function UserMessage({ children }: { children: React.ReactNode }) {
-  return <div className="ml-auto max-w-[520px] rounded-[19px_19px_6px_19px] bg-[color:var(--vm-color-brand-blue)] px-4 py-3 text-sm font-semibold leading-6 text-white">{children}</div>;
+  return <div className="ml-auto max-w-[520px] rounded-[18px_18px_5px_18px] bg-[color:var(--vm-color-brand-blue)] px-4 py-3 text-sm font-semibold leading-6 text-white">{children}</div>;
 }
 
 function PublicState({ title, description, action }: { title: string; description: string; action?: { label: string; href: string } }) {

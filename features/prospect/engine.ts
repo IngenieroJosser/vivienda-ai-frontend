@@ -1,10 +1,14 @@
 import type { ProfileAnswers, Scenario } from "../conversation/domain";
 import { evaluateProfile } from "../conversation/engine";
+import { resolveKnownProspect } from "./campaigns";
 import type { CampaignExperience, ProspectSession } from "./domain";
 
 const PUBLIC_QUESTION_IDS = [
   "affiliation",
+  "mainConcern",
+  "location",
   "horizon",
+  "householdSize",
   "incomeRange",
   "obligations",
   "savings",
@@ -12,20 +16,26 @@ const PUBLIC_QUESTION_IDS = [
 
 export function createProspectSession(input: {
   id: string;
-  firstName: string;
   acquisition: ProspectSession["acquisition"];
   campaign: CampaignExperience;
   timestamp: string;
 }): ProspectSession {
+  const knownProspect = resolveKnownProspect(input.acquisition.leadReference);
+  const knownProfile = {
+    ...input.campaign.knownSignals,
+    ...knownProspect?.profile,
+  };
+
   return {
-    version: 1,
+    version: 2,
     id: input.id,
-    firstName: input.firstName,
+    ...(knownProspect?.firstName ? { firstName: knownProspect.firstName } : {}),
     acquisition: input.acquisition,
     campaignId: input.campaign.id,
     leadReference: input.acquisition.leadReference ?? `vm_local_${input.id}`,
+    knownProfile,
     status: "CONSENT",
-    questionIds: [...PUBLIC_QUESTION_IDS],
+    questionIds: selectPublicQuestions(knownProfile),
     currentQuestionIndex: 0,
     answers: {},
     createdAt: input.timestamp,
@@ -42,20 +52,18 @@ export function acceptProspectConsent(
 
 export function declineProspectConsent(
   session: ProspectSession,
-  campaign: CampaignExperience,
   timestamp: string,
 ): ProspectSession {
   return {
     ...session,
     status: "DECLINED",
-    evaluation: evaluateProfile(buildPublicScenario(session, campaign), "DECLINED", {}),
+    evaluation: evaluateProfile(buildPublicScenario(session), "DECLINED", {}),
     updatedAt: timestamp,
   };
 }
 
 export function answerProspectQuestion(
   session: ProspectSession,
-  campaign: CampaignExperience,
   value: string,
   timestamp: string,
 ): ProspectSession {
@@ -72,7 +80,7 @@ export function answerProspectQuestion(
     currentQuestionIndex: completed ? session.currentQuestionIndex : session.currentQuestionIndex + 1,
     status: completed ? "COMPLETED" : "ACTIVE",
     ...(completed
-      ? { evaluation: evaluateProfile(buildPublicScenario(session, campaign), "USE_KNOWN_DATA", answers) }
+      ? { evaluation: evaluateProfile(buildPublicScenario(session), "USE_KNOWN_DATA", answers) }
       : {}),
     updatedAt: timestamp,
   };
@@ -80,17 +88,16 @@ export function answerProspectQuestion(
 
 export function buildPublicScenario(
   session: ProspectSession,
-  campaign: CampaignExperience,
 ): Scenario {
   return {
     id: `public-${session.id}`,
     leadId: `lead-${session.leadReference}`,
-    displayName: session.firstName,
+    displayName: session.firstName ?? "Prospecto",
     leadSource: "META",
     capturedAt: session.createdAt,
     routeLabel: "Orientación pública",
     description: "Prospecto proveniente de una campaña digital.",
-    knownProfile: campaign.knownSignals,
+    knownProfile: session.knownProfile,
     knownBenefits: [],
     engagementSignals: [
       `Llegó desde ${session.acquisition.source}`,
@@ -101,6 +108,10 @@ export function buildPublicScenario(
   };
 }
 
+export function selectPublicQuestions(knownProfile: ProfileAnswers): ProspectSession["questionIds"] {
+  return PUBLIC_QUESTION_IDS.filter((field) => !knownProfile[field]);
+}
+
 export function getCapacityRange(estimatedPayment: number): {
   minimum: number;
   maximum: number;
@@ -109,8 +120,6 @@ export function getCapacityRange(estimatedPayment: number): {
   const round = (value: number) => Math.round(value / 50_000) * 50_000;
   return {
     minimum: round(estimatedPayment * 0.85),
-    maximum: round(estimatedPayment * 1.15),
+    maximum: round(estimatedPayment),
   };
 }
-
-export const MAX_PUBLIC_DECISIONS = 6;

@@ -8,7 +8,6 @@ import { Icon } from "./icon";
 const links = [
   ["Cómo funciona", "/#como-funciona"],
   ["Proyectos", "/vivienda/proyectos"],
-  ["Recorridos", "/escenarios"],
 ] as const;
 
 export function PublicHeader() {

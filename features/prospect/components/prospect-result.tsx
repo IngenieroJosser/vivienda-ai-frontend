@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
-import type { EvaluationResult } from "@/features/conversation/domain";
-import { getProfileValue, formatCop } from "@/features/conversation/profile-copy";
+import type { EvaluationResult, ProfileField } from "@/features/conversation/domain";
+import { formatCop, getProfileValue } from "@/features/conversation/profile-copy";
 import { projects } from "@/lib/data";
 import { createFunnelEvent, trackFunnelEvent } from "../analytics";
 import { campaignExperiences } from "../campaigns";
@@ -48,8 +48,9 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
   const readyForAdvisor = evaluation.route === "ADVISOR_NOW" || evaluation.route === "NON_AFFILIATE_PRIORITY";
   const actionHref = readyForAdvisor
     ? `/vivienda/agendar?from=orientacion&sessionId=${encodeURIComponent(session.id)}`
-    : "#ruta-preparacion";
-  const actionLabel = readyForAdvisor ? "Agendar mi orientación" : "Ver mi ruta de preparación";
+    : "#plan-preparacion";
+  const actionLabel = readyForAdvisor ? "Solicitar contacto de un asesor" : "Ver mi plan de preparación";
+  const profileSummary = buildProfileSummary(evaluation);
 
   function trackAction() {
     trackFunnelEvent(createFunnelEvent({
@@ -63,71 +64,69 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
   return (
     <div className="min-h-screen bg-[color:var(--vm-color-canvas)] text-[color:var(--vm-color-ink)]">
       <header className="border-b border-[color:var(--vm-color-line)] bg-white">
-        <div className="mx-auto flex min-h-[68px] max-w-[1080px] items-center justify-between px-5 sm:px-8">
+        <div className="mx-auto flex min-h-[64px] max-w-[980px] items-center justify-between px-5 sm:px-8">
           <div className="text-sm font-bold text-[color:var(--vm-color-brand-blue)]">Colsubsidio × Vivienda Match AI</div>
-          <span className="inline-flex items-center gap-2 text-xs font-semibold text-[color:var(--vm-color-success)]"><Icon name="check" className="h-4 w-4" /> Orientación completada</span>
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-[color:var(--vm-color-success)]"><Icon name="check" className="h-4 w-4" /> Orientación lista</span>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1080px] px-5 py-9 sm:px-8 lg:py-14">
-        <section className="glass-elevated p-6 sm:p-9 lg:p-12">
+      <main className="mx-auto max-w-[980px] px-5 py-8 sm:px-8 lg:py-12">
+        <section className="surface-solid overflow-hidden p-6 sm:p-9 lg:p-11">
           <div className="max-w-3xl">
-            <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-success)]">Tu orientación, {session.firstName}</div>
-            <h1 className="mt-4 text-4xl font-semibold leading-[1.03] tracking-[-.05em] sm:text-5xl">{readyForAdvisor ? "Hay condiciones para dar el siguiente paso." : "Tu mejor paso ahora es prepararte con claridad."}</h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-[color:var(--vm-color-ink-muted)]">{readyForAdvisor ? "Encontramos señales favorables para conversar con un asesor y validar financiación, beneficios y disponibilidad." : "Todavía no conviene apresurar una conversación de cierre. Te mostramos qué fortalecer y cuándo revisar nuevamente."}</p>
-            <Link href={actionHref} onClick={trackAction} className="mt-7 inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-6 text-sm font-bold text-white sm:w-auto">{actionLabel}<Icon name="arrow" className="h-4 w-4" /></Link>
+            <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-success)]">
+              {session.firstName ? `Tu orientación, ${session.firstName}` : "Tu orientación personalizada"}
+            </div>
+            <h1 className="mt-4 text-4xl font-semibold leading-[1.04] tracking-[-.04em] sm:text-5xl">
+              {readyForAdvisor ? "Tu perfil parece listo para avanzar." : preparationTitle(evaluation.route)}
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-[color:var(--vm-color-ink-muted)]">
+              {capacityRange
+                ? `Estimamos que podrías destinar entre ${formatCop(capacityRange.minimum)} y ${formatCop(capacityRange.maximum)} al mes para vivienda.`
+                : "Todavía necesitamos fortalecer o completar información antes de estimar una cuota responsable."}
+            </p>
+            <Link href={actionHref} onClick={trackAction} className="mt-7 inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-6 text-sm font-bold text-white transition hover:bg-[color:var(--vm-color-brand-blue-deep)] focus-visible:outline-none focus-visible:shadow-[var(--vm-shadow-focus)] sm:w-auto">
+              {actionLabel}<Icon name="arrow" className="h-4 w-4" />
+            </Link>
+            <p className="mt-4 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">El rango es orientativo y no constituye aprobación de crédito, subsidio o disponibilidad.</p>
           </div>
         </section>
 
-        <section className="surface-solid mt-6 p-6 sm:p-8">
-          <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Qué entendimos</div>
+        <section className="surface-solid mt-5 p-6 sm:p-8">
+          <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Lo que entendimos</div>
           <h2 className="mt-2 text-2xl font-semibold">Este es tu punto de partida.</h2>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Understanding label="Momento de compra" value={getProfileValue(evaluation.profileSnapshot, "horizon")} />
-            <Understanding label="Afiliación" value={getProfileValue(evaluation.profileSnapshot, "affiliation")} />
-            <Understanding label="Estado de ahorro" value={getProfileValue(evaluation.profileSnapshot, "savings")} />
-            <Understanding label="Interés de campaña" value={campaign.eyebrow} />
+            {profileSummary.map(({ label, value }) => <Understanding key={label} label={label} value={value} />)}
           </div>
         </section>
 
-        <section className="mt-6 grid gap-5 lg:grid-cols-[1fr_.9fr]">
-          <article className="surface-solid p-6 sm:p-8">
-            <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]"><Icon name="money" /></span><div><div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Rango mensual orientativo</div><h2 className="mt-1 text-2xl font-semibold">{capacityRange ? `${formatCop(capacityRange.minimum)} – ${formatCop(capacityRange.maximum)}` : "Necesitamos más información"}</h2></div></div>
-            <p className="mt-5 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Este rango reserva como máximo el 40 % del ingreso para obligaciones actuales y vivienda. Sirve para orientarte; no es una aprobación ni una cuota definitiva.</p>
-          </article>
-
-          <article className="surface-solid p-6 sm:p-8">
-            <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Siguiente paso recomendado</div>
-            <h2 className="mt-3 text-2xl font-semibold leading-tight">{publicNextAction(evaluation.route)}</h2>
-            <p className="mt-4 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">La recomendación parte de tu momento, margen financiero y ahorro declarado.</p>
-          </article>
-        </section>
-
-        <section className="surface-solid mt-6 p-6 sm:p-8">
+        <section className="surface-solid mt-5 p-6 sm:p-8">
           <h2 className="text-2xl font-semibold">Beneficios con total claridad</h2>
+          <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Separamos lo que ya está confirmado de aquello que todavía requiere una revisión.</p>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <BenefitPanel title="Confirmados" items={evaluation.benefitSignals.confirmed} empty="No hay beneficios confirmados todavía." tone="success" />
-            <BenefitPanel title="Por validar" items={evaluation.benefitSignals.potential} empty="Con la información actual no identificamos beneficios para validar." tone="warning" />
+            <BenefitPanel title="Podrías validar" items={evaluation.benefitSignals.potential} empty="Con la información actual no identificamos beneficios adicionales." tone="warning" />
           </div>
         </section>
 
         {matchedProjects.length ? (
-          <section className="mt-9">
-            <div className="max-w-2xl"><div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Opciones compatibles</div><h2 className="mt-3 text-3xl font-semibold tracking-[-.04em]">Un proyecto para explorar, no una promesa.</h2><p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">La disponibilidad, financiación y beneficios siempre deben confirmarse.</p></div>
-            <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">{matchedProjects.map((project) => <ProspectProject key={project.id} project={project} campaign={campaign} />)}</div>
+          <section className="mt-8">
+            <div className="max-w-2xl">
+              <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Proyecto para explorar</div>
+              <h2 className="mt-3 text-3xl font-semibold tracking-[-.035em]">Una opción que coincide con tu búsqueda.</h2>
+              <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Solo la mostramos cuando la información disponible coincide con el proyecto. Precio, disponibilidad y financiación deben confirmarse.</p>
+            </div>
+            <div className="mt-6 grid gap-5 md:grid-cols-2">{matchedProjects.map((project) => <ProspectProject key={project.id} project={project} campaign={campaign} />)}</div>
           </section>
         ) : null}
 
         {!readyForAdvisor ? (
-          <section id="ruta-preparacion" className="surface-solid mt-8 scroll-mt-6 p-6 sm:p-8">
-            <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-warning)]">Ruta de preparación</div>
-            <h2 className="mt-2 text-3xl font-semibold tracking-[-.04em]">Avanza por pasos alcanzables.</h2>
+          <section id="plan-preparacion" className="surface-solid mt-8 scroll-mt-6 p-6 sm:p-8">
+            <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-warning)]">Tu plan de preparación</div>
+            <h2 className="mt-2 text-3xl font-semibold tracking-[-.035em]">Avanza con una meta concreta.</h2>
             <div className="mt-6 grid gap-4 md:grid-cols-3">
-              {[
-                ["1", evaluation.blockers[0] ?? "Completar la información pendiente"],
-                ["2", evaluation.nextAction],
-                ["3", evaluation.advanceCondition],
-              ].map(([number, text]) => <div key={number} className="rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-line)] p-5"><span className="grid h-8 w-8 place-items-center rounded-full bg-[color:var(--vm-color-brand-yellow)]/25 text-sm font-bold text-[color:var(--vm-color-warning)]">{number}</span><p className="mt-4 text-sm font-semibold leading-6">{text}</p></div>)}
+              <PreparationStep label="Meta" value={preparationGoal(evaluation)} />
+              <PreparationStep label="Momento para revisar" value={formatFollowUp(evaluation.followUpAt)} />
+              <PreparationStep label="Acción" value={publicNextAction(evaluation.route)} />
             </div>
           </section>
         ) : null}
@@ -136,8 +135,22 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
   );
 }
 
+function buildProfileSummary(evaluation: EvaluationResult): Array<{ label: string; value: string }> {
+  const fields: Array<[string, ProfileField]> = [
+    ["Lo más importante", "mainConcern"],
+    ["Zona", "location"],
+    ["Momento de compra", "horizon"],
+    ["Personas en el hogar", "householdSize"],
+    ["Afiliación", "affiliation"],
+  ];
+  return fields
+    .filter(([, field]) => Boolean(evaluation.profileSnapshot[field]))
+    .slice(0, 4)
+    .map(([label, field]) => ({ label, value: getProfileValue(evaluation.profileSnapshot, field) }));
+}
+
 function Understanding({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.035] p-4"><div className="text-[10px] font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">{label}</div><div className="mt-2 text-sm font-semibold leading-5">{value}</div></div>;
+  return <div className="rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.04] p-4"><div className="text-[10px] font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">{label}</div><div className="mt-2 text-sm font-semibold leading-5">{value}</div></div>;
 }
 
 function BenefitPanel({ title, items, empty, tone }: { title: string; items: string[]; empty: string; tone: "success" | "warning" }) {
@@ -146,17 +159,53 @@ function BenefitPanel({ title, items, empty, tone }: { title: string; items: str
 }
 
 function ProspectProject({ project, campaign }: { project: (typeof projects)[number]; campaign: CampaignExperience }) {
-  return <article className="surface-solid overflow-hidden p-6"><div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">{project.city} · {project.zone}</div><h3 className="mt-2 text-2xl font-semibold">{project.name}</h3><div className="mt-4 grid grid-cols-2 gap-3 text-sm"><div><span className="block text-xs text-[color:var(--vm-color-ink-muted)]">Precio publicado</span><strong>{project.priceLabel}</strong></div><div><span className="block text-xs text-[color:var(--vm-color-ink-muted)]">Área</span><strong>{project.area}</strong></div></div><p className="mt-5 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{campaign.projectId === project.id ? "Llegaste desde una campaña de este proyecto y su ubicación coincide con el interés registrado." : "Coincide preliminarmente con la información de tu orientación."}</p><Link href={`/vivienda/proyectos/${project.id}`} className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[color:var(--vm-color-brand-blue)]">Conocer el proyecto <Icon name="arrow" className="h-4 w-4" /></Link></article>;
+  const reason = campaign.projectId === project.id
+    ? "Te interesó este proyecto y su ubicación coincide con la búsqueda registrada."
+    : "Su ubicación y precio publicado coinciden preliminarmente con tu orientación.";
+  return (
+    <article className="surface-solid overflow-hidden p-6">
+      <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">{project.city} · {project.zone}</div>
+      <h3 className="mt-2 text-2xl font-semibold">{project.name}</h3>
+      <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+        <div><span className="block text-xs text-[color:var(--vm-color-ink-muted)]">Precio publicado</span><strong>{project.priceLabel}</strong></div>
+        <div><span className="block text-xs text-[color:var(--vm-color-ink-muted)]">Área</span><strong>{project.area}</strong></div>
+      </div>
+      <div className="mt-5 text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-success)]">Por qué te lo mostramos</div>
+      <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{reason}</p>
+      <Link href={`/vivienda/proyectos/${project.id}`} className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[color:var(--vm-color-brand-blue)]">Conocer el proyecto <Icon name="arrow" className="h-4 w-4" /></Link>
+    </article>
+  );
+}
+
+function PreparationStep({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-line)] p-5"><div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">{label}</div><p className="mt-3 text-sm font-semibold leading-6">{value}</p></div>;
+}
+
+function preparationTitle(route: EvaluationResult["route"]): string {
+  if (route === "NURTURE_FINANCIAL") return "Tu mejor paso ahora es fortalecer la cuota inicial.";
+  if (route === "NURTURE_BENEFITS") return "Primero conviene revisar los beneficios disponibles.";
+  if (route === "NURTURE_LONG_TERM") return "Puedes prepararte a tu ritmo desde hoy.";
+  return "Completemos tu punto de partida antes de avanzar.";
+}
+
+function preparationGoal(evaluation: EvaluationResult): string {
+  if (evaluation.route === "NURTURE_FINANCIAL") return "Construir una base de ahorro para la cuota inicial.";
+  return evaluation.advanceCondition;
+}
+
+function formatFollowUp(value: string | null): string {
+  if (!value) return "Cuando decidas retomar tu orientación.";
+  return new Intl.DateTimeFormat("es-CO", { day: "numeric", month: "long", year: "numeric", timeZone: "America/Bogota" }).format(new Date(value));
 }
 
 function publicNextAction(route: EvaluationResult["route"]): string {
   const labels: Record<string, string> = {
-    ADVISOR_NOW: "Agenda una conversación para validar financiación y disponibilidad.",
-    NON_AFFILIATE_PRIORITY: "Habla con un asesor para conocer la ruta disponible para ti.",
-    NURTURE_FINANCIAL: "Construye una meta de ahorro antes de avanzar a cierre.",
-    NURTURE_BENEFITS: "Revisa primero los beneficios que podrían aplicar.",
-    NURTURE_LONG_TERM: "Continúa preparándote y revisa tu avance más adelante.",
-    NEEDS_DATA: "Completa la información necesaria para orientar tu capacidad.",
+    ADVISOR_NOW: "Solicitar contacto para validar financiación y disponibilidad.",
+    NON_AFFILIATE_PRIORITY: "Solicitar orientación sobre la ruta disponible para ti.",
+    NURTURE_FINANCIAL: "Definir un aporte mensual y comenzar tu ahorro.",
+    NURTURE_BENEFITS: "Revisar qué beneficios podrían aplicar a tu caso.",
+    NURTURE_LONG_TERM: "Guardar esta orientación y revisar tu avance más adelante.",
+    NEEDS_DATA: "Completar la información necesaria para estimar tu capacidad.",
   };
   return labels[route] ?? "Revisa tu orientación y elige cuándo continuar.";
 }

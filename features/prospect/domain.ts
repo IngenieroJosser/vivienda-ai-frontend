@@ -21,12 +21,13 @@ export type CampaignExperience = {
 export type ProspectStatus = "CONSENT" | "ACTIVE" | "COMPLETED" | "DECLINED";
 
 export type ProspectSession = {
-  version: 1;
+  version: 2;
   id: string;
-  firstName: string;
+  firstName?: string;
   acquisition: AcquisitionContext;
   campaignId: CampaignExperience["id"];
   leadReference: string;
+  knownProfile: ProfileAnswers;
   status: ProspectStatus;
   questionIds: ProfileField[];
   currentQuestionIndex: number;

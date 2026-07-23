@@ -20,7 +20,7 @@ export const projects = [
       "Coincide con la ubicación preferida",
       "Adecuado para un hogar de tres personas",
     ],
-    reason: "Coincide preliminarmente con la capacidad, ubicación y composición del hogar del escenario Jonathan.",
+    reason: "Proyecto de vivienda en Soacha con distintas áreas y opciones para conocer.",
   },
 ] as const;
 
