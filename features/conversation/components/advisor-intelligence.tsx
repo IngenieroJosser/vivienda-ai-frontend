@@ -16,6 +16,7 @@ import { findSessionByLeadId } from "../storage";
 import { buildPublicScenario } from "@/features/prospect/engine";
 import type { ProspectSession } from "@/features/prospect/domain";
 import { findProspectSessionByLeadId } from "@/features/prospect/storage";
+import { CommercialActions } from "@/features/advisor/components/commercial-actions";
 
 const routeLabels: Record<EvaluationResult["route"], string> = {
   ADVISOR_NOW: "Oportunidad comercial",
@@ -103,6 +104,30 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
           </section>
         ) : null}
 
+        {prospectSession?.turns.length ? (
+          <section className="surface-solid p-6 sm:p-8">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold">Conversación completa</h2>
+                <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Evidencia original de lo declarado por el prospecto y de la orientación entregada.</p>
+              </div>
+              <Pill tone="gray">{prospectSession.turns.length} intercambios</Pill>
+            </div>
+            <ol className="mt-5 space-y-5">
+              {prospectSession.turns.map((turn) => (
+                <li key={turn.id} className="space-y-3">
+                  <div className="ml-auto max-w-[88%] rounded-[20px_20px_6px_20px] bg-[color:var(--vm-color-brand-blue)] p-4 text-sm leading-6 text-white">
+                    {turn.userText}
+                  </div>
+                  <div className="max-w-[88%] rounded-[20px_20px_20px_6px] border border-[color:var(--vm-color-line)] bg-[color:var(--vm-color-canvas)] p-4 text-sm leading-6">
+                    {turn.assistantText}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ) : null}
+
         <section className="surface-solid p-6 sm:p-8">
           <h2 className="text-lg font-semibold">Lo que sabemos del prospecto</h2>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -181,6 +206,7 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
       </div>
 
       <aside className="space-y-5 xl:sticky xl:top-24 xl:self-start">
+        <CommercialActions leadId={leadId} />
         <section className="rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/20 bg-[linear-gradient(145deg,#eef8ff,#fffdf0)] p-6 shadow-[var(--vm-shadow-medium)]">
           <div className="flex items-center justify-between">
             <div className="text-xs font-bold uppercase tracking-[.14em] text-[color:var(--vm-color-brand-blue)]">Próxima mejor acción</div>

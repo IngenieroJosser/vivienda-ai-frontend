@@ -15,8 +15,8 @@ const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[]
     label: "Portal comercial",
     userRole: "Asesora senior",
     nav: [
-      { label: "Resumen", href: "/asesor/resumen", icon: "chart" },
-      { label: "Leads", href: "/asesor/leads", icon: "users" },
+      { label: "Resumen", href: "/asesor", icon: "chart" },
+      { label: "Oportunidades", href: "/asesor/leads", icon: "users" },
       { label: "Agenda", href: "/asesor/agenda", icon: "calendar" },
       { label: "Nutrición", href: "/asesor/nutricion", icon: "heart" },
       { label: "Comparador", href: "/asesor/comparador", icon: "compare" },
@@ -46,7 +46,9 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
       </div>
       <nav className="mt-5 space-y-1 px-2">
         {config.nav.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const active = item.href === "/asesor"
+            ? pathname === "/asesor" || pathname === "/asesor/resumen"
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}

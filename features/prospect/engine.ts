@@ -1,6 +1,6 @@
 import type { ProfileAnswers, ProfileField, Scenario } from "../conversation/domain";
 import { evaluateProfile } from "../conversation/engine";
-import { resolveKnownProspect } from "./campaigns";
+import { campaignExperiences, resolveKnownProspect } from "./campaigns";
 import {
   buildContextualResponse,
   selectNextBestAction,
@@ -124,6 +124,7 @@ export function answerProspectMessage(
 }
 
 export function buildPublicScenario(session: ProspectSession): Scenario {
+  const campaignProjectId = campaignExperiences[session.campaignId].projectId;
   return {
     id: `public-${session.id}`,
     leadId: `lead-${session.leadReference}`,
@@ -140,6 +141,7 @@ export function buildPublicScenario(session: ProspectSession): Scenario {
       `Campaña ${session.acquisition.campaign}`,
       `Contenido ${session.acquisition.content}`,
     ],
+    ...(campaignProjectId ? { campaignProjectId } : {}),
     requiredFields: PUBLIC_PROFILE_FIELDS,
   };
 }
