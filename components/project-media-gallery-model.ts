@@ -28,7 +28,7 @@ export function createProjectResources(
       id: tour.id,
       kind: "TOUR" as const,
       label: tour.label,
-      description: "Recorrido virtual disponible en una ventana externa.",
+      description: "Explora los espacios del proyecto en una experiencia 360°.",
       url: tour.url,
     }));
 
@@ -37,7 +37,7 @@ export function createProjectResources(
       id: `${project.id}-brochure`,
       kind: "BROCHURE",
       label: "Folleto del proyecto",
-      description: "Material comercial aprobado con información del proyecto.",
+      description: "Consulta características, planos y detalles del proyecto.",
       url: project.brochureUrl,
     });
   }

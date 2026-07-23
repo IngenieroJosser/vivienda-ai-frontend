@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getHousingProject } from "../../lib/housing-catalog";
+import { isAllowedProjectEmbed } from "../../lib/housing-catalog/embed";
 import {
   createProjectGalleryImages,
   createProjectResources,
@@ -100,5 +101,33 @@ describe("project media gallery model", () => {
     const resources = createProjectResources(project);
 
     expect(resources.some(({ id }) => id.includes("unavailable"))).toBe(false);
+  });
+
+  it("allows every exposed project resource inside the protected viewer", () => {
+    const projectIds = [
+      "abeto",
+      "araucaria",
+      "los-nogales",
+      "pamplona",
+      "la-macarena",
+      "mongui",
+      "versalles",
+      "zarzal",
+      "bosque-de-arrayan",
+      "bosque-de-turpial",
+      "inari",
+      "reserva-de-guayacan",
+      "saman",
+      "payande",
+      "vibo-once",
+      "karakali",
+      "la-arboleda",
+      "verde-esperanza",
+    ];
+
+    for (const projectId of projectIds) {
+      const resources = createProjectResources(getHousingProject(projectId)!);
+      expect(resources.every(({ url }) => isAllowedProjectEmbed(url))).toBe(true);
+    }
   });
 });

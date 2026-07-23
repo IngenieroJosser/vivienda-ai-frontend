@@ -15,6 +15,8 @@ import {
   createProjectGalleryImages,
   createProjectResources,
 } from "./project-media-gallery-model";
+import { ProjectResourceViewer } from "./project-resource-viewer";
+import type { ProjectResource } from "./project-media-gallery-model";
 import type { HousingProject } from "@/lib/housing-catalog";
 
 export function ProjectMediaGallery({
@@ -26,6 +28,8 @@ export function ProjectMediaGallery({
   const resources = useMemo(() => createProjectResources(project), [project]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const [activeResource, setActiveResource] =
+    useState<ProjectResource | null>(null);
   const fullscreenTriggerRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -264,11 +268,10 @@ export function ProjectMediaGallery({
           </div>
           <div className="project-gallery__resource-links">
             {resources.map((resource) => (
-              <a
+              <button
                 key={resource.id}
-                href={resource.url}
-                target="_blank"
-                rel="noreferrer"
+                type="button"
+                onClick={() => setActiveResource(resource)}
                 className="project-gallery__resource-link"
               >
                 <span>
@@ -282,7 +285,7 @@ export function ProjectMediaGallery({
                   <small>{resource.description}</small>
                 </span>
                 <Icon name="arrow" className="ml-auto h-4 w-4" />
-              </a>
+              </button>
             ))}
           </div>
         </div>
@@ -357,6 +360,14 @@ export function ProjectMediaGallery({
             document.body,
           )
         : null}
+
+      {activeResource ? (
+        <ProjectResourceViewer
+          projectName={project.name}
+          resource={activeResource}
+          onClose={() => setActiveResource(null)}
+        />
+      ) : null}
     </section>
   );
 }
