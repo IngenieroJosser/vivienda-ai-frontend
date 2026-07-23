@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { Pill, ProgressBar } from "@/components/ui";
-import { projects } from "@/lib/data";
+import { getHousingProjects } from "@/lib/housing-catalog";
 import type { EvaluationResult } from "../domain";
 import { formatCop, getProfileValue } from "../profile-copy";
 import { getQualifiedScenarioLead, isCommercialOpportunity, type QualifiedLead } from "../qualified-leads";
@@ -50,7 +50,7 @@ export function AdvisorIntelligence({ leadId }: { leadId: string }) {
 
   if (!scenario || !evaluation) return null;
 
-  const project = projects.find((item) => evaluation.projectIds.includes(item.id));
+  const project = getHousingProjects(evaluation.projectIds)[0];
   const initials = scenario.displayName.slice(0, 2).toUpperCase();
   const priorityLabel = evaluation.priority === "HIGH" ? "Alta" : evaluation.priority === "MEDIUM" ? "Media" : "Baja";
   const confidence = Math.round(evaluation.confidenceScore * 100);

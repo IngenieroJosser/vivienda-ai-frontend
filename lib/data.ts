@@ -1,29 +1,6 @@
 import type { QualifiedLead } from "@/features/conversation/qualified-leads";
 import { getQualifiedScenarioLeads, isCommercialOpportunity } from "@/features/conversation/qualified-leads";
-
-export const projects = [
-  {
-    id: "versalles",
-    name: "Versalles",
-    city: "Soacha",
-    zone: "Cundinamarca",
-    price: 180000000,
-    priceLabel: "$180 M",
-    area: "50–62 m²",
-    rooms: "2–3",
-    delivery: "Por confirmar",
-    compatibility: 91,
-    status: "Información por validar",
-    units: 0,
-    image: "/illustrations/project-1.svg",
-    features: [
-      "Compatible con el presupuesto estimado",
-      "Coincide con la ubicación preferida",
-      "Adecuado para un hogar de tres personas",
-    ],
-    reason: "Proyecto de vivienda en Soacha con distintas áreas y opciones para conocer.",
-  },
-] as const;
+import { getHousingProject } from "@/lib/housing-catalog";
 
 const routeLabels = {
   ADVISOR_NOW: "Oportunidad comercial",
@@ -50,7 +27,9 @@ const goalLabels: Record<string, string> = {
 };
 
 export function toAdvisorLeadRow({ scenario, evaluation }: QualifiedLead) {
-  const project = projects.find((item) => evaluation.projectIds.includes(item.id));
+  const project = evaluation.projectIds
+    .map(getHousingProject)
+    .find((item) => item !== undefined);
   const profile = evaluation.profileSnapshot;
 
   return {

@@ -1,3 +1,4 @@
+import { findHousingProjectsByCity } from "../../lib/housing-catalog";
 import type {
   ConsentMode,
   EvaluationResult,
@@ -81,7 +82,14 @@ export function evaluateProfile(
 
   const route = selectRoute(readinessScore, profile);
   const commercialRoute = route === "ADVISOR_NOW" || route === "NON_AFFILIATE_PRIORITY";
-  const projectIds = commercialRoute && profile.location === "SOACHA" ? ["versalles"] : [];
+  const targetCity = profile.location === "SOACHA"
+    ? "Soacha"
+    : profile.location === "BOGOTA"
+      ? "Bogotá"
+      : undefined;
+  const projectIds = commercialRoute && targetCity
+    ? selectCompatibleProjectIds(targetCity, scenario.campaignProjectId)
+    : [];
   const benefitSignals = {
     confirmed: profile.subsidyInterest === "HAS"
       ? ["Beneficio reportado por el prospecto; requiere verificación documental"]
@@ -137,6 +145,22 @@ export function evaluateProfile(
     followUpAt: followUp.at,
     advanceCondition: followUp.condition,
   };
+}
+
+function selectCompatibleProjectIds(
+  city: string,
+  campaignProjectId?: string,
+): string[] {
+  const cityProjectIds = findHousingProjectsByCity(city).map(({ id }) => id);
+
+  if (!campaignProjectId || !cityProjectIds.includes(campaignProjectId)) {
+    return cityProjectIds.slice(0, 3);
+  }
+
+  return [
+    campaignProjectId,
+    ...cityProjectIds.filter((projectId) => projectId !== campaignProjectId),
+  ].slice(0, 3);
 }
 
 function buildFollowUp(

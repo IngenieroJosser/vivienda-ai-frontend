@@ -2,31 +2,47 @@ import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "./icon";
 import { Pill } from "./ui";
-import type { projects } from "@/lib/data";
+import {
+  formatProjectAreaRange,
+  formatProjectPrice,
+  type HousingProject,
+} from "@/lib/housing-catalog";
 
-type Project = (typeof projects)[number];
-
-export function ProjectCard({ project, compact = false }: { project: Project; compact?: boolean }) {
+export function ProjectCard({ project, compact = false }: { project: HousingProject; compact?: boolean }) {
   return (
     <article className="project-card surface-card surface-card--interactive group overflow-hidden">
       <span aria-hidden="true" className="project-card__ambient" />
       <div className={`relative overflow-hidden ${compact ? "h-44" : "h-56"}`}>
-        <Image src={project.image} alt={project.name} fill sizes="(max-width: 1024px) 100vw, 33vw" loading="lazy" quality={68} unoptimized={project.image.endsWith(".svg")} className="object-cover transition duration-500 ease-out group-hover:scale-[1.04]" />
+        <Image src={project.image} alt={`Vista del proyecto ${project.name}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" loading="lazy" quality={76} unoptimized={project.image.endsWith(".svg")} className="object-cover transition duration-500 ease-out group-hover:scale-[1.04]" />
         <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--vm-color-brand-blue-deep)]/55 via-transparent to-white/5" />
-        <div className="absolute left-4 top-4"><Pill tone="yellow">{project.status}</Pill></div>
+        <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+          <Pill tone="yellow">{project.housingType ?? "Proyecto de vivienda"}</Pill>
+          {project.tours.some(({ availability }) => availability === "AVAILABLE") ? (
+            <span className="rounded-full bg-white/92 px-3 py-1.5 text-[11px] font-bold text-[color:var(--vm-color-brand-blue)] shadow-sm">
+              Recorrido virtual
+            </span>
+          ) : null}
+        </div>
       </div>
       <div className="p-5 sm:p-6">
         <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0"><div className="text-[10px] font-bold uppercase tracking-[.11em] text-[#0067b1]">{project.city} · {project.zone}</div><h3 className="mt-1.5 text-xl font-bold tracking-[-.038em]">{project.name}</h3></div>
-          <div className="shrink-0 text-right"><div className="text-[9px] uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">Desde</div><div className="mt-1 text-lg font-extrabold tracking-[-.03em]">{project.priceLabel}</div></div>
+          <div className="min-w-0">
+            <div className="text-[11px] font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">{project.location.city} · {project.location.department}</div>
+            <h3 className="mt-1.5 text-2xl font-bold tracking-[-.038em]">{project.name}</h3>
+            <p className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">{project.location.development}</p>
+          </div>
+          <div className="shrink-0 text-right">
+            <div className="text-[11px] font-semibold text-[color:var(--vm-color-ink-muted)]">Precio publicado</div>
+            <div className="mt-1 text-base font-extrabold tracking-[-.03em]">{formatProjectPrice(project)}</div>
+          </div>
         </div>
         <div className="mt-5 grid grid-cols-3 divide-x divide-[color:var(--vm-color-line)] rounded-[16px] border border-[color:var(--vm-color-line)] bg-[color:var(--vm-color-canvas)] py-3 text-center">
-          <div><div className="text-xs font-bold">{project.area}</div><div className="mt-1 text-[9px] text-[color:var(--vm-color-ink-muted)]">Área</div></div>
-          <div><div className="text-xs font-bold">{project.rooms}</div><div className="mt-1 text-[9px] text-[color:var(--vm-color-ink-muted)]">Habitaciones</div></div>
-          <div><div className="text-xs font-bold">{project.units || "Por validar"}</div><div className="mt-1 text-[9px] text-[color:var(--vm-color-ink-muted)]">Unidades</div></div>
+          <div><div className="text-xs font-bold">{formatProjectAreaRange(project)}</div><div className="mt-1 text-[10px] text-[color:var(--vm-color-ink-muted)]">Área construida</div></div>
+          <div><div className="text-xs font-bold">{project.bedrooms.value ?? "Por confirmar"}</div><div className="mt-1 text-[10px] text-[color:var(--vm-color-ink-muted)]">Habitaciones</div></div>
+          <div><div className="text-xs font-bold">{project.totalUnits.value ?? "Por confirmar"}</div><div className="mt-1 text-[10px] text-[color:var(--vm-color-ink-muted)]">Total proyecto</div></div>
         </div>
-        <p className="mt-5 min-h-12 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">{project.reason}</p>
-        <Link href={`/vivienda/proyectos/${project.id}`} prefetch className="liquid-button mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#0067b1] text-xs font-bold text-white shadow-[0_12px_30px_rgba(0,103,177,.18)] transition hover:-translate-y-1 hover:bg-[#005995]">Ver proyecto <Icon name="arrow" className="h-4 w-4" /></Link>
+        <p className="mt-5 min-h-14 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{project.summary}</p>
+        <Link href={`/vivienda/proyectos/${project.id}`} prefetch className="liquid-button mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white shadow-[0_12px_30px_rgba(0,103,177,.18)] transition hover:-translate-y-1 hover:bg-[color:var(--vm-color-brand-blue-deep)]">Conocer el proyecto <Icon name="arrow" className="h-4 w-4" /></Link>
       </div>
     </article>
   );

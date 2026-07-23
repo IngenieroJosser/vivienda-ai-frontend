@@ -26,6 +26,7 @@ export type Scenario = {
   knownProfile: ProfileAnswers;
   knownBenefits: string[];
   engagementSignals: string[];
+  campaignProjectId?: string;
   requiredFields: ProfileField[];
 };
 

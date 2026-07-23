@@ -58,7 +58,7 @@ describe("adaptive question selection", () => {
     expect(jonathan.route).toBe("ADVISOR_NOW");
     expect(laura.route).toBe("NON_AFFILIATE_PRIORITY");
     expect(camila.route).toBe("NURTURE_FINANCIAL");
-    expect(jonathan.projectIds).toEqual(["versalles"]);
+    expect(jonathan.projectIds).toEqual(["versalles", "pamplona", "la-macarena"]);
     expect(camila.projectIds).toEqual([]);
     expect(jonathan.capacity.maximumHousingRatio).toBeCloseTo(0.3);
     expect(jonathan.capacity.estimatedHousingPayment).toBe(1_200_000);
@@ -99,7 +99,7 @@ describe("adaptive question selection", () => {
     );
 
     expect(result.route).toBe("NON_AFFILIATE_PRIORITY");
-    expect(result.projectIds).toEqual(["versalles"]);
+    expect(result.projectIds).toEqual(["pamplona", "la-macarena", "mongui"]);
   });
 
   it("creates, advances and completes a recoverable session", () => {

@@ -3,18 +3,30 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
-import { projects } from "@/lib/data";
+import {
+  formatProjectAreaRange,
+  formatProjectPrice,
+  formatTypologyArea,
+  formatVerificationDate,
+  getHousingProject,
+  getProjectEvidence,
+  getValidityLabel,
+  housingProjects,
+} from "@/lib/housing-catalog";
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return projects.map((project) => ({ id: project.id }));
+  return housingProjects.map((project) => ({ id: project.id }));
 }
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const project = projects.find((item) => item.id === id);
+  const project = getHousingProject(id);
   if (!project) notFound();
+  const priceSources = getProjectEvidence(project, project.priceFromCop);
+  const officialSource = priceSources.find((source) => source.kind === "OFFICIAL_PROJECT_PAGE");
+  const availableTours = project.tours.filter(({ availability }) => availability === "AVAILABLE");
 
   return (
     <main className="mx-auto max-w-[1200px] px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
@@ -22,14 +34,71 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <section className="space-y-5">
           <div className="flow-panel overflow-hidden">
-            <div className="relative h-[360px] sm:h-[500px]"><Image src={project.image} alt={project.name} fill sizes="(max-width: 1280px) 100vw, 70vw" preload unoptimized={project.image.endsWith(".svg")} className="object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-[color:var(--vm-color-brand-blue-deep)]/72 via-transparent to-transparent" /><div className="absolute bottom-0 p-7 text-white"><div className="text-xs font-semibold text-[color:var(--vm-color-brand-yellow)]">{project.city} · {project.zone}</div><h1 className="mt-2 text-4xl font-bold">{project.name}</h1></div></div>
+            <div className="relative h-[360px] sm:h-[500px]"><Image src={project.image} alt={project.name} fill sizes="(max-width: 1280px) 100vw, 70vw" preload className="object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-[color:var(--vm-color-brand-blue-deep)]/72 via-transparent to-transparent" /><div className="absolute bottom-0 p-7 text-white"><div className="text-xs font-semibold text-[color:var(--vm-color-brand-yellow)]">{project.location.city} · {project.location.department}</div><h1 className="mt-2 text-4xl font-bold">{project.name}</h1><p className="mt-2 text-xs text-white/80">{project.location.development}</p></div></div>
           </div>
-          <section className="surface-solid p-6 sm:p-8"><div className="flex items-center gap-3"><Pill tone="yellow">{project.status}</Pill><span className="text-xs text-[color:var(--vm-color-ink-muted)]">Información preliminar</span></div><p className="mt-5 text-sm leading-7 text-[color:var(--vm-color-ink-muted)]">{project.reason}</p><div className="mt-6 grid gap-3 sm:grid-cols-2">{project.features.map((feature) => <div key={feature} className="flex items-center gap-3 rounded-[15px] border border-[color:var(--vm-color-line)] p-3.5 text-xs font-semibold"><Icon name="check" className="h-4 w-4 text-[color:var(--vm-color-success)]" />{feature}</div>)}</div></section>
+          <section className="surface-solid p-6 sm:p-8">
+            <div className="flex flex-wrap items-center gap-3">
+              <Pill tone="yellow">Material comercial aprobado</Pill>
+              {project.housingType ? <Pill tone="blue">{project.housingType}</Pill> : null}
+              <span className="text-xs text-[color:var(--vm-color-ink-muted)]">No confirma inventario</span>
+            </div>
+            <p className="mt-5 text-base leading-7 text-[color:var(--vm-color-ink-muted)]">{project.summary}</p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">{project.features.map((feature) => <div key={feature} className="flex items-center gap-3 rounded-[15px] border border-[color:var(--vm-color-line)] p-3.5 text-sm font-semibold"><Icon name="check" className="h-4 w-4 shrink-0 text-[color:var(--vm-color-success)]" />{feature}</div>)}</div>
+          </section>
+          <section className="surface-solid p-6 sm:p-8">
+            <h2 className="text-lg font-semibold">Tipologías construidas</h2>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {project.typologies.map((typology) => <div key={typology.id} className="rounded-[15px] border border-[color:var(--vm-color-line)] p-4"><div className="text-xs text-[color:var(--vm-color-ink-muted)]">{typology.label}</div><div className="mt-2 text-lg font-bold">{formatTypologyArea(typology.builtAreaM2)}</div></div>)}
+            </div>
+          </section>
+          <section className="surface-solid p-6 sm:p-8">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[.09em] text-[color:var(--vm-color-brand-blue)]">Material oficial</p>
+                <h2 className="mt-2 text-xl font-bold">Conoce el proyecto con más detalle</h2>
+                <p className="mt-2 max-w-xl text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+                  Consulta el brochure aprobado. Los precios, beneficios y fechas que aparezcan allí deben validarse antes de tomar una decisión.
+                </p>
+              </div>
+              {project.brochureUrl ? (
+                <a href={project.brochureUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)] bg-white px-5 text-sm font-bold text-[color:var(--vm-color-brand-blue)] transition hover:bg-[color:var(--vm-color-brand-blue)]/[.05]">
+                  <Icon name="document" className="h-4 w-4" />
+                  Ver brochure
+                </a>
+              ) : null}
+            </div>
+            {availableTours.length > 0 ? (
+              <div className="mt-6 rounded-[18px] bg-[color:var(--vm-color-brand-blue)]/[.05] p-4 text-sm text-[color:var(--vm-color-ink-muted)]">
+                <b className="text-[color:var(--vm-color-ink)]">{availableTours.length === 1 ? "Recorrido virtual disponible" : `${availableTours.length} recorridos virtuales disponibles`}.</b>{" "}
+                Los mostraremos dentro de la orientación cuando este proyecto sea compatible contigo.
+              </div>
+            ) : null}
+          </section>
         </section>
         <aside className="space-y-5">
-          <section className="surface-card p-6"><div className="text-[10px] uppercase tracking-[.12em] text-[color:var(--vm-color-ink-muted)]">Información del proyecto</div><div className="mt-5 space-y-3 text-xs">{[["Precio publicado", project.priceLabel], ["Área", project.area], ["Habitaciones", project.rooms], ["Entrega", project.delivery]].map(([label, value]) => <div key={label} className="flex justify-between"><span className="text-[color:var(--vm-color-ink-muted)]">{label}</span><b>{value}</b></div>)}</div></section>
-          <Link href="/orientacion?utm_source=portal&utm_campaign=versalles_proyecto&utm_content=ficha" className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#0067b1] text-sm font-bold text-white"><Icon name="arrow" className="h-4 w-4" />Iniciar orientación</Link>
-          <section className="surface-solid p-5 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">La información es orientativa. Precio, unidades, financiación y beneficios deben validarse antes de tomar una decisión.</section>
+          <section className="surface-card p-6">
+            <div className="text-[10px] uppercase tracking-[.12em] text-[color:var(--vm-color-ink-muted)]">Información del proyecto</div>
+            <div className="mt-5 space-y-3 text-xs">
+              {[
+                ["Precio desde", formatProjectPrice(project)],
+                ["Áreas", formatProjectAreaRange(project)],
+                ["Habitaciones", project.bedrooms.value ?? "Por confirmar"],
+                ["Apartamentos", project.totalUnits.value?.toLocaleString("es-CO") ?? "Por confirmar"],
+                ["Torres", project.towers.value?.toLocaleString("es-CO") ?? "Por confirmar"],
+                ["Pisos por torre", project.floorsPerTower.value ?? "Por confirmar"],
+                ["Acabado", project.finish.value ?? "Por confirmar"],
+                ["Certificación", project.certification.value ?? "No indicada"],
+                ["Inventario", getValidityLabel(project.inventory.validity)],
+                ["Entrega", getValidityLabel(project.deliveryDate.validity)],
+              ].map(([label, value]) => <div key={label} className="flex justify-between gap-4"><span className="text-[color:var(--vm-color-ink-muted)]">{label}</span><b className="text-right">{value}</b></div>)}
+            </div>
+            <div className="mt-5 border-t border-[color:var(--vm-color-line)] pt-4 text-[10px] leading-5 text-[color:var(--vm-color-ink-muted)]">
+              <div>{getValidityLabel(project.priceFromCop.validity)} · verificado {formatVerificationDate(project.priceFromCop.verifiedAt)}</div>
+              {officialSource?.url ? <a href={officialSource.url} target="_blank" rel="noreferrer" className="font-semibold text-[color:var(--vm-color-brand-blue)] underline-offset-4 hover:underline">{officialSource.title}</a> : null}
+            </div>
+          </section>
+          <Link href={`/orientacion?utm_source=portal&utm_campaign=${project.id}_proyecto&utm_content=ficha`} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white"><Icon name="arrow" className="h-4 w-4" />Iniciar orientación</Link>
+          <section className="surface-solid p-5 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">El brochure describe el proyecto, pero no confirma inventario, fecha de entrega, financiación ni beneficios. Esos datos deben validarse antes de tomar una decisión.</section>
         </aside>
       </div>
     </main>

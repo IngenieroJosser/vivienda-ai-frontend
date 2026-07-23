@@ -16,6 +16,7 @@ export const scenarios = {
     },
     knownBenefits: ["Subsidio familiar de vivienda por validar", "Acompañamiento Pertenecer"],
     engagementSignals: ["Respondió una pauta de vivienda", "Solicitó información del proyecto Versalles"],
+    campaignProjectId: "versalles",
     requiredFields: ["dreamGoal", "horizon", "location", "obligations", "savings"],
   },
   laura: {
