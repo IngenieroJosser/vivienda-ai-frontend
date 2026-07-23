@@ -593,6 +593,7 @@ button:disabled { cursor: not-allowed; }
   box-shadow: 0 0 0 4px rgba(0,103,177,.085), 0 8px 24px rgba(0,103,177,.055);
 }
 .form-field::placeholder { color: rgba(17,24,32,.32); }
+.search-field { padding-left: 3rem; }
 .search-field:hover,
 .search-field:focus { transform: none; }
 .form-label {

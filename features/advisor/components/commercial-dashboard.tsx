@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
 import { AdvisorIntelligence } from "@/features/conversation/components/advisor-intelligence";
@@ -22,6 +22,7 @@ export function CommercialDashboard({ fullInbox = false }: { fullInbox?: boolean
   const [priority, setPriority] = useState("ALL");
   const [status, setStatus] = useState("ALL");
   const [selectedLeadId, setSelectedLeadId] = useState("");
+  const detailRef = useRef<HTMLDivElement>(null);
   const now = useMemo(() => new Date(), []);
   const opportunities = useMemo(
     () => projectCommercialOpportunities(qualifiedLeads, states, now),
@@ -47,6 +48,13 @@ export function CommercialDashboard({ fullInbox = false }: { fullInbox?: boolean
   const selected =
     filtered.find(({ lead }) => lead.scenario.leadId === selectedLeadId) ??
     filtered[0];
+
+  function selectOpportunity(leadId: string) {
+    setSelectedLeadId(leadId);
+    window.requestAnimationFrame(() => {
+      detailRef.current?.scrollIntoView({ block: "start" });
+    });
+  }
 
   if (storageStatus === "LOADING") return <CommercialDashboardLoading fullInbox={fullInbox} />;
   if (storageStatus === "ERROR") return <CommercialDashboardError onRetry={retry} />;
@@ -119,17 +127,16 @@ export function CommercialDashboard({ fullInbox = false }: { fullInbox?: boolean
                     selected?.lead.scenario.leadId ===
                     opportunity.lead.scenario.leadId
                   }
-                  onSelect={() =>
-                    setSelectedLeadId(opportunity.lead.scenario.leadId)
-                  }
+                  onSelect={() => selectOpportunity(opportunity.lead.scenario.leadId)}
                 />
               ))}
             </div>
           </aside>
 
           <div
+            ref={detailRef}
             key={selected.lead.scenario.leadId}
-            className="advisor-detail-enter min-w-0"
+            className="advisor-detail-enter min-w-0 scroll-mt-20"
           >
             <AdvisorIntelligence
               leadId={selected.lead.scenario.leadId}
@@ -161,7 +168,7 @@ function OperationalSummary({
       >
         <CompactMetric label="Vencidos" value={metrics.overdueFollowUps} warning />
         <CompactMetric label="Sin asignar" value={metrics.unassigned} />
-        <CompactMetric label="Primer contacto" value={metrics.pendingFirstContact} />
+        <CompactMetric label="Primer contacto pendiente" value={metrics.pendingFirstContact} />
         <CompactMetric label="Contactadas hoy" value={metrics.contactedToday} />
       </section>
 

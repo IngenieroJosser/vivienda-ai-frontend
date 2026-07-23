@@ -125,7 +125,7 @@ export function projectCommercialOpportunities(
         lead,
         state,
         campaignProject: campaignProject ?? "Campaña general",
-        recommendedProject: recommendedProject ?? "Por confirmar",
+        recommendedProject: recommendedProject ?? "Proyecto por confirmar",
         location: getLocationLabel(evaluation.profileSnapshot.location),
         horizon: getHorizonLabel(evaluation.profileSnapshot.horizon),
         capacity: evaluation.capacity.estimatedHousingPayment,
@@ -260,7 +260,7 @@ export function appendCommercialActivity(
 function getLocationLabel(value?: string): string {
   if (value === "SOACHA") return "Soacha";
   if (value === "BOGOTA") return "Bogotá";
-  return "Por confirmar";
+  return "Ubicación por confirmar";
 }
 
 function getHorizonLabel(value?: string): string {
@@ -270,7 +270,7 @@ function getHorizonLabel(value?: string): string {
       "3_6": "3–6 meses",
       "6_12": "6–12 meses",
       "12_PLUS": "Más de 12 meses",
-    }[value ?? ""] ?? "Por confirmar"
+    }[value ?? ""] ?? "Horizonte por confirmar"
   );
 }
 

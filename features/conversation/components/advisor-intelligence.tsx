@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { Pill, ProgressBar } from "@/components/ui";
@@ -52,6 +52,7 @@ export function AdvisorIntelligence({
   const [qualifiedLead, setQualifiedLead] = useState<QualifiedLead | undefined>(() => getQualifiedScenarioLead(leadId));
   const [prospectSession, setProspectSession] = useState<ProspectSession>();
   const [activeTab, setActiveTab] = useState<DetailTab>("SUMMARY");
+  const detailTopRef = useRef<HTMLDivElement>(null);
   const scenario = qualifiedLead?.scenario;
   const evaluation = qualifiedLead?.evaluation;
 
@@ -80,9 +81,23 @@ export function AdvisorIntelligence({
   const initials = scenario.displayName.slice(0, 2).toUpperCase();
   const priorityLabel = evaluation.priority === "HIGH" ? "Alta" : evaluation.priority === "MEDIUM" ? "Media" : "Baja";
   const confidence = Math.round(evaluation.confidenceScore * 100);
+  const calculatedAt = formatCalculationDate(scenario.capturedAt);
+
+  function openTab(tab: DetailTab) {
+    setActiveTab(tab);
+    window.requestAnimationFrame(() => {
+      detailTopRef.current?.scrollIntoView({ block: "start" });
+    });
+  }
 
   return (
-    <div className="space-y-4">
+    <div ref={detailTopRef} className="scroll-mt-20 space-y-4">
+      <CommercialNextStep
+        leadId={leadId}
+        evaluation={evaluation}
+        compact
+        onManage={() => openTab("ACTIVITY")}
+      />
       <div className="space-y-5">
         <section className={`surface-solid ${embedded ? "p-5" : "p-6 sm:p-8"}`}>
           <div className="flex flex-wrap items-center gap-3">
@@ -102,8 +117,19 @@ export function AdvisorIntelligence({
           {activeTab === "SUMMARY" ? (
             <>
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <Metric label="Preparación comercial" value={`${evaluation.readinessScore}/100`} accent />
-                <Metric label="Nivel de evidencia" value={`${confidence}%`} />
+                <Metric
+                  label="Preparación comercial"
+                  value={`${evaluation.readinessScore}/100`}
+                  accent
+                  help="Considera capacidad financiera, horizonte de compra, compatibilidad con proyectos y señales comerciales."
+                  calculatedAt={calculatedAt}
+                />
+                <Metric
+                  label="Nivel de evidencia"
+                  value={`${confidence}%`}
+                  help="Refleja cuánta información del perfil está confirmada y cuánta permanece pendiente de validación."
+                  calculatedAt={calculatedAt}
+                />
                 <Metric label="Cuota máxima orientativa" value={evaluation.capacity.estimatedHousingPayment ? formatCop(evaluation.capacity.estimatedHousingPayment) : "Por completar"} />
               </div>
               <div className="mt-5"><ProgressBar value={evaluation.readinessScore} label="Preparación comercial" /></div>
@@ -115,7 +141,7 @@ export function AdvisorIntelligence({
               <button
                 key={tab.value}
                 type="button"
-                onClick={() => setActiveTab(tab.value)}
+                onClick={() => openTab(tab.value)}
                 aria-pressed={activeTab === tab.value}
                 className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full px-3.5 text-xs font-bold transition ${
                   activeTab === tab.value
@@ -185,9 +211,9 @@ export function AdvisorIntelligence({
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <ProfileItem label="Sueño" value={getProfileValue(evaluation.profileSnapshot, "dreamGoal")} />
             <ProfileItem label="Horizonte" value={getProfileValue(evaluation.profileSnapshot, "horizon")} />
-            <ProfileItem label="Ubicación" value={getProfileValue(evaluation.profileSnapshot, "location")} />
+            <ProfileItem label="Ubicación" value={contextualProfileValue(evaluation, "location", "Ubicación por confirmar")} />
             <ProfileItem label="Hogar" value={getProfileValue(evaluation.profileSnapshot, "householdSize")} />
-            <ProfileItem label="Afiliación" value={getProfileValue(evaluation.profileSnapshot, "affiliation")} />
+            <ProfileItem label="Afiliación" value={contextualProfileValue(evaluation, "affiliation", "Afiliación por confirmar")} />
             <ProfileItem label="Ahorro" value={getProfileValue(evaluation.profileSnapshot, "savings")} />
           </div>
           <div className="mt-5 text-xs text-[color:var(--vm-color-ink-muted)]">Datos conocidos utilizados: {evaluation.knownDataUsed.length ? evaluation.knownDataUsed.length : "ninguno"}. El resto fue declarado durante la conversación.</div>
@@ -279,8 +305,45 @@ export function AdvisorIntelligence({
   );
 }
 
-function Metric({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
-  return <div className={`rounded-[var(--vm-radius-card)] p-5 ${accent ? "bg-[color:var(--vm-color-brand-blue)] text-white" : "bg-[color:var(--vm-color-brand-blue)]/[.04]"}`}><div className={`text-[10px] uppercase tracking-[.12em] ${accent ? "text-white/75" : "text-[color:var(--vm-color-ink-muted)]"}`}>{label}</div><div className="mt-2 text-2xl font-semibold">{value}</div></div>;
+function Metric({
+  label,
+  value,
+  accent = false,
+  help,
+  calculatedAt,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+  help?: string;
+  calculatedAt?: string;
+}) {
+  return (
+    <div className={`relative rounded-[var(--vm-radius-card)] p-5 ${accent ? "bg-[color:var(--vm-color-brand-blue)] text-white" : "bg-[color:var(--vm-color-brand-blue)]/[.04]"}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div className={`text-[10px] uppercase tracking-[.12em] ${accent ? "text-white/75" : "text-[color:var(--vm-color-ink-muted)]"}`}>{label}</div>
+        {help ? (
+          <details className="group relative">
+            <summary
+              aria-label={`Explicar ${label}`}
+              className={`grid h-7 w-7 cursor-pointer list-none place-items-center rounded-full border [&::-webkit-details-marker]:hidden ${accent ? "border-white/25 text-white" : "border-[color:var(--vm-color-line)] bg-white text-[color:var(--vm-color-brand-blue)]"}`}
+            >
+              <Icon name="info" className="h-3.5 w-3.5" />
+            </summary>
+            <div className="absolute right-0 top-9 z-30 w-64 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white p-3 text-left text-[11px] font-normal leading-5 text-[color:var(--vm-color-ink)] shadow-[var(--vm-shadow-medium)]">
+              <p>{help}</p>
+              {calculatedAt ? (
+                <p className="mt-2 border-t border-[color:var(--vm-color-line)] pt-2 text-[10px] text-[color:var(--vm-color-ink-muted)]">
+                  Calculado: {calculatedAt}
+                </p>
+              ) : null}
+            </div>
+          </details>
+        ) : null}
+      </div>
+      <div className="mt-2 text-2xl font-semibold">{value}</div>
+    </div>
+  );
 }
 
 function ProfileItem({ label, value }: { label: string; value: string }) {
@@ -289,4 +352,21 @@ function ProfileItem({ label, value }: { label: string; value: string }) {
 
 function EvidenceFact({ label, value }: { label: string; value: string }) {
   return <div className="rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.035] p-3"><div className="text-[9px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">{label}</div><div className="mt-1 font-semibold">{value}</div></div>;
+}
+
+function contextualProfileValue(
+  evaluation: EvaluationResult,
+  field: "location" | "affiliation",
+  fallback: string,
+): string {
+  return evaluation.profileSnapshot[field]
+    ? getProfileValue(evaluation.profileSnapshot, field)
+    : fallback;
+}
+
+function formatCalculationDate(value: string): string {
+  return new Intl.DateTimeFormat("es-CO", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
 }

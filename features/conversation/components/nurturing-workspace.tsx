@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/icon";
 import { Pill, ProgressBar } from "@/components/ui";
 import {
@@ -27,6 +27,7 @@ export function NurturingWorkspace() {
     Record<string, EvaluationResult>
   >({});
   const [currentTime, setCurrentTime] = useState(0);
+  const detailRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const timer = window.setTimeout(() => setCurrentTime(Date.now()), 0);
     return () => window.clearTimeout(timer);
@@ -57,6 +58,15 @@ export function NurturingWorkspace() {
         plans.reduce((sum, plan) => sum + plan.progress, 0) / plans.length,
       )
     : 0;
+
+  function selectPlan(leadId: string) {
+    setSelectedLeadId(leadId);
+    if (window.matchMedia("(max-width: 1279px)").matches) {
+      window.requestAnimationFrame(() => {
+        detailRef.current?.scrollIntoView({ block: "start" });
+      });
+    }
+  }
 
   if (status === "LOADING") return <NurturingLoading />;
   if (status === "ERROR") return <NurturingError onRetry={retry} />;
@@ -91,7 +101,7 @@ export function NurturingWorkspace() {
         />
       </section>
 
-      <section className="surface-solid overflow-hidden">
+      <section className="surface-solid">
         <div className="border-b border-[color:var(--vm-color-line)] p-5 sm:p-6">
           <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-end">
             <div>
@@ -132,8 +142,8 @@ export function NurturingWorkspace() {
         </div>
 
         {filtered.length ? (
-          <div>
-            <div className="grid divide-y divide-[color:var(--vm-color-line)] lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+          <div className="grid xl:grid-cols-[minmax(280px,32fr)_minmax(0,68fr)]">
+            <div className="h-fit divide-y divide-[color:var(--vm-color-line)] border-b border-[color:var(--vm-color-line)] xl:sticky xl:top-[72px] xl:max-h-[calc(100vh-88px)] xl:overflow-y-auto xl:border-b-0 xl:border-r">
               {filtered.map((plan) => (
                 <NurturingLeadRow
                   key={plan.lead.scenario.leadId}
@@ -142,14 +152,16 @@ export function NurturingWorkspace() {
                     selectedPlan?.lead.scenario.leadId ===
                     plan.lead.scenario.leadId
                   }
-                  onSelect={() =>
-                    setSelectedLeadId(plan.lead.scenario.leadId)
-                  }
+                  onSelect={() => selectPlan(plan.lead.scenario.leadId)}
                 />
               ))}
             </div>
             {selectedPlan ? (
-              <div className="border-t border-[color:var(--vm-color-line)]">
+              <div
+                ref={detailRef}
+                key={selectedPlan.lead.scenario.leadId}
+                className="advisor-detail-enter min-w-0 scroll-mt-20"
+              >
                 <NurturingPlanDetail
                   plan={selectedPlan}
                   simulation={

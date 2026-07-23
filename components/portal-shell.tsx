@@ -2,12 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { ProductBrand } from "./brand";
 import { Icon } from "./icon";
+import { buildAgendaItems } from "@/features/advisor/agenda";
+import { useCommercialStates } from "@/features/advisor/use-commercial-states";
+import { useQualifiedLeads } from "@/features/conversation/components/use-qualified-leads";
+import { isCommercialOpportunity } from "@/features/conversation/qualified-leads";
 
 type Role = "asesor";
-type NavItem = { label: string; href: string; icon: Parameters<typeof Icon>[0]["name"] };
+type NavItem = {
+  label: string;
+  href: string;
+  icon: Parameters<typeof Icon>[0]["name"];
+  count?: "opportunities" | "agenda";
+};
 
 const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[] }> = {
   asesor: {
@@ -15,8 +24,8 @@ const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[]
     userRole: "Asesora senior",
     nav: [
       { label: "Resumen", href: "/asesor", icon: "chart" },
-      { label: "Oportunidades", href: "/asesor/leads", icon: "users" },
-      { label: "Agenda", href: "/asesor/agenda", icon: "calendar" },
+      { label: "Oportunidades", href: "/asesor/leads", icon: "users", count: "opportunities" },
+      { label: "Agenda", href: "/asesor/agenda", icon: "calendar", count: "agenda" },
       { label: "Nutrición", href: "/asesor/nutricion", icon: "heart" },
     ],
   },
@@ -28,6 +37,22 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const config = roleConfig[role];
+  const qualifiedLeads = useQualifiedLeads();
+  const { states } = useCommercialStates();
+  const now = useMemo(() => new Date(), []);
+  const counts = useMemo(() => {
+    const opportunities = qualifiedLeads.filter(
+      ({ evaluation, scenario }) =>
+        isCommercialOpportunity(evaluation) &&
+        !["WON", "DEFERRED", "NOT_VIABLE"].includes(
+          states[scenario.leadId]?.status ?? "NEW",
+        ),
+    ).length;
+    return {
+      opportunities,
+      agenda: buildAgendaItems(qualifiedLeads, states, now).length,
+    };
+  }, [now, qualifiedLeads, states]);
 
 
   const nav = (
@@ -52,6 +77,7 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
           const active = item.href === "/asesor"
             ? pathname === "/asesor" || pathname === "/asesor/resumen"
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const count = item.count ? counts[item.count] : 0;
           return (
             <Link
               key={item.href}
@@ -62,7 +88,11 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
             >
               <span className={`grid h-8 w-8 place-items-center rounded-[10px] transition ${active ? "bg-white/12" : "bg-black/[.035] group-hover:bg-white"}`}><Icon name={item.icon} className="h-[17px] w-[17px]" /></span>
               <span className="font-semibold">{item.label}</span>
-              {active ? <span className="ml-auto h-2 w-2 rounded-full bg-[#ffd000]" /> : null}
+              {count ? (
+                <span className={`ml-auto grid min-w-6 place-items-center rounded-full px-1.5 py-0.5 text-[10px] font-extrabold ${active ? "bg-white text-[#0067b1]" : "bg-[#0067b1]/10 text-[#0067b1]"}`}>
+                  {count}
+                </span>
+              ) : null}
             </Link>
           );
         })}

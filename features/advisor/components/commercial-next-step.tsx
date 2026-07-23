@@ -9,9 +9,13 @@ import { useCommercialStates } from "../use-commercial-states";
 export function CommercialNextStep({
   leadId,
   evaluation,
+  compact = false,
+  onManage,
 }: {
   leadId: string;
   evaluation: EvaluationResult;
+  compact?: boolean;
+  onManage?: () => void;
 }) {
   const { states } = useCommercialStates();
   const state = states[leadId];
@@ -22,8 +26,10 @@ export function CommercialNextStep({
       ? "Tomar la oportunidad"
       : !state.firstContactAt
         ? "Registrar el primer contacto"
-        : !state.followUpAt
-          ? "Definir el resultado y programar seguimiento"
+        : state.status === "CONTACTING"
+          ? "Registrar el resultado"
+          : !state.followUpAt
+            ? "Programar el siguiente paso"
           : "Cumplir el seguimiento programado";
   const description = !commercial
     ? evaluation.blockers[0] ?? "Continuar la ruta de acompañamiento."
@@ -31,9 +37,46 @@ export function CommercialNextStep({
       ? "La gestión permanece bloqueada hasta que un asesor acepte la oportunidad."
       : !state.firstContactAt
         ? "Después del contacto podrás registrar el resultado y la siguiente actividad."
-        : state.followUpAt
-          ? `Seguimiento programado para ${formatDate(state.followUpAt)}.`
-          : "Registra el resultado del contacto antes de definir el siguiente paso.";
+        : state.status === "CONTACTING"
+          ? "Define cómo resultó el contacto para habilitar el siguiente paso."
+          : state.followUpAt
+            ? `Seguimiento programado para ${formatDate(state.followUpAt)}.`
+            : "El resultado ya está registrado; define cuándo debe continuar la gestión.";
+
+  if (compact) {
+    return (
+      <section className="sticky top-[72px] z-20 flex flex-col gap-3 rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-brand-blue)]/20 bg-white/95 p-3.5 shadow-[0_10px_30px_rgba(17,24,32,.09)] sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]">
+            <Icon name="target" className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <div className="text-[9px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
+              Siguiente acción
+            </div>
+            <p className="truncate text-sm font-semibold">{title}</p>
+          </div>
+        </div>
+        {commercial && !state?.followUpAt ? (
+          <button
+            type="button"
+            onClick={onManage}
+            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-4 text-xs font-bold text-white"
+          >
+            Gestionar ahora <Icon name="arrow" className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <Link
+            href={commercial ? "/asesor/agenda" : "/asesor/nutricion"}
+            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-4 text-xs font-bold text-white"
+          >
+            {commercial ? "Ver actividad" : "Abrir acompañamiento"}
+            <Icon name="arrow" className="h-3.5 w-3.5" />
+          </Link>
+        )}
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/20 bg-[linear-gradient(145deg,#eef8ff,#fffdf0)] p-6 shadow-[var(--vm-shadow-medium)]">
