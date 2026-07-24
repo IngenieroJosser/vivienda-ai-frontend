@@ -1,6 +1,10 @@
+import { syncProspectSession } from "../../lib/api/leads";
 import type { ProspectSession } from "./domain";
 
 const SESSIONS_KEY = "vivienda-match-ai:prospect-sessions:v5";
+const SYNC_TIMEOUT_MS = 6_000;
+const pendingSyncs = new Map<string, ProspectSession>();
+const activeSyncs = new Set<string>();
 
 export type ProspectSessionLoadResult =
   | { status: "FOUND"; session: ProspectSession }
@@ -21,9 +25,51 @@ export function getStoredProspectSessions(): ProspectSession[] {
   return readSessions();
 }
 
-export function saveProspectSession(session: ProspectSession): void {
+function writeSessionLocally(session: ProspectSession): void {
   const sessions = readSessions().filter((stored) => stored.id !== session.id);
   window.localStorage.setItem(SESSIONS_KEY, JSON.stringify([session, ...sessions].slice(0, 12)));
+}
+
+export function saveProspectSession(session: ProspectSession): void {
+  if (typeof window === "undefined") return;
+
+  writeSessionLocally(session);
+  pendingSyncs.set(session.id, session);
+  void flushSessionSync(session.id);
+}
+
+async function flushSessionSync(sessionId: string): Promise<void> {
+  if (activeSyncs.has(sessionId)) return;
+  const session = pendingSyncs.get(sessionId);
+  if (!session) return;
+
+  pendingSyncs.delete(sessionId);
+  activeSyncs.add(sessionId);
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), SYNC_TIMEOUT_MS);
+
+  try {
+    const response = await syncProspectSession(session, controller.signal);
+    const current = loadProspectSession(sessionId);
+    if (current) {
+      writeSessionLocally({
+        ...current,
+        leadId: response.lead_id,
+        ...(current.updatedAt === session.updatedAt
+          ? { backendEvaluation: response.evaluation }
+          : {}),
+      });
+    }
+  } catch (error) {
+    pendingSyncs.delete(sessionId);
+    console.warn(`[A2] lead sync failed for ${sessionId}`, error);
+  } finally {
+    window.clearTimeout(timeoutId);
+    activeSyncs.delete(sessionId);
+    if (pendingSyncs.has(sessionId)) {
+      void flushSessionSync(sessionId);
+    }
+  }
 }
 
 export function loadProspectSession(id: string): ProspectSession | undefined {
@@ -49,7 +95,9 @@ export function loadProspectSessionResult(
 }
 
 export function findProspectSessionByLeadId(leadId: string): ProspectSession | undefined {
-  return readSessions().find((session) => session.evaluation?.leadId === leadId);
+  return readSessions().find(
+    (session) => session.leadId === leadId || session.evaluation?.leadId === leadId,
+  );
 }
 
 export function findRecoverableProspectSession(input: {
