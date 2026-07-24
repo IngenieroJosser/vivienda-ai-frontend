@@ -46,7 +46,7 @@ export function createPageMetadata({
   return {
     title,
     description,
-    alternates: { canonical },
+    ...(origin ? { alternates: { canonical } } : {}),
     robots: {
       index,
       follow: index,

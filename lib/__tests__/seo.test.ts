@@ -47,6 +47,13 @@ describe("SEO contracts", () => {
 
     expect(getSiteOrigin()).toBeNull();
     expect(absoluteUrl("/vivienda/proyectos")).toBe("/vivienda/proyectos");
+    expect(
+      createPageMetadata({
+        title: "Proyectos de vivienda",
+        description: "Catálogo de proyectos de vivienda.",
+        path: "/vivienda/proyectos",
+      }).alternates,
+    ).toBeUndefined();
     expect(sitemap()).toEqual([]);
 
     process.env.NEXT_PUBLIC_SITE_URL = configuredUrl;

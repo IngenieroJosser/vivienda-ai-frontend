@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import {
   useCallback,
@@ -13,11 +14,25 @@ import {
   createProjectGalleryImages,
   createProjectResources,
 } from "./project-media-gallery-model";
-import { ProjectResourceViewer } from "./project-resource-viewer";
-import { ProjectImageViewer } from "./project-image-viewer";
 import { useProjectResourceConnectionHints } from "./use-project-resource-connection-hints";
 import type { ProjectResource } from "./project-media-gallery-model";
 import type { HousingProject } from "@/lib/housing-catalog";
+
+const ProjectImageViewer = dynamic(
+  () =>
+    import("./project-image-viewer").then(
+      ({ ProjectImageViewer: Viewer }) => Viewer,
+    ),
+  { ssr: false },
+);
+
+const ProjectResourceViewer = dynamic(
+  () =>
+    import("./project-resource-viewer").then(
+      ({ ProjectResourceViewer: Viewer }) => Viewer,
+    ),
+  { ssr: false },
+);
 
 export function ProjectMediaGallery({
   project,
@@ -31,7 +46,7 @@ export function ProjectMediaGallery({
     useState<number | null>(null);
   const [activeResource, setActiveResource] =
     useState<ProjectResource | null>(null);
-  const mobileTrackRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const image = images[activeIndex] ?? images[0];
   useProjectResourceConnectionHints(resources);
   const showPrevious = useCallback(() => {
@@ -42,7 +57,7 @@ export function ProjectMediaGallery({
   }, [images.length]);
 
   useEffect(() => {
-    const track = mobileTrackRef.current;
+    const track = trackRef.current;
     const slide = track?.children.item(activeIndex) as HTMLElement | null;
     if (!track || !slide) return;
     const reducedMotion = window.matchMedia(
@@ -72,53 +87,11 @@ export function ProjectMediaGallery({
         </div>
       </div>
 
-      <div className="project-gallery__desktop">
-        {images.map((galleryImage, index) => (
-          <button
-            key={galleryImage.id}
-            type="button"
-            onClick={() => setActiveIndex(index)}
-            className={`project-gallery__panel ${
-              index === activeIndex ? "project-gallery__panel--active" : ""
-            }`}
-            data-media-kind={galleryImage.kind}
-            aria-pressed={index === activeIndex}
-            aria-label={`Mostrar ${galleryImage.label}`}
-          >
-            <span className="project-gallery__media-frame">
-              <Image
-                src={galleryImage.image}
-                alt=""
-                fill
-                sizes={
-                  index === activeIndex
-                    ? "(max-width: 1200px) 75vw, 850px"
-                    : "120px"
-                }
-                quality={90}
-                className="project-gallery__image"
-              />
-            </span>
-            <span className="project-gallery__panel-shade" />
-            <span className="project-gallery__panel-label">
-              <small>
-                {galleryImage.sourcePage
-                  ? `Folleto · Pág. ${galleryImage.sourcePage}`
-                  : "Imagen oficial"}
-              </small>
-              <strong>{galleryImage.label}</strong>
-              {index === activeIndex ? (
-                <span>{galleryImage.description}</span>
-              ) : null}
-            </span>
-          </button>
-        ))}
-      </div>
-
       <div
-        ref={mobileTrackRef}
-        className="project-gallery__mobile-track"
+        ref={trackRef}
+        className="project-gallery__track"
         onScroll={(event) => {
+          if (!window.matchMedia("(max-width: 767px)").matches) return;
           const track = event.currentTarget;
           const center = track.scrollLeft + track.clientWidth / 2;
           const slides = Array.from(track.children) as HTMLElement[];
@@ -143,29 +116,42 @@ export function ProjectMediaGallery({
             key={galleryImage.id}
             type="button"
             onClick={() => setActiveIndex(index)}
-            className="project-gallery__mobile-slide"
+            className={`project-gallery__panel ${
+              index === activeIndex ? "project-gallery__panel--active" : ""
+            }`}
             data-media-kind={galleryImage.kind}
             aria-pressed={index === activeIndex}
-            aria-label={`Seleccionar ${galleryImage.label}`}
+            aria-label={`Mostrar ${galleryImage.label}`}
           >
             <span className="project-gallery__media-frame">
               <Image
                 src={galleryImage.image}
                 alt=""
                 fill
-                sizes="88vw"
+                sizes={
+                  index === 0
+                    ? "(max-width: 767px) 88vw, (max-width: 1200px) 75vw, 850px"
+                    : index === activeIndex
+                    ? "(max-width: 1200px) 75vw, 850px"
+                    : "120px"
+                }
+                loading={index === 0 ? "eager" : "lazy"}
+                fetchPriority={index === 0 ? "high" : "auto"}
                 quality={90}
                 className="project-gallery__image"
               />
             </span>
             <span className="project-gallery__panel-shade" />
-            <span className="project-gallery__mobile-label">
+            <span className="project-gallery__panel-label">
               <small>
                 {galleryImage.sourcePage
                   ? `Folleto · Pág. ${galleryImage.sourcePage}`
                   : "Imagen oficial"}
               </small>
               <strong>{galleryImage.label}</strong>
+              {index === activeIndex ? (
+                <span>{galleryImage.description}</span>
+              ) : null}
             </span>
           </button>
         ))}

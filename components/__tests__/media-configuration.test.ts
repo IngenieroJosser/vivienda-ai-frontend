@@ -53,13 +53,32 @@ describe("media configuration", () => {
     );
   });
 
-  it("does not preload the below-header project gallery", () => {
+  it("discovers one responsive LCP candidate without duplicating the gallery", () => {
     const gallery = readFileSync(
       resolve(root, "components/project-media-gallery.tsx"),
       "utf8",
     );
 
-    expect(gallery).not.toContain("priority={index === 0}");
+    expect(gallery.match(/images\.map/g)).toHaveLength(1);
+    expect(gallery).toContain('loading={index === 0 ? "eager" : "lazy"}');
+    expect(gallery).toContain(
+      'fetchPriority={index === 0 ? "high" : "auto"}',
+    );
+  });
+
+  it("loads immersive viewers only after the user requests them", () => {
+    const gallery = readFileSync(
+      resolve(root, "components/project-media-gallery.tsx"),
+      "utf8",
+    );
+
+    expect(gallery).toContain('import dynamic from "next/dynamic"');
+    expect(gallery).not.toContain(
+      'import { ProjectImageViewer } from "./project-image-viewer"',
+    );
+    expect(gallery).not.toContain(
+      'import { ProjectResourceViewer } from "./project-resource-viewer"',
+    );
   });
 
   it("does not duplicate fullscreen permissions on embedded resources", () => {
