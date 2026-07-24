@@ -1,12 +1,12 @@
 # Vivienda Match AI — Frontend
 
-Experiencia frontend para el reto de Vivienda Colsubsidio. El producto convierte
-información conocida y una conversación natural en una orientación explicable
-para el prospecto y una oportunidad accionable para el equipo comercial.
+Experiencia digital para el reto de Vivienda Colsubsidio. El producto combina
+información conocida y una conversación natural para orientar al prospecto y
+entregar oportunidades accionables al equipo comercial.
 
-Está construido con Next.js 16, React 19, TypeScript y Tailwind CSS. En esta etapa
-los datos y la continuidad de los recorridos se conservan localmente; no se
-simulan integraciones remotas.
+Está construido con Next.js 16, React 19, TypeScript y Tailwind CSS. El frontend
+consume los servicios FastAPI disponibles y conserva una experiencia local
+funcional cuando la API no responde.
 
 ## Ejecución local
 
@@ -14,13 +14,24 @@ Requisitos:
 
 - Node.js 20 o superior.
 - npm 10 o superior.
+- Backend de Vivienda Match AI para probar los recorridos conectados.
+
+Crea `.env.local`:
+
+```dotenv
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+```
+
+Luego ejecuta:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Validación completa:
+La aplicación queda disponible en `http://localhost:3000`.
+
+## Validación
 
 ```bash
 npm run lint
@@ -44,27 +55,42 @@ npm run build
 
 - `/login` — acceso local al recorrido comercial.
 - `/asesor` y `/asesor/resumen` — prioridades y estado de atención.
-- `/asesor/leads` — bandeja de oportunidades preparadas.
-- `/asesor/leads/[id]` — detalle, recomendación y actividad comercial.
+- `/asesor/leads` — bandeja de oportunidades.
+- `/asesor/leads/[id]` — detalle, recomendación y evidencia disponible.
 - `/asesor/agenda` — actividades y seguimientos.
 - `/asesor/nutricion` — acompañamiento de prospectos en preparación.
 - `/asesor/comparador` — comparación contextual de proyectos; no forma parte de
   la navegación principal.
+
+## Integración con servicios
+
+La URL base se configura mediante `NEXT_PUBLIC_API_URL`. Los recorridos
+conectados usan actualmente:
+
+- `POST /leads/sync` para conservar la sesión y obtener su evaluación.
+- `GET /leads` para alimentar la bandeja comercial.
+- `GET /leads/{id}` para consultar perfil, conversación, recomendaciones y
+  trazabilidad.
+
+La sesión se guarda primero en el dispositivo. La sincronización ocurre en
+segundo plano y no bloquea la conversación. Si el servicio no está disponible,
+la interfaz mantiene los datos locales y presenta estados recuperables.
 
 ## Arquitectura
 
 | Módulo                  | Responsabilidad                                          |
 | ----------------------- | -------------------------------------------------------- |
 | `features/prospect`     | Sesión, consentimiento, conversación y resultado público |
-| `features/conversation` | Evaluación determinística y recomendación explicable     |
+| `features/conversation` | Evaluación, adaptación y bandeja unificada               |
 | `features/advisor`      | Flujo comercial, actividad y agenda                      |
 | `features/nurturing`    | Planes y progreso de acompañamiento                      |
+| `lib/api`               | Cliente HTTP y contratos de servicios                    |
 | `lib/housing-catalog`   | Catálogo, fuentes y consultas de proyectos               |
 | `components`            | Identidad, navegación, feedback y presentación compartida |
 
-La interfaz no calcula capacidad, prioridad, beneficios o coincidencias de
-proyectos. Prospecto y asesor consumen el mismo resultado de evaluación y los
-mismos identificadores del catálogo.
+La capacidad, prioridad, beneficios y coincidencias se reciben como resultados
+explicables. Prospecto y asesor comparten los mismos identificadores de sesión,
+oportunidad y proyecto.
 
 Los estados vacíos y los errores recuperables consumen `FeedbackState`. Los
 skeletons permanecen junto a cada recorrido porque reproducen la estructura
@@ -82,9 +108,8 @@ cuenta con fallback sólido y respeta `prefers-reduced-motion`.
 Manrope se sirve mediante `next/font/local` desde un único archivo variable
 WOFF2. Su licencia SIL OFL está versionada junto a la fuente en `app/fonts`.
 
-En móvil, las galerías usan scroll nativo con ajuste por imagen. El índice
-observado durante el gesto no dispara un segundo desplazamiento programático.
-El visor ampliado acepta swipe horizontal y conserva botones accesibles como
+En móvil, las galerías usan desplazamiento nativo con ajuste por imagen. El
+visor ampliado acepta gestos horizontales y conserva botones accesibles como
 alternativa; ambos controles desaparecen cuando solo existe una imagen.
 
 La suite protege las reglas principales del sistema:

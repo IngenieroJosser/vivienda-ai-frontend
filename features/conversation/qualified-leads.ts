@@ -5,6 +5,7 @@ import { getScenarioAnswers, scenarios } from "./scenarios";
 export type QualifiedLead = {
   scenario: Scenario;
   evaluation: EvaluationResult;
+  source?: "BACKEND" | "LOCAL";
 };
 
 export function getQualifiedScenarioLeads(): QualifiedLead[] {
@@ -15,8 +16,20 @@ export function getQualifiedScenarioLeads(): QualifiedLead[] {
     return {
       scenario,
       evaluation: evaluateProfile(scenario, "USE_KNOWN_DATA", answers),
+      source: "LOCAL" as const,
     };
   });
+}
+
+export function mergeQualifiedLeads(
+  remote: QualifiedLead[],
+  local: QualifiedLead[],
+): QualifiedLead[] {
+  const remoteIds = new Set(remote.map(({ scenario }) => scenario.leadId));
+  return [
+    ...remote,
+    ...local.filter(({ scenario }) => !remoteIds.has(scenario.leadId)),
+  ];
 }
 
 export function getQualifiedScenarioLead(leadId: string): QualifiedLead | undefined {

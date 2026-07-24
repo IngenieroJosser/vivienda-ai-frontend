@@ -7,6 +7,7 @@ import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
 import { AdvisorIntelligence } from "@/features/conversation/components/advisor-intelligence";
 import { useQualifiedLeads } from "@/features/conversation/components/use-qualified-leads";
+import { LeadDetailClient } from "./lead-detail-client";
 import { formatCop } from "@/features/conversation/profile-copy";
 import {
   calculateCommercialMetrics,
@@ -144,10 +145,17 @@ export function CommercialDashboard({ fullInbox = false }: { fullInbox?: boolean
             key={selected.lead.scenario.leadId}
             className="advisor-detail-enter min-w-0 scroll-mt-20"
           >
-            <AdvisorIntelligence
-              leadId={selected.lead.scenario.leadId}
-              embedded
-            />
+            {selected.lead.source === "BACKEND" ? (
+              <LeadDetailClient
+                leadId={selected.lead.scenario.leadId}
+                embedded
+              />
+            ) : (
+              <AdvisorIntelligence
+                leadId={selected.lead.scenario.leadId}
+                embedded
+              />
+            )}
           </div>
         </section>
       ) : (

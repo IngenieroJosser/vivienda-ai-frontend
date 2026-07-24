@@ -1,3 +1,4 @@
+import type { LeadEvaluationResponse } from "@/lib/api/leads";
 import type { EvaluationResult, ProfileAnswers, ProfileField } from "../conversation/domain";
 
 export type AcquisitionContext = {
@@ -82,6 +83,7 @@ export type ConversationTurn = {
 export type ProspectSession = {
   version: 5;
   id: string;
+  leadId?: string;
   firstName?: string;
   acquisition: AcquisitionContext;
   campaignId: CampaignExperience["id"];
@@ -100,6 +102,7 @@ export type ProspectSession = {
   discovery: DiscoveryContext;
   consentAcceptedAt?: string;
   evaluation?: EvaluationResult;
+  backendEvaluation?: LeadEvaluationResponse;
   createdAt: string;
   updatedAt: string;
 };
