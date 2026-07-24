@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Vivienda Match AI v1: semantic color tokens. */
+  /* Vivienda Colsubsidio: semantic visual-system tokens. */
   --vm-color-brand-yellow: #ffd000;
   --vm-color-brand-blue: #0067b1;
   --vm-color-brand-blue-deep: #004f8c;
@@ -3345,10 +3345,16 @@ button:disabled { cursor: not-allowed; }
   overscroll-behavior: contain;
   animation: projectGalleryFade var(--vm-motion-normal) var(--ease-natural) both;
 }
+body.project-resource-viewer-open > :not(.project-resource-viewer) {
+  content-visibility: hidden;
+}
+body.project-resource-viewer-open > :not(.project-resource-viewer) * {
+  animation-play-state: paused !important;
+}
 .project-resource-viewer__dialog {
   display: flex;
-  width: min(96vw, 1480px);
-  height: min(92dvh, 920px);
+  width: min(94vw, 1180px);
+  height: min(88dvh, 760px);
   min-height: 0;
   flex-direction: column;
   overflow: hidden;
@@ -3455,6 +3461,8 @@ button:disabled { cursor: not-allowed; }
   min-height: 0;
   flex: 1 1 auto;
   overflow: hidden;
+  contain: layout paint style;
+  isolation: isolate;
   background:
     linear-gradient(135deg, rgba(231,246,255,.9), rgba(255,251,232,.72));
 }

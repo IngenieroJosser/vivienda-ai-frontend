@@ -37,6 +37,7 @@ export function ProjectResourceViewer({
     const opener = document.activeElement as HTMLElement | null;
     const previousBodyOverflow = document.body.style.overflow;
     const previousDocumentOverflow = document.documentElement.style.overflow;
+    document.body.classList.add("project-resource-viewer-open");
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
     closeButtonRef.current?.focus();
@@ -68,6 +69,7 @@ export function ProjectResourceViewer({
 
     window.addEventListener("keydown", onKeyDown);
     return () => {
+      document.body.classList.remove("project-resource-viewer-open");
       document.body.style.overflow = previousBodyOverflow;
       document.documentElement.style.overflow = previousDocumentOverflow;
       window.removeEventListener("keydown", onKeyDown);

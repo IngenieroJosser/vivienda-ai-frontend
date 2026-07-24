@@ -71,4 +71,31 @@ describe("media configuration", () => {
     expect(viewer).toContain('allow="fullscreen; accelerometer; gyroscope"');
     expect(viewer).not.toContain("allowFullScreen");
   });
+
+  it("suspends rendering beneath an active embedded resource", () => {
+    const viewer = readFileSync(
+      resolve(root, "components/project-resource-viewer.tsx"),
+      "utf8",
+    );
+    const styles = readFileSync(resolve(root, "app/globals.css"), "utf8");
+
+    expect(viewer).toContain(
+      'document.body.classList.add("project-resource-viewer-open")',
+    );
+    expect(viewer).toContain(
+      'document.body.classList.remove("project-resource-viewer-open")',
+    );
+    expect(styles).toContain(
+      "body.project-resource-viewer-open > :not(.project-resource-viewer)",
+    );
+    expect(styles).toContain("content-visibility: hidden");
+  });
+
+  it("caps the default 3D viewport and isolates its rendering work", () => {
+    const styles = readFileSync(resolve(root, "app/globals.css"), "utf8");
+
+    expect(styles).toContain("width: min(94vw, 1180px)");
+    expect(styles).toContain("height: min(88dvh, 760px)");
+    expect(styles).toContain("contain: layout paint style");
+  });
 });
