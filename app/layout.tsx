@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
+import { absoluteUrl, getSiteOrigin, siteConfig } from "@/lib/seo";
 
 import "./globals.css";
 
@@ -10,31 +11,20 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://viviendamatch.colsubsidio.com"),
-
-  applicationName: "Vivienda Match AI",
-
+  metadataBase: getSiteOrigin() ?? undefined,
+  applicationName: siteConfig.name,
   title: {
-    default: "Vivienda Match AI | Colsubsidio",
-    template: "%s | Vivienda Match AI",
+    default: "Vivienda Colsubsidio | Encuentra un camino para tu vivienda",
+    template: `%s | ${siteConfig.name}`,
   },
-
-  description:
-    "Orientación personalizada y recomendación de vivienda para afiliados y no afiliados.",
-
+  description: siteConfig.description,
   keywords: [
-    "Vivienda",
-    "Colsubsidio",
-    "Vivienda Match AI",
-    "Inteligencia Artificial",
-    "Recomendación de vivienda",
-    "Match inmobiliario",
-    "Subsidio de vivienda",
-    "Proyectos de vivienda",
-    "Compra de vivienda",
-    "Vivienda en Colombia",
+    "vivienda Colsubsidio",
+    "proyectos de vivienda",
+    "subsidio de vivienda",
+    "compra de vivienda en Colombia",
+    "orientación de vivienda",
   ],
-
   authors: [
     {
       name: "Colsubsidio",
@@ -45,43 +35,20 @@ export const metadata: Metadata = {
   creator: "Colsubsidio",
   publisher: "Colsubsidio",
   category: "Vivienda",
-
-  alternates: {
-    canonical: "/",
-  },
-
-  robots: {
-    index: true,
-    follow: true,
-    nocache: false,
-    googleBot: {
-      index: true,
-      follow: true,
-      noimageindex: false,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-
+  manifest: "/site.webmanifest",
   openGraph: {
-    title: "Vivienda Match AI | Colsubsidio",
-    description:
-      "Encuentra proyectos de vivienda ajustados a tu perfil, capacidad de compra y preferencias.",
-    url: "https://viviendamatch.colsubsidio.com",
-    siteName: "Vivienda Match AI",
-    locale: "es_CO",
+    title: "Vivienda Colsubsidio",
+    description: siteConfig.description,
+    ...(getSiteOrigin() ? { url: absoluteUrl("/") } : {}),
+    siteName: siteConfig.name,
+    locale: siteConfig.locale,
     type: "website",
   },
-
   twitter: {
     card: "summary_large_image",
-    title: "Vivienda Match AI | Colsubsidio",
-    description:
-      "Orientación personalizada de vivienda para afiliados y no afiliados.",
-    creator: "@Colsubsidio",
+    title: "Vivienda Colsubsidio",
+    description: siteConfig.description,
   },
-
   icons: {
     icon: [
       {
@@ -107,11 +74,11 @@ export const metadata: Metadata = {
   verification: {
     google: "Etegc4-TiHhORohNC4oQPrHvqWeKuBLgyseoRgRCuJg",
   },
+};
 
-  other: {
-    "theme-color": "#0067b1",
-    "color-scheme": "light",
-  },
+export const viewport: Viewport = {
+  colorScheme: "light",
+  themeColor: "#ffffff",
 };
 
 type RootLayoutProps = Readonly<{
@@ -126,7 +93,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       className={`${manrope.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col bg-[#fafafa] font-sans text-slate-950">
+      <body className="flex min-h-full flex-col bg-[color:var(--vm-color-canvas)] font-sans text-[color:var(--vm-color-ink)]">
         {children}
       </body>
     </html>

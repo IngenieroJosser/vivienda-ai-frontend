@@ -5,7 +5,7 @@ import type {
   VirtualTour,
 } from "./types";
 
-const VERIFIED_AT = "2026-07-23";
+export const CATALOG_VERIFIED_AT = "2026-07-23";
 const MULTIPROJECT_URL = "https://heyzine.com/flip-book/1de36642fc.html";
 
 type ProjectSeed = {
@@ -449,7 +449,7 @@ function buildProject(seed: ProjectSeed): HousingProject {
         ? `Folleto informativo de ${seed.name}`
         : `Información oficial con la ficha de ${seed.name}`,
       url: seed.brochureUrl ?? MULTIPROJECT_URL,
-      verifiedAt: VERIFIED_AT,
+      verifiedAt: CATALOG_VERIFIED_AT,
       materialStatus: "APPROVED",
     },
   ];
@@ -460,7 +460,7 @@ function buildProject(seed: ProjectSeed): HousingProject {
       kind: "OFFICIAL_PROJECT_PAGE",
       title: `Ficha vigente de ${seed.name}`,
       url: seed.officialPage,
-      verifiedAt: VERIFIED_AT,
+      verifiedAt: CATALOG_VERIFIED_AT,
       materialStatus: "LIVE",
     });
   }
@@ -473,7 +473,7 @@ function buildProject(seed: ProjectSeed): HousingProject {
       kind: "VIRTUAL_TOUR",
       title: `Recorrido virtual de ${seed.name}${seed.tourUrls!.length > 1 ? ` ${index + 1}` : ""}`,
       url,
-      verifiedAt: VERIFIED_AT,
+      verifiedAt: CATALOG_VERIFIED_AT,
       materialStatus: "LIVE",
     });
     tours.push({
@@ -482,7 +482,7 @@ function buildProject(seed: ProjectSeed): HousingProject {
       url,
       availability: "AVAILABLE",
       sourceId,
-      verifiedAt: VERIFIED_AT,
+      verifiedAt: CATALOG_VERIFIED_AT,
     });
   });
 
@@ -493,7 +493,7 @@ function buildProject(seed: ProjectSeed): HousingProject {
       kind: "VIRTUAL_TOUR",
       title: `Recorrido virtual de ${seed.name} no disponible`,
       url: seed.unavailableTourUrl,
-      verifiedAt: VERIFIED_AT,
+      verifiedAt: CATALOG_VERIFIED_AT,
       materialStatus: "LIVE",
     });
     tours.push({
@@ -502,7 +502,7 @@ function buildProject(seed: ProjectSeed): HousingProject {
       url: seed.unavailableTourUrl,
       availability: "UNAVAILABLE",
       sourceId,
-      verifiedAt: VERIFIED_AT,
+      verifiedAt: CATALOG_VERIFIED_AT,
     });
   }
 
@@ -577,7 +577,7 @@ function fact<T>(
   return {
     value,
     sourceIds,
-    verifiedAt: VERIFIED_AT,
+    verifiedAt: CATALOG_VERIFIED_AT,
     validity,
   };
 }

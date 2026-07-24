@@ -1,12 +1,38 @@
+import type { Metadata } from "next";
 import { getHousingProjectsFromBackend } from "@/lib/housing-catalog/data-source";
 import { Icon } from "@/components/icon";
 import { AnimatedHeroBackground } from "@/components/animated-hero-background";
 import { ProjectCatalog } from "@/components/project-catalog";
+import { StructuredData } from "@/components/structured-data";
+import { absoluteUrl, createPageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = createPageMetadata({
+  title: "Proyectos de vivienda",
+  description:
+    "Explora proyectos de vivienda Colsubsidio, sus ubicaciones, espacios, planos y recorridos virtuales disponibles.",
+  path: "/vivienda/proyectos",
+});
 
 export default async function ProyectosPage() {
   const projects = await getHousingProjectsFromBackend();
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Proyectos de vivienda Colsubsidio",
+    url: absoluteUrl("/vivienda/proyectos"),
+    numberOfItems: projects.length,
+    itemListElement: projects.map((project, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: project.name,
+      url: absoluteUrl(`/vivienda/proyectos/${project.id}`),
+      image: absoluteUrl(project.image),
+    })),
+  };
+
   return (
     <main className="mx-auto max-w-[1460px] px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
+      <StructuredData data={structuredData} />
       <section className="projects-hero surface-solid relative overflow-hidden px-6 py-9 sm:px-9 lg:px-11">
         <AnimatedHeroBackground variant="projects" compact interactive={false} />
         <div className="relative z-10">

@@ -1,12 +1,53 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicHeader } from "@/components/public-header";
 import { Icon } from "@/components/icon";
 import { FeaturedProjectsShowcase } from "@/components/featured-projects-showcase";
+import { StructuredData } from "@/components/structured-data";
 import { LandingConversationComposer } from "@/features/prospect/components/landing-conversation-composer";
+import { absoluteUrl, createPageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = createPageMetadata({
+  title: "Orientación para encontrar una vivienda que encaje contigo",
+  description:
+    "Cuéntanos qué vivienda buscas y recibe una orientación personalizada con proyectos compatibles y un siguiente paso claro.",
+  path: "/",
+});
 
 export default function Home() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://www.colsubsidio.com/#organization",
+        name: "Colsubsidio",
+        url: "https://www.colsubsidio.com/",
+        logo: absoluteUrl("/brand/colsubsidio-logo.svg"),
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${absoluteUrl("/")}#website`,
+        name: "Vivienda Colsubsidio",
+        url: absoluteUrl("/"),
+        inLanguage: "es-CO",
+        publisher: { "@id": "https://www.colsubsidio.com/#organization" },
+      },
+      {
+        "@type": "Service",
+        "@id": `${absoluteUrl("/")}#housing-guidance`,
+        name: "Orientación personalizada de vivienda",
+        serviceType: "Orientación para búsqueda y preparación de vivienda",
+        areaServed: { "@type": "Country", name: "Colombia" },
+        provider: { "@id": "https://www.colsubsidio.com/#organization" },
+        url: absoluteUrl("/"),
+      },
+    ],
+  };
+
   return (
     <div className="home-page prospect-landing min-h-screen overflow-hidden bg-[color:var(--vm-color-canvas)] text-[color:var(--vm-color-ink)]">
+      <StructuredData data={structuredData} />
       <PublicHeader />
 
       <main className="relative">

@@ -1,7 +1,9 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Icon } from "@/components/icon";
 import { ProjectMediaGallery } from "@/components/project-media-gallery";
+import { StructuredData } from "@/components/structured-data";
 import { Pill } from "@/components/ui";
 import {
   formatProjectAreaRange,
@@ -14,11 +16,34 @@ import {
   getValidityLabel,
   housingProjects,
 } from "@/lib/housing-catalog";
+import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
   return housingProjects.map((project) => ({ id: project.id }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const project = getHousingProject(id);
+  if (!project) {
+    return {
+      title: "Proyecto no encontrado",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  return createPageMetadata({
+    title: `${project.name}, proyecto de vivienda en ${project.location.city}`,
+    description: `${project.summary} Conoce su ubicación, tipologías, características y recursos oficiales disponibles.`,
+    path: `/vivienda/proyectos/${project.id}`,
+    image: project.image,
+  });
 }
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -28,9 +53,61 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const priceSources = getProjectEvidence(project, project.priceFromCop);
   const officialSource = priceSources.find((source) => source.kind === "OFFICIAL_PROJECT_PAGE");
   const availableTours = project.tours.filter(({ availability }) => availability === "AVAILABLE");
+  const projectUrl = absoluteUrl(`/vivienda/proyectos/${project.id}`);
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ApartmentComplex",
+        "@id": `${projectUrl}#project`,
+        name: project.name,
+        description: project.summary,
+        url: projectUrl,
+        image: [
+          absoluteUrl(project.image),
+          ...project.gallery.map(({ image }) => absoluteUrl(image)),
+        ],
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: project.location.city,
+          addressRegion: project.location.department,
+          addressCountry: "CO",
+        },
+        amenityFeature: project.features.map((feature) => ({
+          "@type": "LocationFeatureSpecification",
+          name: feature,
+          value: true,
+        })),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Inicio",
+            item: absoluteUrl("/"),
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Proyectos",
+            item: absoluteUrl("/vivienda/proyectos"),
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: project.name,
+            item: projectUrl,
+          },
+        ],
+      },
+    ],
+  };
 
   return (
     <main className="project-detail-page mx-auto max-w-[1300px] px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
+      <StructuredData data={structuredData} />
       <Link href="/vivienda/proyectos" className="inline-flex items-center gap-2 rounded-full border border-[color:var(--vm-color-line)] bg-white px-3.5 py-2 text-[10px] font-bold text-[color:var(--vm-color-brand-blue)] shadow-sm"><Icon name="arrow" className="h-3.5 w-3.5 rotate-180" />Volver a proyectos</Link>
 
       <header className="mt-7 grid gap-6 border-b border-[color:var(--vm-color-line)] pb-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
