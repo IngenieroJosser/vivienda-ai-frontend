@@ -3,6 +3,7 @@ import { getHousingProjectsFromBackend } from "@/lib/housing-catalog/data-source
 import { Icon } from "@/components/icon";
 import { AnimatedHeroBackground } from "@/components/animated-hero-background";
 import { ProjectCatalog } from "@/components/project-catalog";
+import { createProjectCatalogItems } from "@/components/project-catalog-model";
 import { StructuredData } from "@/components/structured-data";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 
@@ -15,6 +16,7 @@ export const metadata: Metadata = createPageMetadata({
 
 export default async function ProyectosPage() {
   const projects = await getHousingProjectsFromBackend();
+  const catalogItems = createProjectCatalogItems(projects);
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -59,7 +61,7 @@ export default async function ProyectosPage() {
           </div>
         </div>
       </section>
-      <ProjectCatalog projects={projects} />
+      <ProjectCatalog projects={catalogItems} />
     </main>
   );
 }

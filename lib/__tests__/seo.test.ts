@@ -5,6 +5,7 @@ import { housingProjects } from "../housing-catalog";
 import {
   absoluteUrl,
   createPageMetadata,
+  getGoogleSiteVerification,
   getSiteOrigin,
   serializeJsonLd,
   siteConfig,
@@ -57,6 +58,23 @@ describe("SEO contracts", () => {
     expect(sitemap()).toEqual([]);
 
     process.env.NEXT_PUBLIC_SITE_URL = configuredUrl;
+  });
+
+  it("does not publish a fabricated search-console verification", () => {
+    const configuredVerification =
+      process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+    delete process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+    expect(getGoogleSiteVerification()).toBeNull();
+
+    process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION = "verified-token";
+    expect(getGoogleSiteVerification()).toBe("verified-token");
+
+    if (configuredVerification === undefined) {
+      delete process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+    } else {
+      process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION =
+        configuredVerification;
+    }
   });
 
   it("escapes structured data before injecting it into HTML", () => {

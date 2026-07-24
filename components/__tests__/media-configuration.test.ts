@@ -45,6 +45,18 @@ describe("media configuration", () => {
     expect(layout).toContain('data-scroll-behavior="smooth"');
   });
 
+  it("avoids deprecated image priority and unoptimized project media", () => {
+    const images = interfaceSources.match(/<Image[\s\S]*?\/>/g) ?? [];
+    expect(images.every((image) => !/\bpriority\b/.test(image))).toBe(true);
+
+    const login = readFileSync(
+      resolve(root, "app/login/page.tsx"),
+      "utf8",
+    );
+    expect(login).not.toContain("unoptimized");
+    expect(login).toContain('loading="lazy"');
+  });
+
   it("uses the font variable emitted by next/font", () => {
     const styles = readFileSync(resolve(root, "app/globals.css"), "utf8");
 
@@ -78,6 +90,24 @@ describe("media configuration", () => {
     );
     expect(gallery).not.toContain(
       'import { ProjectResourceViewer } from "./project-resource-viewer"',
+    );
+  });
+
+  it("also defers immersive viewers in the advisor workspace", () => {
+    const explorer = readFileSync(
+      resolve(
+        root,
+        "features/advisor/components/advisor-project-explorer.tsx",
+      ),
+      "utf8",
+    );
+
+    expect(explorer).toContain('import dynamic from "next/dynamic"');
+    expect(explorer).not.toContain(
+      'import { ProjectImageViewer } from "@/components/project-image-viewer"',
+    );
+    expect(explorer).not.toContain(
+      'import { ProjectResourceViewer } from "@/components/project-resource-viewer"',
     );
   });
 
@@ -116,5 +146,13 @@ describe("media configuration", () => {
     expect(styles).toContain("width: min(94vw, 1180px)");
     expect(styles).toContain("height: min(88dvh, 760px)");
     expect(styles).toContain("contain: layout paint style");
+  });
+
+  it("skips rendering project cards until they approach the viewport", () => {
+    const styles = readFileSync(resolve(root, "app/globals.css"), "utf8");
+
+    expect(styles).toContain(".projects-grid .project-card");
+    expect(styles).toContain("content-visibility: auto");
+    expect(styles).toContain("contain-intrinsic-size:");
   });
 });

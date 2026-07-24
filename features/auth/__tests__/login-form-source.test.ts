@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 describe("advisor login form", () => {
   it("keeps credential inputs editable", () => {
     const source = readFileSync(
-      resolve(process.cwd(), "app/login/page.tsx"),
+      resolve(process.cwd(), "features/auth/login-form.tsx"),
       "utf8",
     );
     const inputs = source.match(/<input[\s\S]*?\/>/g) ?? [];
@@ -13,5 +13,15 @@ describe("advisor login form", () => {
     expect(inputs).toHaveLength(2);
     expect(inputs.every((input) => !/\bdisabled\b/.test(input))).toBe(true);
     expect(inputs.every((input) => /\bonChange=/.test(input))).toBe(true);
+  });
+
+  it("keeps the page shell outside the interactive client boundary", () => {
+    const page = readFileSync(
+      resolve(process.cwd(), "app/login/page.tsx"),
+      "utf8",
+    );
+
+    expect(page).not.toContain('"use client"');
+    expect(page).toContain("<LoginForm />");
   });
 });

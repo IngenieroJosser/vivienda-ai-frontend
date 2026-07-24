@@ -1,6 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
-import { absoluteUrl, getSiteOrigin, siteConfig } from "@/lib/seo";
+import {
+  absoluteUrl,
+  getGoogleSiteVerification,
+  getSiteOrigin,
+  siteConfig,
+} from "@/lib/seo";
 
 import "./globals.css";
 
@@ -9,6 +14,8 @@ const manrope = Manrope({
   display: "swap",
   variable: "--font-manrope",
 });
+
+const googleSiteVerification = getGoogleSiteVerification();
 
 export const metadata: Metadata = {
   metadataBase: getSiteOrigin() ?? undefined,
@@ -71,9 +78,9 @@ export const metadata: Metadata = {
     ],
   },
 
-  verification: {
-    google: "Etegc4-TiHhORohNC4oQPrHvqWeKuBLgyseoRgRCuJg",
-  },
+  ...(googleSiteVerification
+    ? { verification: { google: googleSiteVerification } }
+    : {}),
 };
 
 export const viewport: Viewport = {

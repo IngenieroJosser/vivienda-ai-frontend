@@ -1,15 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Icon } from "@/components/icon";
-import { ProjectImageViewer } from "@/components/project-image-viewer";
 import {
   createProjectResources,
   type ProjectResource,
 } from "@/components/project-media-gallery-model";
-import { ProjectResourceViewer } from "@/components/project-resource-viewer";
 import { useProjectResourceConnectionHints } from "@/components/use-project-resource-connection-hints";
 import { Pill } from "@/components/ui";
 import {
@@ -19,6 +18,22 @@ import {
   getValidityLabel,
 } from "@/lib/housing-catalog";
 import type { ResolvedProjectMatch } from "@/features/conversation/matching";
+
+const ProjectImageViewer = dynamic(
+  () =>
+    import("@/components/project-image-viewer").then(
+      ({ ProjectImageViewer: Viewer }) => Viewer,
+    ),
+  { ssr: false },
+);
+
+const ProjectResourceViewer = dynamic(
+  () =>
+    import("@/components/project-resource-viewer").then(
+      ({ ProjectResourceViewer: Viewer }) => Viewer,
+    ),
+  { ssr: false },
+);
 
 export function AdvisorProjectExplorer({
   matches,

@@ -19,7 +19,7 @@ export function FeaturedProjectsShowcase() {
     >
       <ProjectTile
         project={mainProject}
-        priority
+        preload
         className="col-span-2 lg:col-span-1 lg:row-span-2"
         sizes="(min-width: 1024px) 38vw, 100vw"
       />
@@ -49,13 +49,13 @@ function ProjectTile({
   project,
   className,
   sizes,
-  priority = false,
+  preload = false,
   compact = false,
 }: {
   project: (typeof featuredProjects)[number];
   className?: string;
   sizes: string;
-  priority?: boolean;
+  preload?: boolean;
   compact?: boolean;
 }) {
   return (
@@ -68,7 +68,7 @@ function ProjectTile({
         src={project.image}
         alt={`Vista del proyecto ${project.name} en ${project.location.city}`}
         fill
-        priority={priority}
+        preload={preload}
         sizes={sizes}
         quality={90}
         className="object-cover transition duration-300 ease-out group-hover:scale-[1.025]"

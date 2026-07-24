@@ -19,7 +19,7 @@ function BrandLockup({
         alt="Colsubsidio"
         width={181}
         height={36}
-        priority
+        preload
         className={`w-auto ${compact ? "h-7 sm:h-8" : "h-8 sm:h-9"} ${dark ? "brightness-0 invert" : ""}`}
       />
       {showProductLabel ? (

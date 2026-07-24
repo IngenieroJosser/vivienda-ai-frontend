@@ -3,19 +3,16 @@
 import { useMemo, useState } from "react";
 import { Icon } from "./icon";
 import { ProjectCard } from "./project-card";
-import {
-  getHousingTypeLabel,
-  type HousingProject,
-} from "@/lib/housing-catalog";
+import type { ProjectCatalogItem } from "./project-catalog-model";
 
 type LocationFilter = "Todos" | string;
 
-export function ProjectCatalog({ projects }: { projects: readonly HousingProject[] }) {
+export function ProjectCatalog({ projects }: { projects: readonly ProjectCatalogItem[] }) {
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState<LocationFilter>("Todos");
 
   const locations = useMemo(
-    () => ["Todos", ...new Set(projects.map((project) => project.location.city))],
+    () => ["Todos", ...new Set(projects.map((project) => project.city))],
     [projects],
   );
 
@@ -24,14 +21,14 @@ export function ProjectCatalog({ projects }: { projects: readonly HousingProject
 
     return projects.filter((project) => {
       const matchesLocation =
-        location === "Todos" || project.location.city === location;
+        location === "Todos" || project.city === location;
       const searchable = normalize([
         project.name,
-        project.location.city,
-        project.location.department,
-        project.location.development,
+        project.city,
+        project.department,
+        project.development,
         project.summary,
-        getHousingTypeLabel(project.housingType),
+        project.housingTypeLabel,
       ].join(" "));
 
       return matchesLocation && searchable.includes(normalizedQuery);

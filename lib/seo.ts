@@ -10,6 +10,10 @@ export function getSiteOrigin(): URL | null {
   }
 }
 
+export function getGoogleSiteVerification(): string | null {
+  return process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim() || null;
+}
+
 export const siteConfig = {
   name: "Vivienda Colsubsidio",
   shortName: "Vivienda",
