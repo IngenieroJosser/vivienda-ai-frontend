@@ -101,6 +101,70 @@ export type LeadListItem = {
   updated_at: string;
 };
 
+export type LeadDetailTurn = {
+  id: string;
+  user_text: string;
+  assistant_text: string;
+  extracted_fields: string[];
+  created_at: string;
+};
+
+export type LeadAuditEvent = {
+  event_type: string;
+  actor: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
+export type LeadEnrichment = {
+  provider: string;
+  source_url: string | null;
+  purpose: string;
+  status: string;
+  data: Record<string, unknown>;
+  warnings: string[];
+  created_at: string;
+};
+
+export type LeadDetailEvaluation = {
+  lead_id?: string;
+  readiness_score: number;
+  confidence_score: number;
+  route: LeadRoute;
+  priority: LeadPriority;
+  reason_codes: string[];
+  blockers: string[];
+  capacity: CapacityAssessment;
+  recommendations: ProjectRecommendation[];
+  next_action: string;
+  latency_ms: number;
+  rule_version: string;
+  model_version: string;
+  prompt_version: string;
+  evaluated_at: string;
+  input_snapshot?: Record<string, unknown>;
+};
+
+export type LeadDetailResponse = {
+  id: string;
+  session_id: string;
+  first_name: string | null;
+  source: string;
+  campaign: string;
+  content: string;
+  is_paid: boolean | null;
+  status: string;
+  consent_accepted_at: string | null;
+  profile: Record<string, unknown>;
+  discovery: Record<string, unknown>;
+  turns: LeadDetailTurn[];
+  evaluation: LeadDetailEvaluation | null;
+  enrichments: LeadEnrichment[];
+  audit_events: LeadAuditEvent[];
+  created_at: string;
+  updated_at: string;
+};
+
 export function listLeads(options: {
   limit?: number;
   signal?: AbortSignal;
@@ -109,6 +173,16 @@ export function listLeads(options: {
   return apiRequest<LeadListItem[]>(`/leads?limit=${limit}`, {
     signal: options.signal,
   });
+}
+
+export function getLead(
+  id: string,
+  signal?: AbortSignal,
+): Promise<LeadDetailResponse> {
+  return apiRequest<LeadDetailResponse>(
+    `/leads/${encodeURIComponent(id)}`,
+    { signal },
+  );
 }
 
 export function toSessionSyncRequest(
