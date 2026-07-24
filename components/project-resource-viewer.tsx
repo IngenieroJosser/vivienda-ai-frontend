@@ -163,7 +163,6 @@ export function ProjectResourceViewer({
               title={`${resource.label} de ${projectName}`}
               className="project-resource-viewer__frame"
               allow="fullscreen; accelerometer; gyroscope"
-              allowFullScreen
               loading="eager"
               referrerPolicy="strict-origin-when-cross-origin"
               onLoad={() => {

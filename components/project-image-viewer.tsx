@@ -109,8 +109,8 @@ export function ProjectImageViewer({
               src={image.image}
               alt={`${image.label} de ${projectName}`}
               fill
-              sizes="100vw"
-              quality={100}
+              sizes="(max-width: 1200px) 92vw, 1120px"
+              quality={90}
               className="object-contain"
             />
           </span>

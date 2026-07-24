@@ -122,6 +122,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
       lang="es-CO"
+      data-scroll-behavior="smooth"
       className={`${manrope.variable} h-full antialiased`}
       suppressHydrationWarning
     >

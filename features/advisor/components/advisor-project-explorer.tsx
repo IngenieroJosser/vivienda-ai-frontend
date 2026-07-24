@@ -73,7 +73,7 @@ export function AdvisorProjectExplorer({
               alt={`Vista principal de ${project.name}`}
               fill
               sizes="(max-width: 1024px) 100vw, 760px"
-              quality={95}
+              quality={90}
               className="object-cover"
             />
             <span className="advisor-project-explorer__visual-shade" />

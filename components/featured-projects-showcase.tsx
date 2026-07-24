@@ -70,7 +70,7 @@ function ProjectTile({
         fill
         priority={priority}
         sizes={sizes}
-        quality={84}
+        quality={90}
         className="object-cover transition duration-300 ease-out group-hover:scale-[1.025]"
       />
       <span

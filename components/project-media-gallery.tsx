@@ -96,7 +96,7 @@ export function ProjectMediaGallery({
                     : "120px"
                 }
                 priority={index === 0}
-                quality={95}
+                quality={90}
                 className="project-gallery__image"
               />
             </span>
@@ -155,7 +155,7 @@ export function ProjectMediaGallery({
                 alt=""
                 fill
                 sizes="88vw"
-                quality={93}
+                quality={90}
                 className="project-gallery__image"
               />
             </span>

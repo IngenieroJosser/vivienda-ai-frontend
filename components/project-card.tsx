@@ -21,7 +21,7 @@ export function ProjectCard({ project, compact = false }: { project: HousingProj
     <article className="project-card surface-card surface-card--interactive group overflow-hidden">
       <span aria-hidden="true" className="project-card__ambient" />
       <div className={`relative overflow-hidden ${compact ? "h-44" : "h-56"}`}>
-        <Image src={project.image} alt={`Vista del proyecto ${project.name}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" loading="lazy" quality={76} unoptimized={project.image.endsWith(".svg")} className="project-card__image object-cover" />
+        <Image src={project.image} alt={`Vista del proyecto ${project.name}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" loading="lazy" quality={75} unoptimized={project.image.endsWith(".svg")} className="project-card__image object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--vm-color-brand-blue-deep)]/55 via-transparent to-white/5" />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
           <Pill tone="image-overlay">{getHousingTypeLabel(project.housingType)}</Pill>

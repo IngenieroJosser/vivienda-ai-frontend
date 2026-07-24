@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
   compress: true,
   images: {
     formats: ["image/webp"],
+    qualities: [75, 90],
     minimumCacheTTL: 2_678_400,
   },
   async headers() {
