@@ -33,11 +33,20 @@ function writeSessionLocally(session: ProspectSession): void {
 export function saveProspectSession(session: ProspectSession): void {
   if (typeof window === "undefined") return;
 
-  writeSessionLocally(session);
-  if (!session.consentAcceptedAt) return;
+  if (!session.consentAcceptedAt) {
+    writeSessionLocally(session);
+    return;
+  }
+  const stored = readSessions().find((candidate) => candidate.id === session.id);
+  const versionedSession = {
+    ...session,
+    syncVersion: Math.max(session.syncVersion ?? 0, stored?.syncVersion ?? 0) + 1,
+    syncStatus: "PENDING" as const,
+  };
+  writeSessionLocally(versionedSession);
 
-  pendingSyncs.set(session.id, session);
-  void flushSessionSync(session.id);
+  pendingSyncs.set(versionedSession.id, versionedSession);
+  void flushSessionSync(versionedSession.id);
 }
 
 async function flushSessionSync(sessionId: string): Promise<void> {
@@ -57,13 +66,30 @@ async function flushSessionSync(sessionId: string): Promise<void> {
       writeSessionLocally({
         ...current,
         leadId: response.lead_id,
-        ...(current.updatedAt === session.updatedAt
-          ? { backendEvaluation: response.evaluation }
+        syncStatus: "SYNCED",
+        ...(current.syncVersion === session.syncVersion
+          ? { authoritativeJourney: response }
           : {}),
       });
     }
   } catch {
     pendingSyncs.delete(sessionId);
+    const current = loadProspectSession(sessionId);
+    if (current) {
+      writeSessionLocally({ ...current, syncStatus: "PENDING" });
+      if ("addEventListener" in window) {
+        window.addEventListener(
+          "online",
+          () => {
+            const pending = loadProspectSession(sessionId);
+            if (!pending || pending.syncStatus !== "PENDING") return;
+            pendingSyncs.set(sessionId, pending);
+            void flushSessionSync(sessionId);
+          },
+          { once: true },
+        );
+      }
+    }
   } finally {
     window.clearTimeout(timeoutId);
     activeSyncs.delete(sessionId);

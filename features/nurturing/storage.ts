@@ -1,5 +1,6 @@
 "use client";
 
+import { updateLeadNurture } from "@/lib/api/leads";
 import type { NurturingState } from "./domain";
 
 const STORAGE_KEY = "vivienda-match:nurturing-state:v1";
@@ -28,4 +29,13 @@ export function saveNurturingState(state: NurturingState): void {
     JSON.stringify({ version: 1, leads } satisfies StoredNurturingState),
   );
   window.dispatchEvent(new CustomEvent(NURTURING_STATE_EVENT));
+  void updateLeadNurture(state.leadId, {
+    status: state.journeyStatus,
+    completed_milestone_ids: state.completedMilestones,
+    intervention_required: state.interventionRequired,
+    requested_reevaluation_at: state.requestedReevaluationAt ?? null,
+    updated_at: state.updatedAt,
+  }).catch(() => {
+    // El estado local sigue disponible si el backend no responde.
+  });
 }

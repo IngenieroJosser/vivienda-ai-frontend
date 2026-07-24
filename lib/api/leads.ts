@@ -1,8 +1,16 @@
 import { apiRequest } from "./client";
+import type { components } from "./generated";
 import type { ProspectSession } from "../../features/prospect/domain";
+
+type DeepRequired<Value> = Value extends readonly (infer Item)[]
+  ? DeepRequired<Item>[]
+  : Value extends object
+    ? { [Key in keyof Value]-?: DeepRequired<Value[Key]> }
+    : Value;
 
 export type SessionSyncRequest = {
   session_id: string;
+  session_version: number;
   lead_id: string | null;
   first_name: string | null;
   acquisition: {
@@ -24,146 +32,46 @@ export type SessionSyncRequest = {
     extracted_fields: string[];
     created_at: string;
   }>;
-  frontend_evaluation: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 };
 
-export type LeadRoute =
-  | "READY_TO_CLOSE"
-  | "NEEDS_VALIDATION"
-  | "NON_AFFILIATE_REVIEW"
-  | "NURTURE"
-  | "FINANCIAL_PREPARATION"
-  | "OPTED_OUT";
+export type LeadRoute = components["schemas"]["LeadRoute"];
 
 export type LeadPriority = "HIGH" | "MEDIUM" | "LOW";
 
-export type CapacityAssessment = {
-  monthly_income_estimate: number;
-  commitment_ratio: number;
-  maximum_housing_ratio: number;
-  estimated_housing_payment: number;
-  status: "STRONG" | "MODERATE" | "LIMITED" | "UNKNOWN";
-};
+export type ProjectRecommendation = DeepRequired<
+  components["schemas"]["ProjectRecommendation"]
+>;
 
-export type ProjectRecommendation = {
-  project_id: string;
-  project_name: string;
-  rank: number;
-  score: number;
-  reasons: string[];
-  brochure_url: string | null;
-  tour_urls: string[];
-  model_source: string;
-};
+export type ReadinessLevel = components["schemas"]["ReadinessLevel"];
 
-export type LeadEvaluationResponse = {
-  lead_id: string;
-  readiness_score: number;
-  confidence_score: number;
-  route: LeadRoute;
-  priority: LeadPriority;
-  reason_codes: string[];
-  blockers: string[];
-  next_action: string;
-  capacity: CapacityAssessment;
-  recommendations: ProjectRecommendation[];
-  latency_ms: number;
-  audit: {
-    rule_version: string;
-    model_version: string;
-    prompt_version: string;
-    evaluated_at: string;
-  };
-};
+export type CanonicalJourneyResponse = DeepRequired<
+  components["schemas"]["SessionSyncResponse"]
+>;
 
-export type SessionSyncResponse = {
-  lead_id: string;
-  session_id: string;
-  persisted: boolean;
-  evaluation: LeadEvaluationResponse;
-};
+export type SessionSyncResponse = CanonicalJourneyResponse;
 
-export type LeadListItem = {
-  id: string;
-  session_id: string;
-  first_name: string | null;
-  source: string;
-  campaign: string;
-  is_paid: boolean | null;
-  status: string;
-  affiliation_status: string;
+type GeneratedLeadListItem = DeepRequired<
+  components["schemas"]["LeadListItem"]
+>;
+
+export type LeadListItem = Omit<
+  GeneratedLeadListItem,
+  "route" | "priority" | "handoff_status"
+> & {
   route: LeadRoute | null;
   priority: LeadPriority | null;
-  readiness_score: number | null;
-  top_project_id: string | null;
-  updated_at: string;
+  handoff_status: CanonicalJourneyResponse["handoff"]["status"] | null;
 };
 
-export type LeadDetailTurn = {
-  id: string;
-  user_text: string;
-  assistant_text: string;
-  extracted_fields: string[];
-  created_at: string;
-};
+export type LeadDetailEvaluation = DeepRequired<
+  components["schemas"]["InternalEvaluationDetail"]
+>;
 
-export type LeadAuditEvent = {
-  event_type: string;
-  actor: string;
-  payload: Record<string, unknown>;
-  created_at: string;
-};
-
-export type LeadEnrichment = {
-  provider: string;
-  source_url: string | null;
-  purpose: string;
-  status: string;
-  data: Record<string, unknown>;
-  warnings: string[];
-  created_at: string;
-};
-
-export type LeadDetailEvaluation = {
-  lead_id?: string;
-  readiness_score: number;
-  confidence_score: number;
-  route: LeadRoute;
-  priority: LeadPriority;
-  reason_codes: string[];
-  blockers: string[];
-  capacity: CapacityAssessment;
-  recommendations: ProjectRecommendation[];
-  next_action?: string;
-  latency_ms: number;
-  rule_version: string;
-  model_version: string;
-  prompt_version: string;
-  evaluated_at: string;
-  input_snapshot?: Record<string, unknown>;
-};
-
-export type LeadDetailResponse = {
-  id: string;
-  session_id: string;
-  first_name: string | null;
-  source: string;
-  campaign: string;
-  content: string;
-  is_paid: boolean | null;
-  status: string;
-  consent_accepted_at: string | null;
-  profile: Record<string, unknown>;
-  discovery: Record<string, unknown>;
-  turns: LeadDetailTurn[];
-  evaluation: LeadDetailEvaluation | null;
-  enrichments: LeadEnrichment[];
-  audit_events: LeadAuditEvent[];
-  created_at: string;
-  updated_at: string;
-};
+export type LeadDetailResponse = DeepRequired<
+  components["schemas"]["LeadDetailResponse"]
+>;
 
 export function listLeads(options: {
   limit?: number;
@@ -172,6 +80,7 @@ export function listLeads(options: {
   const limit = options.limit ?? 100;
   return apiRequest<LeadListItem[]>(`/leads?limit=${limit}`, {
     signal: options.signal,
+    advisorAuth: true,
   });
 }
 
@@ -181,7 +90,7 @@ export function getLead(
 ): Promise<LeadDetailResponse> {
   return apiRequest<LeadDetailResponse>(
     `/leads/${encodeURIComponent(id)}`,
-    { signal },
+    { signal, advisorAuth: true },
   );
 }
 
@@ -190,6 +99,7 @@ export function toSessionSyncRequest(
 ): SessionSyncRequest {
   return {
     session_id: session.id,
+    session_version: session.syncVersion ?? 1,
     lead_id: session.leadId ?? null,
     first_name: session.firstName ?? null,
     acquisition: {
@@ -212,10 +122,31 @@ export function toSessionSyncRequest(
       extracted_fields: turn.extractedFields,
       created_at: turn.createdAt,
     })),
-    frontend_evaluation: session.evaluation ?? null,
     created_at: session.createdAt,
     updated_at: session.updatedAt,
   };
+}
+
+export function updateLeadHandoff(
+  leadId: string,
+  input: DeepRequired<components["schemas"]["ProspectHandoffRequest"]>,
+  signal?: AbortSignal,
+): Promise<CanonicalJourneyResponse> {
+  return apiRequest<CanonicalJourneyResponse>(
+    `/leads/${encodeURIComponent(leadId)}/handoff`,
+    { method: "POST", body: input, signal },
+  );
+}
+
+export function updateLeadNurture(
+  leadId: string,
+  input: DeepRequired<components["schemas"]["NurtureProgressRequest"]>,
+  signal?: AbortSignal,
+): Promise<CanonicalJourneyResponse> {
+  return apiRequest<CanonicalJourneyResponse>(
+    `/leads/${encodeURIComponent(leadId)}/nurture`,
+    { method: "PUT", body: input, signal, advisorAuth: true },
+  );
 }
 
 export function syncProspectSession(

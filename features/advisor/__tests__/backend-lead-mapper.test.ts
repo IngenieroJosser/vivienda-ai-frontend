@@ -14,8 +14,13 @@ const baseLead: LeadListItem = {
   affiliation_status: "AFFILIATE",
   route: "READY_TO_CLOSE",
   priority: "HIGH",
-  readiness_score: 84,
+  readiness_level: "HIGH",
   top_project_id: "versalles",
+  handoff_requested: true,
+  handoff_status: "REQUESTED",
+  next_action: "Registrar el primer contacto.",
+  review_date: null,
+  qualified_at: "2026-07-24T14:30:00.000Z",
   updated_at: "2026-07-24T14:35:15.426Z",
 };
 
@@ -29,12 +34,12 @@ describe("backend advisor lead mapper", () => {
       leadId: baseLead.id,
       displayName: "Camila",
       leadSource: "META",
-      capturedAt: baseLead.updated_at,
+      capturedAt: baseLead.qualified_at,
       routeLabel: "Atención comercial",
     });
     expect(lead.evaluation).toMatchObject({
       leadId: baseLead.id,
-      readinessScore: 84,
+      readinessScore: 80,
       priority: "HIGH",
       route: "ADVISOR_NOW",
       projectIds: ["versalles"],
@@ -59,7 +64,7 @@ describe("backend advisor lead mapper", () => {
         ...baseLead,
         route: backendRoute,
         priority: "LOW",
-        readiness_score: 12,
+        readiness_level: "INITIAL",
       });
       expect(lead.evaluation.route).toBe(frontendRoute);
     }
@@ -70,7 +75,7 @@ describe("backend advisor lead mapper", () => {
       ...baseLead,
       route: "NURTURE",
       priority: "LOW",
-      readiness_score: 18,
+      readiness_level: "INITIAL",
     });
 
     const opportunities = projectCommercialOpportunities(

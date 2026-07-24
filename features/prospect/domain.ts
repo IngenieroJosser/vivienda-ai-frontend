@@ -1,4 +1,4 @@
-import type { LeadEvaluationResponse } from "@/lib/api/leads";
+import type { CanonicalJourneyResponse } from "@/lib/api/leads";
 import type { EvaluationResult, ProfileAnswers, ProfileField } from "../conversation/domain";
 
 export type AcquisitionContext = {
@@ -102,7 +102,9 @@ export type ProspectSession = {
   discovery: DiscoveryContext;
   consentAcceptedAt?: string;
   evaluation?: EvaluationResult;
-  backendEvaluation?: LeadEvaluationResponse;
+  syncVersion?: number;
+  syncStatus?: "PENDING" | "SYNCED";
+  authoritativeJourney?: CanonicalJourneyResponse;
   createdAt: string;
   updatedAt: string;
 };

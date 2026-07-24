@@ -27,6 +27,7 @@ import type { ProspectSession, ServiceGuidance } from "../domain";
 import type { ProspectContactRequest } from "../handoff";
 import { loadContactRequest } from "../handoff-storage";
 import { getCapacityRange } from "../capacity";
+import type { CanonicalJourneyResponse } from "@/lib/api/leads";
 import {
   PROJECT_REFERENCE_NOTICE,
   PROJECT_VALIDITY_NOTICE,
@@ -98,12 +99,28 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
   }
 
   const evaluation = session.evaluation!;
-  const capacityRange = getCapacityRange(evaluation.capacity.estimatedHousingPayment);
+  const authoritative = session.authoritativeJourney;
+  const capacityRange = getCapacityRange(
+    authoritative?.capacity.estimated_monthly_payment ??
+      evaluation.capacity.estimatedHousingPayment,
+  );
   const capacityDisplay = capacityRange
     ? `${formatCop(capacityRange.minimum)} – ${formatCop(capacityRange.maximum)}`
     : "Por completar";
-  const matchedProjects = resolveProjectMatches(evaluation.projectMatches);
-  const readyForAdvisor = evaluation.route === "ADVISOR_NOW" || evaluation.route === "NON_AFFILIATE_PRIORITY";
+  const projectMatches = authoritative
+    ? authoritative.recommendations.map((recommendation) => ({
+        projectId: recommendation.project_id,
+        score: 100 - recommendation.rank,
+        signals: [],
+        reasons: recommendation.reasons,
+        evidenceSourceIds: [],
+      }))
+    : evaluation.projectMatches;
+  const matchedProjects = resolveProjectMatches(projectMatches);
+  const readyForAdvisor = authoritative
+    ? ["READY_TO_CLOSE", "NON_AFFILIATE_REVIEW"].includes(authoritative.route)
+    : evaluation.route === "ADVISOR_NOW" ||
+      evaluation.route === "NON_AFFILIATE_PRIORITY";
   const actionHref = readyForAdvisor
     ? `/vivienda/agendar?from=orientacion&sessionId=${encodeURIComponent(session.id)}`
     : "#plan-preparacion";
@@ -134,7 +151,11 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
               {session.firstName ? `Tu orientación, ${session.firstName}` : "Tu orientación personalizada"}
             </div>
             <h1 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-.055em] sm:text-6xl">
-              {readyForAdvisor ? "Tu perfil parece listo para avanzar." : preparationTitle(evaluation.route)}
+              {readyForAdvisor
+                ? "Tu perfil parece listo para avanzar."
+                : authoritative?.readiness.level === "INITIAL"
+                  ? "Estás construyendo las condiciones para avanzar."
+                  : preparationTitle(evaluation.route)}
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-[color:var(--vm-color-ink-muted)] sm:text-lg sm:leading-8">
               Organizamos lo que entendimos de tu búsqueda y lo convertimos en
@@ -159,7 +180,8 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
                 : "Completa o fortalece la información financiera para estimar un rango."}
             </p>
             <div className="mt-5 border-t border-[color:var(--vm-color-line)] pt-4 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
-              No constituye aprobación de crédito, subsidio o disponibilidad.
+              {authoritative?.capacity.disclaimer ??
+                "No constituye aprobación de crédito, subsidio o disponibilidad."}
             </div>
           </div>
         </section>
@@ -189,6 +211,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
           <PreparationPlan
             evaluation={evaluation}
             capacityDisplay={capacityDisplay}
+            authoritative={authoritative}
           />
         ) : null}
 
@@ -407,11 +430,16 @@ function ProjectRecommendations({
 function PreparationPlan({
   evaluation,
   capacityDisplay,
+  authoritative,
 }: {
   evaluation: EvaluationResult;
   capacityDisplay: string;
+  authoritative?: CanonicalJourneyResponse;
 }) {
-  const actions = preparationActions(evaluation.route);
+  const plan = authoritative?.nurture_plan;
+  const actions =
+    plan?.milestones.map(({ label }) => label) ??
+    preparationActions(evaluation.route);
   return (
     <section
       id="plan-preparacion"
@@ -432,13 +460,29 @@ function PreparationPlan({
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <PreparationStep
           label="Qué necesitamos fortalecer"
-          value={evaluation.blockers[0] ?? "Completar información para orientar el siguiente paso."}
+          value={
+            plan?.primary_gap ??
+            authoritative?.readiness.blockers[0] ??
+            evaluation.blockers[0] ??
+            "Completar información para orientar el siguiente paso."
+          }
         />
-        <PreparationStep label="Meta para avanzar" value={preparationGoal(evaluation)} />
+        <PreparationStep
+          label="Meta para avanzar"
+          value={
+            plan?.target_amount
+              ? `Construir una meta aproximada de ${formatCop(plan.target_amount)}.`
+              : preparationGoal(evaluation)
+          }
+        />
         <PreparationStep label="Cuota mensual de referencia" value={capacityDisplay} />
         <PreparationStep
           label="Cuándo revisamos nuevamente"
-          value={formatFollowUp(evaluation.followUpAt)}
+          value={
+            plan?.review_date
+              ? formatFollowUp(plan.review_date)
+              : formatFollowUp(evaluation.followUpAt)
+          }
         />
       </div>
 

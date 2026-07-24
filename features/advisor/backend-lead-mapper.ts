@@ -35,7 +35,7 @@ export function mapBackendLeadToQualified(item: LeadListItem): QualifiedLead {
     leadId,
     displayName: item.first_name?.trim() || "Prospecto sin nombre",
     leadSource: item.source.toLowerCase() === "meta" ? "META" : "ORGANIC",
-    capturedAt: item.updated_at,
+    capturedAt: item.qualified_at,
     routeLabel: routeLabelMap[route],
     description: `Oportunidad de ${item.source} · campaña ${item.campaign || "sin campaña"}.`,
     knownProfile: profile,
@@ -43,13 +43,21 @@ export function mapBackendLeadToQualified(item: LeadListItem): QualifiedLead {
     engagementSignals: [
       `Campaña ${item.campaign || "sin campaña"}`,
       `Estado ${item.status}`,
+      ...(item.handoff_requested
+        ? [`Solicitud de contacto ${item.handoff_status ?? "recibida"}`]
+        : []),
     ],
     requiredFields: [],
   };
 
   const evaluation: EvaluationResult = {
     leadId,
-    readinessScore: item.readiness_score ?? 0,
+    readinessScore:
+      item.readiness_level === "HIGH"
+        ? 80
+        : item.readiness_level === "DEVELOPING"
+          ? 55
+          : 25,
     confidenceScore: 0,
     priority,
     route,
@@ -68,8 +76,8 @@ export function mapBackendLeadToQualified(item: LeadListItem): QualifiedLead {
     factors: [],
     blockers: [],
     commercialSummary: "La información ampliada está disponible en el detalle de la oportunidad.",
-    nextAction: "Revisar el detalle para confirmar el siguiente paso.",
-    followUpAt: null,
+    nextAction: item.next_action ?? "Revisar el detalle para confirmar el siguiente paso.",
+    followUpAt: item.review_date,
     advanceCondition: "Completar la revisión del perfil y de los proyectos recomendados.",
   };
 

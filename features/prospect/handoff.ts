@@ -14,7 +14,7 @@ export type ProspectContactRequest = {
   version: 1;
   id: string;
   sessionId: string;
-  leadId: `lead-${string}`;
+  leadId: string;
   channel: ContactChannel;
   timePreference: ContactTimePreference;
   status: ContactRequestStatus;
@@ -102,7 +102,7 @@ export function createContactRequest(input: {
     version: 1,
     id: input.existing?.id ?? `contact-${input.session.id}`,
     sessionId: input.session.id,
-    leadId: evaluation.leadId,
+    leadId: input.session.leadId ?? evaluation.leadId,
     channel: input.preferences.channel,
     timePreference: input.preferences.timePreference,
     status: input.existing?.status ?? "SUBMITTED",

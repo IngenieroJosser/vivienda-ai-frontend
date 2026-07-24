@@ -24,6 +24,7 @@ type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   signal?: AbortSignal;
+  advisorAuth?: boolean;
 };
 
 /**
@@ -34,7 +35,7 @@ export async function apiRequest<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { method = "GET", body, signal } = options;
+  const { method = "GET", body, signal, advisorAuth = false } = options;
   const url = `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
   let response: Response;
@@ -45,6 +46,11 @@ export async function apiRequest<T>(
       headers: {
         Accept: "application/json",
         ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...(advisorAuth && process.env.NEXT_PUBLIC_ADVISOR_ACCESS_TOKEN
+          ? {
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_ADVISOR_ACCESS_TOKEN}`,
+            }
+          : {}),
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });

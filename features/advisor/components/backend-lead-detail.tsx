@@ -5,10 +5,6 @@ import { useState } from "react";
 import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
 import { getHousingProject } from "../../../lib/housing-catalog";
-import {
-  getEvidencePresentation,
-  getReadinessPresentation,
-} from "../../conversation/readiness-presentation";
 import type {
   LeadDetailEvaluation,
   LeadDetailResponse,
@@ -36,6 +32,7 @@ export function BackendLeadDetail({
 }) {
   const [activeTab, setActiveTab] = useState<DetailTab>("SUMMARY");
   const evaluation = detail.evaluation;
+  const journey = detail.journey;
   const tabs: Array<{ value: DetailTab; label: string; icon: Parameters<typeof Icon>[0]["name"] }> = [
     { value: "SUMMARY", label: "Resumen", icon: "document" },
     { value: "PROJECTS", label: "Proyectos", icon: "building" },
@@ -71,18 +68,18 @@ export function BackendLeadDetail({
           </div>
         </div>
 
-        {evaluation ? (
+        {journey ? (
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Metric
               label="Preparación"
-              value={getReadinessPresentation(evaluation.readiness_score).label}
+              value={readinessLabels[journey.readiness.level]}
             />
             <Metric
-              label="Información"
-              value={getEvidencePresentation(evaluation.confidence_score / 100).label}
+              label="Información pendiente"
+              value={`${journey.readiness.missing_fields.length}`}
             />
-            <Metric label="Cuota estimada" value={formatCop(evaluation.capacity.estimated_housing_payment)} />
-            <Metric label="Prioridad" value={priorityLabel(evaluation.priority)} />
+            <Metric label="Cuota estimada" value={formatCop(journey.capacity.estimated_monthly_payment ?? 0)} />
+            <Metric label="Siguiente acción" value={journey.handoff.next_action} />
           </div>
         ) : (
           <div className="surface-warning-soft mt-6 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-warning)]/25 p-4 text-sm text-[color:var(--vm-color-warning)]">
@@ -107,7 +104,7 @@ export function BackendLeadDetail({
       </section>
 
       {activeTab === "SUMMARY" ? <SummaryPanel detail={detail} /> : null}
-      {activeTab === "PROJECTS" ? <RecommendationsPanel recommendations={evaluation?.recommendations ?? []} /> : null}
+      {activeTab === "PROJECTS" ? <RecommendationsPanel recommendations={journey?.recommendations ?? []} /> : null}
       {activeTab === "CONVERSATION" ? <ConversationPanel detail={detail} /> : null}
       {activeTab === "ACTIVITY" ? <ActivityPanel detail={detail} /> : null}
     </div>
@@ -116,6 +113,7 @@ export function BackendLeadDetail({
 
 function SummaryPanel({ detail }: { readonly detail: LeadDetailResponse }) {
   const evaluation = detail.evaluation;
+  const journey = detail.journey;
   return (
     <>
       <section className="surface-solid p-6 sm:p-8">
@@ -140,20 +138,20 @@ function SummaryPanel({ detail }: { readonly detail: LeadDetailResponse }) {
         <KeyValueGrid values={detail.discovery} emptyLabel="Sin discovery registrado" />
       </section>
 
-      {evaluation ? (
+      {journey ? (
         <section className="surface-solid p-6 sm:p-8">
           <SectionHeading title="Evaluación y siguiente paso" description="Resultado sustentado en reglas verificables y la información disponible." />
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
-            <ListBlock title="Motivos de la orientación" values={evaluation.reason_codes} emptyLabel="Sin motivos adicionales" />
-            <ListBlock title="Condiciones pendientes" values={evaluation.blockers} emptyLabel="Sin condiciones pendientes" />
+            <ListBlock title="Factores observables" values={journey.readiness.factors} emptyLabel="Sin factores adicionales" />
+            <ListBlock title="Condiciones pendientes" values={journey.readiness.blockers} emptyLabel="Sin condiciones pendientes" />
           </div>
           <div className="mt-5 rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.04] p-4">
             <div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">Siguiente acción</div>
             <p className="mt-2 text-sm font-semibold leading-6">
-              {evaluation.next_action ?? routeNextAction[evaluation.route]}
+              {journey.handoff.next_action}
             </p>
           </div>
-          <CapacityPanel capacity={evaluation.capacity} />
+          {evaluation ? <CapacityPanel capacity={evaluation.capacity} /> : null}
         </section>
       ) : null}
     </>
@@ -195,7 +193,7 @@ function RecommendationCard({ recommendation }: { readonly recommendation: Proje
           <div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">Opción {recommendation.rank}</div>
           <h3 className="mt-2 text-lg font-semibold">{recommendation.project_name}</h3>
         </div>
-        <Pill tone="blue">{recommendation.score.toFixed(1)}</Pill>
+        <Pill tone="blue">{recommendation.purpose === "MATCH" ? "Coincidencia" : "Referencia"}</Pill>
       </div>
       <ul className="mt-4 space-y-2 text-sm leading-5">
         {recommendation.reasons.map((reason) => <li key={reason}>• {reason}</li>)}
@@ -257,7 +255,6 @@ function ActivityPanel({ detail }: { readonly detail: LeadDetailResponse }) {
           <SectionHeading title="Registro de evaluación" description="Versión de reglas, momento y tiempo de cálculo." />
           <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Fact label="Versión de reglas" value={evaluation.rule_version} />
-            <Fact label="Tiempo de cálculo" value={`${evaluation.latency_ms} ms`} />
             <Fact label="Evaluado" value={formatDate(evaluation.evaluated_at)} />
             <Fact label="Actualizado" value={formatDate(detail.updated_at)} />
           </div>
@@ -368,11 +365,8 @@ function getSafeExternalUrl(value: string): string | null {
   }
 }
 
-const routeNextAction: Record<LeadRoute, string> = {
-  READY_TO_CLOSE: "Iniciar el contacto comercial.",
-  NEEDS_VALIDATION: "Confirmar la información pendiente.",
-  NON_AFFILIATE_REVIEW: "Revisar las alternativas disponibles.",
-  NURTURE: "Continuar el acompañamiento recomendado.",
-  FINANCIAL_PREPARATION: "Revisar el plan de preparación financiera.",
-  OPTED_OUT: "No realizar nuevas acciones de contacto.",
+const readinessLabels = {
+  HIGH: "Preparación alta",
+  DEVELOPING: "En desarrollo",
+  INITIAL: "Etapa inicial",
 };

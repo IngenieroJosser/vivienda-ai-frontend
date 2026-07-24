@@ -47,6 +47,7 @@ describe("lead sync request mapping", () => {
 
     expect(request).toMatchObject({
       session_id: "session-sync-1",
+      session_version: 1,
       first_name: "Prueba",
       status: "ACTIVE",
       consent_accepted_at: "2026-07-24T12:00:01.000Z",
@@ -77,5 +78,6 @@ describe("lead sync request mapping", () => {
         created_at: "2026-07-24T12:01:00.000Z",
       },
     ]);
+    expect(request).not.toHaveProperty("frontend_evaluation");
   });
 });

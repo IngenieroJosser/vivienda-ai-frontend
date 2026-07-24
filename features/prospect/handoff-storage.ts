@@ -1,3 +1,4 @@
+import { updateLeadHandoff } from "@/lib/api/leads";
 import type { ProspectContactRequest } from "./handoff";
 
 const CONTACT_REQUESTS_KEY = "vivienda-match-ai:contact-requests:v1";
@@ -46,4 +47,12 @@ export function saveContactRequest(request: ProspectContactRequest): void {
   window.dispatchEvent(
     new CustomEvent("vivienda-match:contact-request", { detail: request }),
   );
+  void updateLeadHandoff(request.leadId, {
+    channel: request.channel,
+    time_preference: request.timePreference,
+    project_ids: request.projectIds,
+    requested_at: request.createdAt,
+  }).catch(() => {
+    // La copia local conserva la solicitud para un reintento posterior.
+  });
 }

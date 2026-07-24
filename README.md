@@ -64,17 +64,43 @@ npm run build
 
 ## Integración con servicios
 
-La URL base se configura mediante `NEXT_PUBLIC_API_URL`. Los recorridos
-conectados usan actualmente:
+La URL base se configura mediante `NEXT_PUBLIC_API_URL`. Durante la
+demostración, las vistas internas también requieren
+`NEXT_PUBLIC_ADVISOR_ACCESS_TOKEN`. Puede generarse desde el backend:
 
-- `POST /leads/sync` para conservar la sesión y obtener su evaluación.
+```powershell
+python -m app.cli issue-token --sub advisor-demo --role ADVISOR --minutes 480
+```
+
+El token firmado es únicamente para la demostración local y expira. En una
+integración productiva debe obtenerse después de autenticar al asesor, no
+incorporarse al bundle público. Los recorridos conectados usan actualmente:
+
+- `POST /leads/sync` para conservar una versión de la sesión y obtener el
+  resultado canónico.
+- `POST /leads/{id}/handoff` para persistir la solicitud y preferencia de
+  contacto.
+- `PUT /leads/{id}/nurture` para persistir hitos y estado del acompañamiento.
 - `GET /leads` para alimentar la bandeja comercial.
 - `GET /leads/{id}` para consultar perfil, conversación, recomendaciones y
   trazabilidad.
 
+Las rutas de asesor y acompañamiento envían Bearer Token; la sincronización y
+la solicitud inicial de contacto permanecen públicas.
+
 La sesión se guarda primero en el dispositivo. La sincronización ocurre en
 segundo plano y no bloquea la conversación. Si el servicio no está disponible,
-la interfaz mantiene los datos locales y presenta estados recuperables.
+la interfaz mantiene los datos locales y presenta estados recuperables. Cuando
+el backend responde, su nivel, ruta, capacidad, plan y recomendaciones son la
+fuente autoritativa para la presentación.
+
+Los contratos TypeScript se generan desde el OpenAPI versionado del backend:
+
+```bash
+npm run api:types
+```
+
+El resultado se conserva en `lib/api/generated.ts`; no debe editarse a mano.
 
 ## Arquitectura
 

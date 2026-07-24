@@ -29,6 +29,7 @@ function createSession(id = "storage-sync-1") {
 
 function installLocalStorage() {
   const values = new Map<string, string>();
+  const listeners = new Map<string, Array<() => void>>();
   const localStorage = {
     getItem: (key: string) => values.get(key) ?? null,
     setItem: (key: string, value: string) => values.set(key, value),
@@ -39,41 +40,50 @@ function installLocalStorage() {
       localStorage,
       setTimeout,
       clearTimeout,
+      addEventListener: (type: string, listener: () => void) => {
+        listeners.set(type, [...(listeners.get(type) ?? []), listener]);
+      },
     },
   });
-  return values;
+  return {
+    values,
+    dispatch: (type: string) => {
+      for (const listener of listeners.get(type) ?? []) listener();
+      listeners.delete(type);
+    },
+  };
 }
 
 function syncResponse(sessionId: string): SessionSyncResponse {
   return {
     lead_id: "server-lead-1",
     session_id: sessionId,
+    session_version: 1,
     persisted: true,
-    evaluation: {
-      lead_id: "server-lead-1",
-      readiness_score: 74,
-      confidence_score: 80,
-      route: "NEEDS_VALIDATION",
-      priority: "MEDIUM",
-      reason_codes: ["PROFILE_INCOMPLETE"],
+    readiness: {
+      level: "DEVELOPING",
+      factors: ["Información parcial confirmada"],
       blockers: ["MISSING_INCOME"],
-      next_action: "Completar perfil",
-      capacity: {
-        monthly_income_estimate: 0,
-        commitment_ratio: 0,
-        maximum_housing_ratio: 0,
-        estimated_housing_payment: 0,
-        status: "UNKNOWN",
-      },
-      recommendations: [],
-      latency_ms: 12,
-      audit: {
-        rule_version: "rules-1.1.0",
-        model_version: "affinity-1.0.0",
-        prompt_version: "conversation-1.0.0",
-        evaluated_at: "2026-07-24T12:00:02.000Z",
-      },
+      missing_fields: ["Ingresos del hogar"],
     },
+    route: "NEEDS_VALIDATION",
+    capacity: {
+      estimated_amount: null,
+      estimated_monthly_payment: null,
+      disclaimer: "Estimación orientativa.",
+    },
+    nurture_plan: null,
+    recommendations: [],
+    handoff: {
+      requested: false,
+      status: "NOT_REQUESTED",
+      channel: null,
+      time_preference: null,
+      requested_at: null,
+      project_ids: [],
+      next_action: "Completar perfil",
+    },
+    evaluated_at: "2026-07-24T12:00:02.000Z",
   };
 }
 
@@ -109,7 +119,7 @@ describe("prospect session backend sync", () => {
     expect(stored).toMatchObject({
       leadId: "server-lead-1",
       evaluation: localEvaluation,
-      backendEvaluation: {
+      authoritativeJourney: {
         route: "NEEDS_VALIDATION",
         recommendations: [],
       },
@@ -124,7 +134,11 @@ describe("prospect session backend sync", () => {
     saveProspectSession(session);
     await flushPromises();
 
-    expect(loadProspectSession(session.id)).toEqual(session);
+    expect(loadProspectSession(session.id)).toEqual({
+      ...session,
+      syncVersion: 1,
+      syncStatus: "PENDING",
+    });
   });
 
   it("does not send session data before consent is accepted", async () => {
@@ -140,6 +154,32 @@ describe("prospect session backend sync", () => {
 
     expect(loadProspectSession(session.id)).toEqual(session);
     expect(syncProspectSession).not.toHaveBeenCalled();
+  });
+
+  it("retries a pending snapshot when connectivity returns", async () => {
+    const browser = installLocalStorage();
+    const session = createSession("storage-recovery-1");
+    syncProspectSession
+      .mockRejectedValueOnce(new Error("backend unavailable"))
+      .mockResolvedValueOnce(syncResponse(session.id));
+
+    saveProspectSession(session);
+    await flushPromises();
+    expect(loadProspectSession(session.id)).toMatchObject({
+      syncStatus: "PENDING",
+    });
+
+    browser.dispatch("online");
+    await flushPromises();
+
+    expect(syncProspectSession).toHaveBeenCalledTimes(2);
+    expect(loadProspectSession(session.id)).toMatchObject({
+      leadId: "server-lead-1",
+      syncStatus: "SYNCED",
+      authoritativeJourney: {
+        session_id: session.id,
+      },
+    });
   });
 });
 
