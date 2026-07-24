@@ -1,4 +1,5 @@
 import type { ProspectSession } from "./domain";
+import { queueProspectBackendSync } from "./backend-sync";
 
 const SESSIONS_KEY = "vivienda-match-ai:prospect-sessions:v5";
 
@@ -22,6 +23,13 @@ export function getStoredProspectSessions(): ProspectSession[] {
 }
 
 export function saveProspectSession(session: ProspectSession): void {
+  writeProspectSession(session);
+  queueProspectBackendSync(session, (updated) => {
+    if (updated !== session) writeProspectSession(updated);
+  });
+}
+
+function writeProspectSession(session: ProspectSession): void {
   const sessions = readSessions().filter((stored) => stored.id !== session.id);
   window.localStorage.setItem(SESSIONS_KEY, JSON.stringify([session, ...sessions].slice(0, 12)));
 }
