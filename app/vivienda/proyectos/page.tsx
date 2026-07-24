@@ -1,9 +1,10 @@
-import { housingProjects } from "@/lib/housing-catalog";
+import { getHousingProjectsFromBackend } from "@/lib/housing-catalog/data-source";
 import { Icon } from "@/components/icon";
 import { AnimatedHeroBackground } from "@/components/animated-hero-background";
 import { ProjectCatalog } from "@/components/project-catalog";
 
-export default function ProyectosPage() {
+export default async function ProyectosPage() {
+  const projects = await getHousingProjectsFromBackend();
   return (
     <main className="mx-auto max-w-[1460px] px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
       <section className="projects-hero surface-solid relative overflow-hidden px-6 py-9 sm:px-9 lg:px-11">
@@ -23,7 +24,7 @@ export default function ProyectosPage() {
           <div className="mt-7 flex flex-wrap gap-3 text-xs font-semibold text-[color:var(--vm-color-ink-muted)]">
             <span className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 shadow-sm">
               <Icon name="check" className="h-4 w-4 text-[color:var(--vm-color-success)]" />
-              {housingProjects.length} proyectos documentados
+              {projects.length} proyectos documentados
             </span>
             <span className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 shadow-sm">
               <Icon name="eye" className="h-4 w-4 text-[color:var(--vm-color-brand-blue)]" />
@@ -32,7 +33,7 @@ export default function ProyectosPage() {
           </div>
         </div>
       </section>
-      <ProjectCatalog projects={housingProjects} />
+      <ProjectCatalog projects={projects} />
     </main>
   );
 }
