@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = "http://localhost:8000/api/v1";
+const DEFAULT_BASE_URL = "http://localhost:3001/api/v1";
 
 /**
  * Base URL del backend. Se configura con `NEXT_PUBLIC_API_URL` en `.env.local`.

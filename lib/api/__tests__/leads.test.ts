@@ -25,7 +25,7 @@ describe("getLead", () => {
     await expect(getLead("lead/with spaces")).resolves.toEqual(leadDetail);
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:8000/api/v1/leads/lead%2Fwith%20spaces",
+      "http://localhost:3001/api/v1/leads/lead%2Fwith%20spaces",
       expect.objectContaining({ method: "GET" }),
     );
   });

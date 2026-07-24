@@ -19,7 +19,7 @@ Requisitos:
 Crea `.env.local`:
 
 ```dotenv
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 ```
 
 Luego ejecuta:
