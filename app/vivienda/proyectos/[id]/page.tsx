@@ -108,11 +108,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   return (
     <main className="project-detail-page mx-auto max-w-[1300px] px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
       <StructuredData data={structuredData} />
-      <Link href="/vivienda/proyectos" className="inline-flex items-center gap-2 rounded-full border border-[color:var(--vm-color-line)] bg-white px-3.5 py-2 text-[10px] font-bold text-[color:var(--vm-color-brand-blue)] shadow-sm"><Icon name="arrow" className="h-3.5 w-3.5 rotate-180" />Volver a proyectos</Link>
+      <Link href="/vivienda/proyectos" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[color:var(--vm-color-line)] bg-white px-4 py-2 text-xs font-bold text-[color:var(--vm-color-brand-blue)] shadow-sm"><Icon name="arrow" className="h-3.5 w-3.5 rotate-180" />Volver a proyectos</Link>
 
       <header className="mt-7 grid gap-6 border-b border-[color:var(--vm-color-line)] pb-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
         <div>
-          <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.13em] text-[color:var(--vm-color-brand-blue)]">
+          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
             <Icon name="location" className="h-4 w-4" />
             {project.location.city} · {project.location.department}
           </div>
@@ -124,10 +124,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </p>
         </div>
         <div className="flex flex-wrap gap-2 lg:justify-end">
-          <Pill tone="yellow">Material comercial aprobado</Pill>
+          <Pill tone="yellow">Información oficial</Pill>
           <Pill tone="blue">{getHousingTypeLabel(project.housingType)}</Pill>
           {availableTours.length ? (
-            <span className="inline-flex min-h-8 items-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/15 bg-white px-3 text-[10px] font-bold text-[color:var(--vm-color-brand-blue)]">
+            <span className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[color:var(--vm-color-brand-blue)]/15 bg-white px-3 text-xs font-bold text-[color:var(--vm-color-brand-blue)]">
               <Icon name="eye" className="h-3.5 w-3.5" />
               {availableTours.length === 1
                 ? "Recorrido virtual"
@@ -143,23 +143,23 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <section className="space-y-5">
           <section className="surface-solid p-6 sm:p-8">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="text-[10px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
+              <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
                 Sobre el proyecto
               </div>
             </div>
             <p className="mt-5 text-base leading-7 text-[color:var(--vm-color-ink-muted)]">{project.summary}</p>
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">{project.features.map((feature) => <div key={feature} className="flex items-center gap-3 rounded-[15px] border border-[color:var(--vm-color-line)] p-3.5 text-sm font-semibold"><Icon name="check" className="h-4 w-4 shrink-0 text-[color:var(--vm-color-success)]" />{feature}</div>)}</div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">{project.features.map((feature) => <div key={feature} className="flex items-center gap-3 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] p-3.5 text-sm font-semibold"><Icon name="check" className="h-4 w-4 shrink-0 text-[color:var(--vm-color-success)]" />{feature}</div>)}</div>
           </section>
           <section className="surface-solid p-6 sm:p-8">
             <h2 className="text-lg font-semibold">Tipologías construidas</h2>
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              {project.typologies.map((typology) => <div key={typology.id} className="rounded-[15px] border border-[color:var(--vm-color-line)] p-4"><div className="text-xs text-[color:var(--vm-color-ink-muted)]">{typology.label}</div><div className="mt-2 text-lg font-bold">{formatTypologyArea(typology.builtAreaM2)}</div></div>)}
+              {project.typologies.map((typology) => <div key={typology.id} className="rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] p-4"><div className="text-xs text-[color:var(--vm-color-ink-muted)]">{typology.label}</div><div className="mt-2 text-lg font-bold">{formatTypologyArea(typology.builtAreaM2)}</div></div>)}
             </div>
           </section>
         </section>
         <aside className="space-y-5 xl:sticky xl:top-24 xl:self-start">
           <section className="surface-card p-6">
-            <div className="text-[10px] uppercase tracking-[.12em] text-[color:var(--vm-color-ink-muted)]">Información del proyecto</div>
+            <div className="text-xs font-semibold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">Información del proyecto</div>
             <div className="mt-5 space-y-3 text-xs">
               {[
                 ["Precio desde", formatProjectPrice(project)],
@@ -174,7 +174,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 ["Entrega", getValidityLabel(project.deliveryDate.validity)],
               ].map(([label, value]) => <div key={label} className="flex justify-between gap-4"><span className="text-[color:var(--vm-color-ink-muted)]">{label}</span><b className="text-right">{value}</b></div>)}
             </div>
-            <div className="mt-5 border-t border-[color:var(--vm-color-line)] pt-4 text-[10px] leading-5 text-[color:var(--vm-color-ink-muted)]">
+            <div className="mt-5 border-t border-[color:var(--vm-color-line)] pt-4 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
               <div>{getValidityLabel(project.priceFromCop.validity)} · verificado {formatVerificationDate(project.priceFromCop.verifiedAt)}</div>
               {officialSource?.url ? <a href={officialSource.url} target="_blank" rel="noreferrer" className="font-semibold text-[color:var(--vm-color-brand-blue)] underline-offset-4 hover:underline">{officialSource.title}</a> : null}
             </div>

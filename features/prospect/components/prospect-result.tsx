@@ -143,7 +143,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
           </div>
           <div className="orientation-capacity-card p-6 sm:p-7">
             <div className="flex items-center justify-between gap-4">
-              <div className="text-[10px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
+              <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
                 Cuota mensual orientativa
               </div>
               <span className="grid h-10 w-10 place-items-center rounded-full bg-[color:var(--vm-color-brand-yellow)]/30 text-[color:var(--vm-color-brand-blue)]">
@@ -158,7 +158,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
                 ? "Rango prudente estimado a partir de la información disponible."
                 : "Completa o fortalece la información financiera para estimar un rango."}
             </p>
-            <div className="mt-5 border-t border-[color:var(--vm-color-line)] pt-4 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">
+            <div className="mt-5 border-t border-[color:var(--vm-color-line)] pt-4 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
               No constituye aprobación de crédito, subsidio o disponibilidad.
             </div>
           </div>
@@ -196,7 +196,7 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
           <ProjectRecommendations matches={matchedProjects} readyForAdvisor={false} />
         ) : null}
 
-        <section className="result-reveal result-reveal--4 mt-8 overflow-hidden rounded-[32px] bg-[linear-gradient(125deg,var(--vm-color-brand-yellow),var(--vm-color-brand-yellow-soft)_48%,var(--vm-color-orientation-wash))] p-7 shadow-[0_26px_76px_rgba(0,79,140,.13)] sm:flex sm:items-end sm:justify-between sm:gap-8 sm:p-10">
+        <section className="surface-result-action result-reveal result-reveal--4 mt-8 overflow-hidden rounded-[var(--vm-radius-elevated)] p-7 sm:flex sm:items-end sm:justify-between sm:gap-8 sm:p-10">
           <div>
             <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
               {contactRequest ? "Solicitud en proceso" : "Tu siguiente acción"}
@@ -284,7 +284,7 @@ function ServiceGuidanceResult({
           />
         </section>
 
-        <section className="result-reveal result-reveal--4 mt-8 rounded-[32px] bg-[linear-gradient(125deg,var(--vm-color-brand-yellow),var(--vm-color-brand-yellow-soft)_48%,var(--vm-color-orientation-wash))] p-7 shadow-[0_26px_76px_rgba(0,79,140,.13)] sm:p-10">
+        <section className="surface-result-action result-reveal result-reveal--4 mt-8 rounded-[var(--vm-radius-elevated)] p-7 sm:p-10">
           <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
             Siguiente paso
           </div>
@@ -292,8 +292,8 @@ function ServiceGuidanceResult({
             {guidance.nextAction}
           </h2>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
-            Esta demostración guarda la orientación únicamente en este dispositivo
-            y no crea una solicitud real en los canales de servicio.
+            Tu avance se guarda únicamente en este dispositivo. Para iniciar una
+            solicitud en los canales de servicio deberás confirmar el siguiente paso.
           </p>
         </section>
       </main>
@@ -330,7 +330,7 @@ function ResultTransition() {
     <div className="orientation-experience grid min-h-screen place-items-center px-5">
       <section className="result-transition max-w-2xl text-center" role="status" aria-live="polite">
         <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-white shadow-[var(--vm-shadow-medium)]">
-          <span className="block h-3 w-3 rounded-full bg-[color:var(--vm-color-brand-yellow)] shadow-[0_0_0_8px_rgba(255,208,0,.18)]" />
+          <span className="block h-3 w-3 rounded-full bg-[color:var(--vm-color-brand-yellow)] shadow-[var(--vm-shadow-accent)]" />
         </div>
         <div className="mt-7 text-[11px] font-bold uppercase tracking-[.14em] text-[color:var(--vm-color-brand-blue)]">
           Construyendo tu ruta
@@ -362,7 +362,7 @@ function buildProfileSummary(evaluation: EvaluationResult): Array<{ label: strin
 }
 
 function Understanding({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.04] p-4"><div className="text-[10px] font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">{label}</div><div className="mt-2 text-sm font-semibold leading-5">{value}</div></div>;
+  return <div className="rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.04] p-4"><div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">{label}</div><div className="mt-2 text-sm font-semibold leading-5">{value}</div></div>;
 }
 
 function BenefitPanel({ title, items, empty, tone }: { title: string; items: string[]; empty: string; tone: "success" | "warning" }) {
@@ -479,14 +479,14 @@ function ProspectProject({ project, match }: { project: HousingProject; match: P
         />
         <div className="absolute inset-x-5 bottom-5 z-10 flex items-end justify-between gap-4 text-white">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-[.12em] text-white/80">
+            <div className="text-xs font-bold uppercase tracking-[.1em] text-white/80">
               {project.location.city} · {project.location.department}
             </div>
             <h3 className="mt-1 text-2xl font-semibold tracking-[-.035em]">
               {project.name}
             </h3>
           </div>
-          <span className="rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold text-[color:var(--vm-color-brand-blue)]">
+          <span className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-[color:var(--vm-color-brand-blue)]">
             Recomendado
           </span>
         </div>
@@ -527,8 +527,8 @@ function ProspectProject({ project, match }: { project: HousingProject; match: P
             </strong>
           </div>
         </div>
-        <p className="mt-3 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">
-          {priceSource?.title ?? "Material comercial aprobado"} · verificado{" "}
+        <p className="mt-3 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
+          {priceSource?.title ?? "Información oficial del proyecto"} · verificado{" "}
           {formatVerificationDate(project.priceFromCop.verifiedAt)}.
         </p>
         <div className="mt-5 text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-success)]">

@@ -389,7 +389,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
           <div className="orientation-chat-aside">
             <HousingWindow compact />
             <div className="px-2 pt-7">
-              <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.14em] text-[color:var(--vm-color-brand-blue)]">
+              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--vm-color-brand-yellow)]" />
                 Conversación a tu ritmo
               </div>
@@ -429,11 +429,11 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
           <section className="orientation-chat-intro">
             <div className="relative z-10">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.14em] text-[color:var(--vm-color-brand-blue)]">
+                <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
                   <Icon name="home" className="h-4 w-4" />
                   Tu orientación de vivienda
                 </div>
-                <span className="inline-flex items-center gap-2 text-[10px] font-bold text-[color:var(--vm-color-success)]">
+                <span className="inline-flex items-center gap-2 text-xs font-bold text-[color:var(--vm-color-success)]">
                   <span className="h-2 w-2 rounded-full bg-[color:var(--vm-color-success)]" />
                   Avance guardado
                 </span>
@@ -463,11 +463,11 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
             <div className="orientation-thread-shell__header">
               <div>
                 <div className="text-xs font-bold">Vivienda Colsubsidio</div>
-                <div className="mt-0.5 text-[10px] text-[color:var(--vm-color-ink-muted)]">
+                <div className="mt-0.5 text-xs text-[color:var(--vm-color-ink-muted)]">
                   Orientación personalizada
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[color:var(--vm-color-ink-muted)]">
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--vm-color-ink-muted)]">
                 <Icon name="lock" className="h-3.5 w-3.5" />
                 Conversación protegida
               </span>
@@ -519,10 +519,10 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
           <div className="hidden lg:block" aria-hidden="true" />
           <div className="orientation-composer__content">
           <div className="mb-2 hidden items-center justify-between px-2 sm:flex">
-            <span className="text-[10px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
+            <span className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
               Cuéntanos con tus palabras
             </span>
-            <span className="text-[10px] text-[color:var(--vm-color-ink-muted)]">
+            <span className="text-xs text-[color:var(--vm-color-ink-muted)]">
               Enter para enviar · Shift + Enter para nueva línea
             </span>
           </div>
@@ -568,13 +568,13 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
                     ? "Escribe lo que buscas, necesitas o te preocupa…"
                     : "Espera la respuesta…"
                 }
-                className="orientation-textarea prospect-textarea min-h-[56px] resize-none rounded-[20px] border-0 bg-transparent px-4 py-3.5 text-base leading-6 outline-none disabled:opacity-70"
+                className="orientation-textarea prospect-textarea min-h-[56px] resize-none rounded-[var(--vm-radius-card)] border-0 bg-transparent px-4 py-3.5 text-base leading-6 outline-none disabled:opacity-70"
               />
-              <div className="mt-1 min-h-4 px-2 text-right text-[10px]">
+              <div className="mt-1 min-h-4 px-2 text-right text-xs">
                 {chatState.phase === "idle" &&
                 "validationError" in chatState &&
                 chatState.validationError ? (
-                  <span role="alert" className="float-left text-rose-700">
+                  <span role="alert" className="float-left text-[color:var(--vm-color-error)]">
                     {chatState.validationError}
                   </span>
                 ) : null}
@@ -582,7 +582,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
                   <span
                     className={
                       message.length >= CHAT_MESSAGE_MAX_LENGTH
-                        ? "text-rose-700"
+                        ? "text-[color:var(--vm-color-error)]"
                         : "text-[color:var(--vm-color-ink-muted)]"
                     }
                   >
@@ -605,7 +605,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
               <Icon name="arrow" className="h-4 w-4" />
             </button>
           </form>
-          <div className="mt-1.5 flex items-center justify-between gap-3 px-2 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">
+          <div className="mt-1.5 flex items-center justify-between gap-3 px-2 text-xs leading-4 text-[color:var(--vm-color-ink-muted)]">
             <span className="inline-flex items-center gap-1.5">
               <Icon name="info" className="h-3.5 w-3.5" />
               Orientación preliminar
@@ -657,9 +657,9 @@ function ConsentLayer({
         role="dialog"
         aria-modal="true"
         aria-labelledby="consent-title"
-        className="orientation-consent-card w-full rounded-[32px] bg-white p-6 shadow-[var(--vm-shadow-high)] sm:p-9"
+        className="orientation-consent-card w-full rounded-[var(--vm-radius-elevated)] bg-white p-6 shadow-[var(--vm-shadow-high)] sm:p-9"
       >
-        <div className="inline-flex items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-yellow)]/25 px-3 py-2 text-[10px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue-deep)]">
+        <div className="inline-flex items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-yellow)]/25 px-3 py-2 text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue-deep)]">
           <Icon name="shield" className="h-4 w-4" />
           Antes de conversar
         </div>
@@ -677,14 +677,14 @@ function ConsentLayer({
             ["money", "Estimar", "Un rango responsable"],
             ["target", "Orientar", "Tu siguiente paso"],
           ].map(([icon, title, detail]) => (
-            <div key={title} className="rounded-[18px] bg-[color:var(--vm-color-brand-blue)]/[.045] p-4">
+            <div key={title} className="rounded-[var(--vm-radius-card)] bg-[color:var(--vm-color-brand-blue)]/[.045] p-4">
               <Icon name={icon as Parameters<typeof Icon>[0]["name"]} className="h-4 w-4 text-[color:var(--vm-color-brand-blue)]" />
               <div className="mt-3 text-xs font-bold">{title}</div>
-              <div className="mt-1 text-[10px] leading-4 text-[color:var(--vm-color-ink-muted)]">{detail}</div>
+              <div className="mt-1 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">{detail}</div>
             </div>
           ))}
         </div>
-        <label className={`mt-5 flex cursor-pointer items-start gap-3 rounded-[18px] border p-4 transition ${checked ? "border-[color:var(--vm-color-brand-blue)] bg-[color:var(--vm-color-brand-blue)]/[.045]" : "border-[color:var(--vm-color-line)]"}`}>
+        <label className={`mt-5 flex cursor-pointer items-start gap-3 rounded-[var(--vm-radius-card)] border p-4 transition ${checked ? "border-[color:var(--vm-color-brand-blue)] bg-[color:var(--vm-color-brand-blue)]/[.045]" : "border-[color:var(--vm-color-line)]"}`}>
           <input
             type="checkbox"
             checked={checked}
@@ -740,7 +740,7 @@ function AssistantMessage({
         animate ? "prospect-message-left" : ""
       }`}
     >
-      <div className="mb-2.5 flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
+      <div className="mb-2.5 flex items-center gap-2.5 text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">
         <span className="orientation-message__brand grid h-7 w-7 place-items-center rounded-full">
           <Icon name="home" className="h-3.5 w-3.5" />
         </span>
@@ -759,7 +759,7 @@ function UserMessage({ children }: { children: React.ReactNode }) {
       <div className="orientation-user-bubble whitespace-pre-line px-5 py-4 text-[15px] font-semibold leading-7 text-white">
         {children}
       </div>
-      <div className="mt-1.5 flex items-center justify-end gap-1 text-[10px] text-[color:var(--vm-color-ink-muted)]">
+      <div className="mt-1.5 flex items-center justify-end gap-1 text-xs text-[color:var(--vm-color-ink-muted)]">
         <Icon
           name="check"
           className="h-3 w-3 text-[color:var(--vm-color-success)]"
@@ -786,7 +786,7 @@ function PendingUserMessage({
       <div
         className={`orientation-user-bubble whitespace-pre-line px-5 py-4 text-[15px] font-semibold leading-7 text-white ${
           delivery === "failed"
-            ? "bg-rose-700"
+            ? "bg-[color:var(--vm-color-error)]"
             : "bg-[color:var(--vm-color-brand-blue)]"
         }`}
       >
@@ -794,9 +794,9 @@ function PendingUserMessage({
       </div>
       <div
         role={delivery === "failed" ? "alert" : "status"}
-        className={`mt-1.5 flex items-center justify-end gap-2 text-[10px] ${
+        className={`mt-1.5 flex items-center justify-end gap-2 text-xs ${
           delivery === "failed"
-            ? "text-rose-700"
+            ? "text-[color:var(--vm-color-error)]"
             : "text-[color:var(--vm-color-ink-muted)]"
         }`}
       >
@@ -811,7 +811,7 @@ function PendingUserMessage({
           <button
             type="button"
             onClick={onRetry}
-            className="min-h-8 rounded-full border border-rose-200 bg-white px-3 font-bold"
+            className="min-h-8 rounded-full border border-[color:var(--vm-color-error)]/20 bg-white px-3 font-bold"
           >
             Reintentar
           </button>
@@ -824,7 +824,7 @@ function PendingUserMessage({
 function TypingIndicator() {
   return (
     <div className="prospect-message-left w-fit" role="status">
-      <div className="mb-2 flex items-center gap-2 text-[10px] font-bold text-[color:var(--vm-color-brand-blue)]">
+      <div className="mb-2 flex items-center gap-2 text-xs font-bold text-[color:var(--vm-color-brand-blue)]">
         <span className="orientation-message__brand grid h-6 w-6 place-items-center rounded-full">
           <Icon name="home" className="h-3 w-3" />
         </span>
@@ -891,7 +891,7 @@ function PublicState({
         <span
           className={`mx-auto grid h-12 w-12 place-items-center rounded-full ${
             tone === "error"
-              ? "bg-rose-50 text-rose-700"
+              ? "bg-[color:var(--vm-color-error-soft)] text-[color:var(--vm-color-error)]"
               : "bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]"
           }`}
         >

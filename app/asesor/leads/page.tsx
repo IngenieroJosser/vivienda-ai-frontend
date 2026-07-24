@@ -3,7 +3,7 @@ import { CommercialDashboard } from "@/features/advisor/components/commercial-da
 
 export default function LeadsPage() {
   return (
-    <PortalShell role="asesor" title="Bandeja comercial" subtitle="Solo oportunidades calificadas y listas para atención humana. Los prospectos en preparación permanecen en Acompañamiento.">
+    <PortalShell role="asesor" title="Bandeja comercial" subtitle="Oportunidades preparadas para atención humana. Los prospectos que aún tienen una condición pendiente permanecen en Acompañamiento.">
       <CommercialDashboard fullInbox />
     </PortalShell>
   );

@@ -134,10 +134,10 @@ export function CommercialActions({ leadId }: { leadId: string }) {
   }
 
   return (
-    <section className="rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/20 bg-[linear-gradient(145deg,#eef8ff,#fffdf0)] p-6 shadow-[var(--vm-shadow-medium)]">
+    <section className="surface-guidance rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/20 p-6 shadow-[var(--vm-shadow-medium)]">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-[.13em] text-[color:var(--vm-color-brand-blue)]">
+          <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
             Gestión comercial
           </div>
           <h2 className="mt-2 text-xl font-semibold">
@@ -153,7 +153,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
       </div>
 
       {status === "ERROR" ? (
-        <div role="alert" className="mt-4 rounded-[var(--vm-radius-control)] border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+        <div role="alert" className="mt-4 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-error)]/20 bg-[color:var(--vm-color-error-soft)] p-3 text-xs text-[color:var(--vm-color-error)]">
           La acción quedó pendiente en esta pantalla y no se guardó localmente.
           <button type="button" onClick={retry} className="ml-2 font-bold underline">Intentar nuevamente</button>
         </div>
@@ -184,7 +184,8 @@ export function CommercialActions({ leadId }: { leadId: string }) {
               <div>
                 <strong>Contacta al prospecto</strong>
                 <p>
-                  En esta demostración el contacto ocurre fuera del sistema.
+                  El contacto se realiza fuera de este portal y debe registrarse aquí
+                  para conservar la trazabilidad de la oportunidad.
                   Regístralo cuando haya finalizado.
                 </p>
               </div>
@@ -258,7 +259,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
             state.activities.map((activity) => (
               <div key={activity.id} className="border-l-2 border-[color:var(--vm-color-brand-blue)]/20 pl-3">
                 <p className="text-xs leading-5">{activity.description}</p>
-                <time className="text-[9px] text-[color:var(--vm-color-ink-muted)]">
+                <time className="text-[11px] text-[color:var(--vm-color-ink-muted)]">
                   {formatDate(activity.occurredAt)}
                 </time>
               </div>

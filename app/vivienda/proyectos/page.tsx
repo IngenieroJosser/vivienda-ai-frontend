@@ -52,7 +52,7 @@ export default async function ProyectosPage() {
           <div className="mt-7 flex flex-wrap gap-3 text-xs font-semibold text-[color:var(--vm-color-ink-muted)]">
             <span className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 shadow-sm">
               <Icon name="check" className="h-4 w-4 text-[color:var(--vm-color-success)]" />
-              {projects.length} proyectos documentados
+              {projects.length} proyectos para conocer
             </span>
             <span className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 shadow-sm">
               <Icon name="eye" className="h-4 w-4 text-[color:var(--vm-color-brand-blue)]" />

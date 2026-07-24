@@ -75,7 +75,7 @@ function ProjectTile({
       />
       <span
         aria-hidden="true"
-        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,79,140,0)_38%,rgba(0,79,140,.78)_100%)]"
+        className="media-readable-overlay absolute inset-0"
       />
       <span className={`absolute inset-x-0 bottom-0 z-10 text-white ${compact ? "p-4 sm:p-5" : "p-5 sm:p-8"}`}>
         <span className="block text-[11px] font-bold uppercase tracking-[.08em] text-white/78">

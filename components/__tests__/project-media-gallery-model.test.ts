@@ -4,6 +4,9 @@ import { isAllowedProjectEmbed } from "../../lib/housing-catalog/embed";
 import {
   createProjectGalleryImages,
   createProjectResources,
+  getCenteredSlideOffset,
+  getClosestSlideIndex,
+  getHorizontalSwipeDirection,
 } from "../project-media-gallery-model";
 
 describe("project media gallery model", () => {
@@ -129,5 +132,64 @@ describe("project media gallery model", () => {
       const resources = createProjectResources(getHousingProject(projectId)!);
       expect(resources.every(({ url }) => isAllowedProjectEmbed(url))).toBe(true);
     }
+  });
+
+  it("centers a requested slide without coupling it to the observed index", () => {
+    expect(
+      getCenteredSlideOffset({
+        trackWidth: 360,
+        slideOffset: 340,
+        slideWidth: 316,
+      }),
+    ).toBe(318);
+  });
+
+  it("resolves the closest slide while the user scrolls", () => {
+    expect(
+      getClosestSlideIndex({
+        scrollLeft: 300,
+        trackWidth: 360,
+        slides: [
+          { offset: 40, width: 316 },
+          { offset: 366, width: 316 },
+          { offset: 692, width: 316 },
+        ],
+      }),
+    ).toBe(1);
+  });
+
+  it("accepts intentional horizontal swipes and ignores vertical movement", () => {
+    expect(
+      getHorizontalSwipeDirection({
+        startX: 280,
+        startY: 240,
+        endX: 190,
+        endY: 247,
+      }),
+    ).toBe("NEXT");
+    expect(
+      getHorizontalSwipeDirection({
+        startX: 120,
+        startY: 240,
+        endX: 205,
+        endY: 235,
+      }),
+    ).toBe("PREVIOUS");
+    expect(
+      getHorizontalSwipeDirection({
+        startX: 200,
+        startY: 180,
+        endX: 170,
+        endY: 80,
+      }),
+    ).toBeNull();
+    expect(
+      getHorizontalSwipeDirection({
+        startX: 200,
+        startY: 180,
+        endX: 170,
+        endY: 185,
+      }),
+    ).toBeNull();
   });
 });

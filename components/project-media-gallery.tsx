@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import {
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -13,6 +12,8 @@ import { Icon } from "./icon";
 import {
   createProjectGalleryImages,
   createProjectResources,
+  getCenteredSlideOffset,
+  getClosestSlideIndex,
 } from "./project-media-gallery-model";
 import { useProjectResourceConnectionHints } from "./use-project-resource-connection-hints";
 import type { ProjectResource } from "./project-media-gallery-model";
@@ -47,27 +48,36 @@ export function ProjectMediaGallery({
   const [activeResource, setActiveResource] =
     useState<ProjectResource | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const dragStartXRef = useRef<number | null>(null);
+  const didDragRef = useRef(false);
   const image = images[activeIndex] ?? images[0];
   useProjectResourceConnectionHints(resources);
-  const showPrevious = useCallback(() => {
-    setActiveIndex((current) => (current - 1 + images.length) % images.length);
-  }, [images.length]);
-  const showNext = useCallback(() => {
-    setActiveIndex((current) => (current + 1) % images.length);
-  }, [images.length]);
 
-  useEffect(() => {
+  const scrollToIndex = useCallback((index: number) => {
+    setActiveIndex(index);
     const track = trackRef.current;
-    const slide = track?.children.item(activeIndex) as HTMLElement | null;
+    const slide = track?.children.item(index) as HTMLElement | null;
     if (!track || !slide) return;
+
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     track.scrollTo({
-      left: slide.offsetLeft - (track.clientWidth - slide.clientWidth) / 2,
+      left: getCenteredSlideOffset({
+        trackWidth: track.clientWidth,
+        slideOffset: slide.offsetLeft,
+        slideWidth: slide.clientWidth,
+      }),
       behavior: reducedMotion ? "auto" : "smooth",
     });
-  }, [activeIndex]);
+  }, []);
+
+  const showPrevious = useCallback(() => {
+    scrollToIndex((activeIndex - 1 + images.length) % images.length);
+  }, [activeIndex, images.length, scrollToIndex]);
+  const showNext = useCallback(() => {
+    scrollToIndex((activeIndex + 1) % images.length);
+  }, [activeIndex, images.length, scrollToIndex]);
 
   return (
     <section className="project-gallery" aria-labelledby="project-gallery-title">
@@ -83,39 +93,58 @@ export function ProjectMediaGallery({
         </div>
         <div className="project-gallery__counter" aria-label={`${images.length} vistas disponibles`}>
           <strong>{images.length}</strong>
-          <span>vistas verificadas</span>
+          <span>{images.length === 1 ? "imagen disponible" : "imágenes disponibles"}</span>
         </div>
       </div>
 
       <div
         ref={trackRef}
         className="project-gallery__track"
+        onPointerDown={(event) => {
+          if (event.pointerType !== "touch") return;
+          dragStartXRef.current = event.clientX;
+          didDragRef.current = false;
+        }}
+        onPointerMove={(event) => {
+          if (dragStartXRef.current === null) return;
+          if (Math.abs(event.clientX - dragStartXRef.current) >= 8) {
+            didDragRef.current = true;
+          }
+        }}
+        onPointerUp={() => {
+          dragStartXRef.current = null;
+        }}
+        onPointerCancel={() => {
+          dragStartXRef.current = null;
+          didDragRef.current = false;
+        }}
         onScroll={(event) => {
           if (!window.matchMedia("(max-width: 767px)").matches) return;
           const track = event.currentTarget;
-          const center = track.scrollLeft + track.clientWidth / 2;
           const slides = Array.from(track.children) as HTMLElement[];
-          const closestIndex = slides.reduce(
-            (closest, slide, index) => {
-              const slideCenter = slide.offsetLeft + slide.clientWidth / 2;
-              const closestSlide = slides[closest];
-              const closestCenter =
-                closestSlide.offsetLeft + closestSlide.clientWidth / 2;
-              return Math.abs(slideCenter - center) <
-                Math.abs(closestCenter - center)
-                ? index
-                : closest;
-            },
-            0,
+          setActiveIndex(
+            getClosestSlideIndex({
+              scrollLeft: track.scrollLeft,
+              trackWidth: track.clientWidth,
+              slides: slides.map((slide) => ({
+                offset: slide.offsetLeft,
+                width: slide.clientWidth,
+              })),
+            }),
           );
-          setActiveIndex(closestIndex);
         }}
       >
         {images.map((galleryImage, index) => (
           <button
             key={galleryImage.id}
             type="button"
-            onClick={() => setActiveIndex(index)}
+            onClick={() => {
+              if (didDragRef.current) {
+                didDragRef.current = false;
+                return;
+              }
+              scrollToIndex(index);
+            }}
             className={`project-gallery__panel ${
               index === activeIndex ? "project-gallery__panel--active" : ""
             }`}

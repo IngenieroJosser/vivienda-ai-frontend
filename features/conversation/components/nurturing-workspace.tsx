@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { FeedbackState } from "@/components/feedback-state";
 import { Icon } from "@/components/icon";
 import { Pill, ProgressBar } from "@/components/ui";
 import {
@@ -98,7 +99,7 @@ export function NurturingWorkspace() {
         <div className="border-b border-[color:var(--vm-color-line)] p-5">
           <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-[.13em] text-[color:var(--vm-color-brand-blue)]">
+              <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
                 Supervisión de rutas
               </div>
               <h2 className="mt-1 text-xl font-semibold tracking-[-.03em]">
@@ -200,7 +201,7 @@ function NurturingLeadRow({
       aria-pressed={selected}
       className={`w-full p-4 text-left transition ${
         selected
-          ? "bg-[color:var(--vm-color-brand-blue)]/[.06] shadow-[inset_3px_0_0_var(--vm-color-brand-blue)]"
+          ? "bg-[color:var(--vm-color-brand-blue)]/[.06] shadow-[var(--vm-shadow-inset-active)]"
           : "bg-white hover:bg-[color:var(--vm-color-brand-blue)]/[.025]"
       }`}
     >
@@ -213,7 +214,7 @@ function NurturingLeadRow({
             {plan.interventionRequired ? (
               <span
                 aria-label="Intervención humana requerida"
-                className="h-2 w-2 shrink-0 rounded-full bg-rose-600"
+                className="h-2 w-2 shrink-0 rounded-full bg-[color:var(--vm-color-error)]"
               />
             ) : null}
           </div>
@@ -310,7 +311,7 @@ function NurturingPlanDetail({
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="text-[10px] font-bold uppercase tracking-[.13em] text-[color:var(--vm-color-brand-blue)]">
+            <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
               Ruta supervisada
             </div>
             {plan.interventionRequired ? (
@@ -367,7 +368,7 @@ function NurturingPlanDetail({
             <Icon name="arrow" className="h-4 w-4" />
           </span>
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-[.11em] text-[color:var(--vm-color-brand-blue)]">
+            <div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">
               Próxima acción automática
             </div>
             <p className="mt-1 text-sm font-semibold">
@@ -378,7 +379,7 @@ function NurturingPlanDetail({
       </section>
 
       {plan.missingData.length ? (
-        <div className="mt-5 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-warning)]/20 bg-[#fffaf0] p-4">
+        <div className="surface-warning-soft mt-5 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-warning)]/20 p-4">
           <div className="flex items-center gap-2 text-xs font-bold text-[color:var(--vm-color-warning)]">
             <Icon name="info" className="h-4 w-4" /> Motivo de bloqueo
           </div>
@@ -405,7 +406,7 @@ function NurturingPlanDetail({
                 key={milestone}
                 className={`flex min-h-12 items-center gap-3 rounded-[var(--vm-radius-control)] border p-3 text-xs ${
                   completed
-                    ? "border-[color:var(--vm-color-success)]/25 bg-emerald-50"
+                    ? "border-[color:var(--vm-color-success)]/25 bg-[color:var(--vm-color-success-soft)]"
                     : current
                       ? "border-[color:var(--vm-color-brand-blue)]/20 bg-white"
                       : "border-[color:var(--vm-color-line)] bg-white/65"
@@ -453,7 +454,7 @@ function NurturingPlanDetail({
         </ul>
       </section>
 
-      <section className="mt-6 rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-warning)]/20 bg-[#fffaf0] p-5">
+      <section className="surface-warning-soft mt-6 rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-warning)]/20 p-5">
         <div className="flex items-start gap-3">
           <Icon
             name="shield"
@@ -522,7 +523,7 @@ function NurturingPlanDetail({
                 className="border-l-2 border-[color:var(--vm-color-brand-blue)]/20 pl-3"
               >
                 <p className="text-xs leading-5">{activity.description}</p>
-                <time className="text-[9px] text-[color:var(--vm-color-ink-muted)]">
+                <time className="text-[11px] text-[color:var(--vm-color-ink-muted)]">
                   {formatDateTime(activity.occurredAt)}
                 </time>
               </div>
@@ -552,16 +553,16 @@ function CompactMetric({
   return (
     <article className="flex items-center justify-between gap-4 px-5 py-3.5">
       <div>
-        <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">
+        <div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">
           {label}
         </div>
-        <div className={`mt-1 text-2xl font-semibold ${warning ? "text-rose-700" : ""}`}>
+        <div className={`mt-1 text-2xl font-semibold ${warning ? "text-[color:var(--vm-color-error)]" : ""}`}>
           {value}
         </div>
       </div>
       <Icon
         name={icon}
-        className={`h-4 w-4 ${warning ? "text-rose-700" : "text-[color:var(--vm-color-brand-blue)]"}`}
+        className={`h-4 w-4 ${warning ? "text-[color:var(--vm-color-error)]" : "text-[color:var(--vm-color-brand-blue)]"}`}
       />
     </article>
   );
@@ -580,7 +581,7 @@ function PlanFact({
 }) {
   return (
     <div className="rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white p-4">
-      <div className={`flex items-center gap-2 text-[9px] font-bold uppercase tracking-[.1em] ${warning ? "text-[color:var(--vm-color-warning)]" : "text-[color:var(--vm-color-ink-muted)]"}`}>
+      <div className={`flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.08em] ${warning ? "text-[color:var(--vm-color-warning)]" : "text-[color:var(--vm-color-ink-muted)]"}`}>
         <Icon name={icon} className="h-3.5 w-3.5" />
         {label}
       </div>
@@ -637,22 +638,22 @@ function FilterButton({
 
 function NurturingEmpty({ filtered }: { filtered: boolean }) {
   return (
-    <div className="p-10 text-center">
-      <Icon
-        name={filtered ? "filter" : "check"}
-        className="mx-auto h-7 w-7 text-[color:var(--vm-color-brand-blue)]"
-      />
-      <h3 className="mt-3 font-semibold">
-        {filtered
+    <FeedbackState
+      title={
+        filtered
           ? "No hay rutas con este filtro"
-          : "No hay prospectos en acompañamiento"}
-      </h3>
-      <p className="mt-1 text-sm text-[color:var(--vm-color-ink-muted)]">
-        {filtered
+          : "No hay prospectos en acompañamiento"
+      }
+      description={
+        filtered
           ? "Prueba otro criterio para consultar las rutas activas."
-          : "Las nuevas rutas aparecerán cuando una evaluación determine que el prospecto necesita preparación."}
-      </p>
-    </div>
+          : "Las nuevas rutas aparecerán cuando una evaluación determine que el prospecto necesita preparación."
+      }
+      icon={filtered ? "filter" : "check"}
+      tone={filtered ? "neutral" : "success"}
+      variant="embedded"
+      headingLevel={3}
+    />
   );
 }
 
@@ -677,22 +678,13 @@ function NurturingLoading() {
 
 function NurturingError({ onRetry }: { onRetry: () => void }) {
   return (
-    <section role="alert" className="surface-solid p-9 text-center">
-      <Icon name="alert" className="mx-auto h-7 w-7 text-rose-700" />
-      <h2 className="mt-3 text-xl font-semibold">
-        No pudimos cargar el seguimiento local
-      </h2>
-      <p className="mt-2 text-sm text-[color:var(--vm-color-ink-muted)]">
-        Las evaluaciones originales permanecen intactas.
-      </p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="mt-5 min-h-11 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white"
-      >
-        Intentar nuevamente
-      </button>
-    </section>
+    <FeedbackState
+      title="No pudimos cargar el acompañamiento local"
+      description="Las evaluaciones originales permanecen intactas."
+      icon="alert"
+      tone="error"
+      action={{ label: "Intentar nuevamente", onClick: onRetry }}
+    />
   );
 }
 

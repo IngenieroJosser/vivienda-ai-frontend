@@ -10,7 +10,10 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "./icon";
-import type { ProjectGalleryImage } from "./project-media-gallery-model";
+import {
+  getHorizontalSwipeDirection,
+  type ProjectGalleryImage,
+} from "./project-media-gallery-model";
 
 type ProjectImageViewerProps = {
   images: readonly ProjectGalleryImage[];
@@ -28,6 +31,11 @@ export function ProjectImageViewer({
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const swipeStartRef = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+  } | null>(null);
   const titleId = useId();
   const descriptionId = useId();
   const image = images[activeIndex] ?? images[0];
@@ -103,7 +111,47 @@ export function ProjectImageViewer({
           <Icon name="close" className="h-5 w-5" />
           Cerrar
         </button>
-        <div className="project-gallery-modal__image">
+        <div
+          className="project-gallery-modal__image"
+          onPointerDown={(event) => {
+            if (
+              images.length < 2 ||
+              event.pointerType !== "touch" ||
+              !event.isPrimary
+            ) {
+              return;
+            }
+            swipeStartRef.current = {
+              pointerId: event.pointerId,
+              x: event.clientX,
+              y: event.clientY,
+            };
+            event.currentTarget.setPointerCapture(event.pointerId);
+          }}
+          onPointerUp={(event) => {
+            const start = swipeStartRef.current;
+            if (!start || start.pointerId !== event.pointerId) return;
+            swipeStartRef.current = null;
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+              event.currentTarget.releasePointerCapture(event.pointerId);
+            }
+
+            const direction = getHorizontalSwipeDirection({
+              startX: start.x,
+              startY: start.y,
+              endX: event.clientX,
+              endY: event.clientY,
+            });
+            if (direction === "NEXT") showNext();
+            if (direction === "PREVIOUS") showPrevious();
+          }}
+          onPointerCancel={(event) => {
+            swipeStartRef.current = null;
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+              event.currentTarget.releasePointerCapture(event.pointerId);
+            }
+          }}
+        >
           <span className="project-gallery-modal__media-frame">
             <Image
               src={image.image}
@@ -111,6 +159,7 @@ export function ProjectImageViewer({
               fill
               sizes="(max-width: 1200px) 92vw, 1120px"
               quality={90}
+              draggable={false}
               className="object-contain"
             />
           </span>
@@ -121,7 +170,10 @@ export function ProjectImageViewer({
             <span id={descriptionId}>{image.label}</span>
           </span>
           {images.length > 1 ? (
-            <span className="project-gallery-modal__navigation">
+            <span
+              className="project-gallery-modal__navigation"
+              aria-live="polite"
+            >
               <button
                 type="button"
                 onClick={showPrevious}
@@ -137,6 +189,11 @@ export function ProjectImageViewer({
               >
                 <Icon name="arrow" className="h-4 w-4" />
               </button>
+            </span>
+          ) : null}
+          {images.length > 1 ? (
+            <span className="project-gallery-modal__swipe-hint">
+              Desliza la imagen para cambiar
             </span>
           ) : null}
         </div>

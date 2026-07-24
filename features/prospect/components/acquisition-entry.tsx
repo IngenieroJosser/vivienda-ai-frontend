@@ -99,7 +99,7 @@ export function AcquisitionEntry({
               "Recuperamos el contexto disponible y preparamos el siguiente paso sin hacerte repetir información innecesaria."}
           </p>
           <div className="mt-8 h-1.5 max-w-md overflow-hidden rounded-full bg-[color:var(--vm-color-brand-blue)]/10">
-            <span className="orientation-loading-line block h-full w-1/2 rounded-full bg-[linear-gradient(90deg,var(--vm-color-brand-yellow),var(--vm-color-brand-blue))]" />
+            <span className="brand-progress-gradient orientation-loading-line block h-full w-1/2 rounded-full" />
           </div>
           <div className="mt-8">
             <OrientationTrustStrip />

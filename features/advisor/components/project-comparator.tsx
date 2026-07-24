@@ -75,13 +75,13 @@ export function ProjectComparator({
       <section className="surface-solid p-5 sm:p-6">
         <div className="grid gap-4 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
           <label>
-            <span className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">Oportunidad seleccionada</span>
+            <span className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">Oportunidad seleccionada</span>
             <select value={activeLead?.scenario.leadId ?? ""} onChange={(event) => setLeadId(event.target.value)} className="mt-2 h-12 w-full rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white px-4 text-sm font-semibold">
               {comparableLeads.map(({ scenario }) => <option key={scenario.leadId} value={scenario.leadId}>{scenario.displayName}</option>)}
             </select>
           </label>
           <label>
-            <span className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">Añadir otro proyecto</span>
+            <span className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">Añadir otro proyecto</span>
             <select value={candidateId} onChange={(event) => setCandidateId(event.target.value)} disabled={selectedIds.length >= MAX_PROJECTS} className="mt-2 h-12 w-full rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white px-4 text-sm disabled:opacity-50">
               <option value="">Selecciona una opción</option>
               {availableProjects.map((project) => <option key={project.id} value={project.id}>{project.name} · {project.location.city}</option>)}
@@ -106,7 +106,7 @@ export function ProjectComparator({
             <table className="min-w-[900px] w-full border-collapse text-sm">
               <thead>
                 <tr>
-                  <th className="sticky left-0 z-10 w-44 border-b border-r border-[color:var(--vm-color-line)] bg-white p-4 text-left text-[10px] uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">Criterio</th>
+                  <th className="sticky left-0 z-10 w-44 border-b border-r border-[color:var(--vm-color-line)] bg-white p-4 text-left text-xs uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">Criterio</th>
                   {selectedProjects.map((project) => (
                     <th key={project.id} className="min-w-60 border-b border-[color:var(--vm-color-line)] p-4 text-left align-top">
                       <div className="relative h-28 overflow-hidden rounded-[var(--vm-radius-control)]">
@@ -134,7 +134,7 @@ export function ProjectComparator({
               </tbody>
             </table>
           </div>
-          <div className="border-t border-[color:var(--vm-color-line)] p-4 text-xs text-[color:var(--vm-color-ink-muted)]">Los datos sin vigencia confirmada se muestran como “Por confirmar”. Añadir un proyecto no modifica el matching original.</div>
+          <div className="border-t border-[color:var(--vm-color-line)] p-4 text-xs text-[color:var(--vm-color-ink-muted)]">Los datos sin vigencia confirmada se muestran como “Por confirmar”. Añadir un proyecto no modifica la recomendación calculada para la oportunidad.</div>
         </section>
       ) : (
         <section className="surface-solid p-10 text-center"><Icon name="compare" className="mx-auto h-8 w-8 text-[color:var(--vm-color-brand-blue)]" /><h2 className="mt-4 text-lg font-semibold">Selecciona hasta tres proyectos</h2><p className="mt-2 text-sm text-[color:var(--vm-color-ink-muted)]">La comparación comenzará con las recomendaciones de la oportunidad elegida.</p></section>

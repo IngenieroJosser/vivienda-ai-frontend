@@ -70,10 +70,10 @@ export function getInitialMessage(session: ProspectSession): string {
     return `Hola, ${session.firstName}. Tenemos registrada tu afiliación a Colsubsidio; si cambió, puedes contármelo.${campaignContext} Cuéntame qué buscas en tu próxima vivienda y qué te gustaría tener claro para avanzar.`;
   }
   if (session.firstName && session.customerRelationship === "NON_AFFILIATE") {
-    return `Hola, ${session.firstName}. Tenemos registrado que actualmente no estás afiliada; si cambió, puedes contármelo. Recibirás la misma calidad de orientación. ¿Qué buscas en tu próxima vivienda y qué te gustaría aclarar para avanzar?`;
+    return `Hola, ${session.firstName}. Tenemos registrado que actualmente no tienes una afiliación activa; si cambió, puedes contármelo. Recibirás la misma calidad de orientación. ¿Qué buscas en tu próxima vivienda y qué te gustaría aclarar para avanzar?`;
   }
   if (session.firstName && session.campaignId === "versalles") {
-    return `Hola, ${session.firstName}. Vimos que estás interesado en adquirir vivienda y encontramos algunos beneficios que podrían ayudarte. Queremos entender qué estás buscando para orientarte mejor. Cuéntame, ¿cómo imaginas la vivienda que quieres para ti y tu familia?`;
+    return `Hola, ${session.firstName}. Vimos tu interés en adquirir vivienda y encontramos algunos beneficios que podrían ayudarte. Queremos entender qué estás buscando para orientarte mejor. Cuéntame, ¿cómo imaginas la vivienda que quieres para ti o tu hogar?`;
   }
   if (session.firstName) {
     return `Hola, ${session.firstName}. Cuéntame qué buscas en tu próxima vivienda y qué te gustaría tener claro para poder avanzar.`;

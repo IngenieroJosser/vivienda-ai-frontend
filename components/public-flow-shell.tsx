@@ -29,7 +29,7 @@ export function PublicFlowShell({
             <HousingWindow compact />
             <div className="flow-intro-card glass-elevated relative mt-4 overflow-hidden p-6 sm:p-7">
               <div className="flow-intro-card__glow" aria-hidden="true" />
-              <div className="relative inline-flex items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)]/[.07] px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.15em] text-[color:var(--vm-color-brand-blue)]">
+              <div className="relative inline-flex items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)]/[.07] px-3 py-1.5 text-xs font-extrabold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
                 <Icon name="home" className="h-3.5 w-3.5" /> {eyebrow}
               </div>
               <h1 className="relative mt-5 text-4xl font-semibold leading-[.98] tracking-[-.055em] xl:text-[3.2rem]">
@@ -44,7 +44,7 @@ export function PublicFlowShell({
 
             <div className="flow-aside-card mt-4 p-5 text-[color:var(--vm-color-ink)]">
               <div className="flex items-start gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[13px] bg-[color:var(--vm-color-brand-blue)] text-white shadow-[0_10px_24px_rgba(0,103,177,.17)]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)] text-white shadow-[var(--vm-shadow-brand-medium)]">
                   <Icon name="shield" className="h-5 w-5" />
                 </span>
                 <div>

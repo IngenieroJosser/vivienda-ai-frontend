@@ -38,7 +38,7 @@ export function LoginForm() {
 
   return (
     <>
-      <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)]/[.055] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.15em] text-[color:var(--vm-color-brand-blue)]">
+      <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)]/[.055] px-3 py-1.5 text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
         <Icon name="lock" className="h-3.5 w-3.5" />
         Acceso para asesores
       </div>
@@ -83,7 +83,7 @@ export function LoginForm() {
             <span
               id="advisor-email-error"
               role="alert"
-              className="mt-1.5 block text-xs text-rose-700"
+              className="mt-1.5 block text-xs text-[color:var(--vm-color-error)]"
             >
               {errors.email}
             </span>
@@ -117,7 +117,7 @@ export function LoginForm() {
             <span
               id="advisor-password-error"
               role="alert"
-              className="mt-1.5 block text-xs text-rose-700"
+              className="mt-1.5 block text-xs text-[color:var(--vm-color-error)]"
             >
               {errors.password}
             </span>
@@ -143,9 +143,8 @@ export function LoginForm() {
           className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--vm-color-brand-blue)]"
         />
         <p>
-          Acceso de prototipo: valida el formato localmente y permite recorrer
-          el portal. La identidad corporativa real se conectará mediante el
-          proveedor autorizado.
+          Este acceso permite recorrer el portal con información de muestra.
+          La identidad corporativa se conectará mediante el proveedor autorizado.
         </p>
       </div>
     </>

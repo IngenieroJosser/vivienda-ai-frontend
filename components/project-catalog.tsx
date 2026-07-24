@@ -37,11 +37,11 @@ export function ProjectCatalog({ projects }: { projects: readonly ProjectCatalog
 
   return (
     <section className="mt-8" aria-labelledby="catalog-title">
-      <div className="surface-solid rounded-[26px] p-4 sm:p-5">
+      <div className="surface-solid rounded-[var(--vm-radius-elevated)] p-4 sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[.09em] text-[color:var(--vm-color-brand-blue)]">
-              Catálogo aprobado
+            <p className="text-xs font-bold uppercase tracking-[.09em] text-[color:var(--vm-color-brand-blue)]">
+              Proyectos para explorar
             </p>
             <h2 id="catalog-title" className="mt-1 text-2xl font-bold tracking-[-.035em]">
               Encuentra un proyecto por ubicación
@@ -74,7 +74,7 @@ export function ProjectCatalog({ projects }: { projects: readonly ProjectCatalog
                 onClick={() => setLocation(item)}
                 className={`min-h-11 shrink-0 rounded-full border px-4 text-xs font-bold tracking-[.01em] transition ${
                   active
-                    ? "border-[color:var(--vm-color-brand-blue)] bg-[color:var(--vm-color-brand-blue)] text-white shadow-[0_8px_22px_rgba(0,103,177,.16)]"
+                    ? "border-[color:var(--vm-color-brand-blue)] bg-[color:var(--vm-color-brand-blue)] text-white shadow-[var(--vm-shadow-brand-control)]"
                     : "border-[color:var(--vm-color-line)] bg-white text-[color:var(--vm-color-ink)] hover:border-[color:var(--vm-color-brand-blue)] hover:text-[color:var(--vm-color-brand-blue)]"
                 }`}
               >
@@ -102,7 +102,7 @@ export function ProjectCatalog({ projects }: { projects: readonly ProjectCatalog
           ))}
         </div>
       ) : (
-        <div className="surface-solid mt-4 flex min-h-56 flex-col items-center justify-center rounded-[26px] px-6 text-center">
+        <div className="surface-solid mt-4 flex min-h-56 flex-col items-center justify-center rounded-[var(--vm-radius-elevated)] px-6 text-center">
           <Icon name="search" className="h-8 w-8 text-[color:var(--vm-color-brand-blue)]" />
           <h3 className="mt-4 text-lg font-bold">No encontramos ese proyecto</h3>
           <p className="mt-2 max-w-md text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">

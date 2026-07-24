@@ -60,7 +60,7 @@ export default function Home() {
               Vivienda Colsubsidio
             </div>
 
-            <h1 className="motion-rise motion-delay-1 mt-5 text-[clamp(3.1rem,6.2vw,6.8rem)] font-semibold leading-[.9] tracking-[-.065em]">
+            <h1 className="motion-rise motion-delay-1 mt-5 text-[clamp(3.1rem,6.2vw,6.8rem)] font-semibold leading-[.97] tracking-[-.045em]">
               Hablemos de la vivienda que imaginas.
             </h1>
 

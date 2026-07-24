@@ -109,7 +109,7 @@ export function AdvisorIntelligence({
               <div className="flex flex-wrap items-center gap-3">
                 <span className="grid h-14 w-14 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)] font-bold text-white">{initials}</span>
                 <div>
-                  <div className="text-[9px] font-bold uppercase tracking-[.13em] text-[color:var(--vm-color-brand-blue)]">
+                  <div className="text-[11px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
                     Oportunidad seleccionada
                   </div>
                   <h2 className="mt-1 text-2xl font-semibold">{scenario.displayName}</h2>
@@ -162,7 +162,7 @@ export function AdvisorIntelligence({
                 <Metric label="Cuota máxima orientativa" value={evaluation.capacity.estimatedHousingPayment ? formatCop(evaluation.capacity.estimatedHousingPayment) : "Por completar"} />
               </div>
               <div className="mt-5 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] p-4">
-                <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
+                <div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">
                   Por qué tiene esta preparación
                 </div>
                 <ul className="mt-3 grid gap-2 text-xs leading-5 sm:grid-cols-2">
@@ -209,7 +209,7 @@ export function AdvisorIntelligence({
               <ProfileItem label="Qué necesita para avanzar" value={prospectSession.discovery.advanceNeed ?? "Por completar"} />
             </div>
             <div className="mt-5 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] p-4">
-              <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">Último mensaje del prospecto</div>
+              <div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">Último mensaje del prospecto</div>
               <p className="mt-2 text-sm leading-6">{prospectSession.turns.at(-1)?.userText ?? "Sin mensajes registrados"}</p>
             </div>
           </section>
@@ -220,7 +220,7 @@ export function AdvisorIntelligence({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold">Conversación completa</h2>
-                <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Evidencia original de lo declarado por el prospecto y de la orientación entregada.</p>
+                <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Registro original de lo declarado por el prospecto y de la orientación entregada.</p>
               </div>
               <Pill tone="gray">{prospectSession.turns.length} intercambios</Pill>
             </div>
@@ -330,7 +330,7 @@ function Metric({
   return (
     <div className={`relative rounded-[var(--vm-radius-card)] p-5 ${accent ? "bg-[color:var(--vm-color-brand-blue)] text-white" : "bg-[color:var(--vm-color-brand-blue)]/[.04]"}`}>
       <div className="flex items-start justify-between gap-2">
-        <div className={`text-[10px] uppercase tracking-[.12em] ${accent ? "text-white/75" : "text-[color:var(--vm-color-ink-muted)]"}`}>{label}</div>
+        <div className={`text-xs uppercase tracking-[.08em] ${accent ? "text-white/80" : "text-[color:var(--vm-color-ink-muted)]"}`}>{label}</div>
         {help ? (
           <details className="group relative">
             <summary
@@ -342,7 +342,7 @@ function Metric({
             <div className="absolute right-0 top-9 z-30 w-64 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white p-3 text-left text-[11px] font-normal leading-5 text-[color:var(--vm-color-ink)] shadow-[var(--vm-shadow-medium)]">
               <p>{help}</p>
               {calculatedAt ? (
-                <p className="mt-2 border-t border-[color:var(--vm-color-line)] pt-2 text-[10px] text-[color:var(--vm-color-ink-muted)]">
+                <p className="mt-2 border-t border-[color:var(--vm-color-line)] pt-2 text-xs text-[color:var(--vm-color-ink-muted)]">
                   Calculado: {calculatedAt}
                 </p>
               ) : null}
@@ -356,7 +356,7 @@ function Metric({
 }
 
 function ProfileItem({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-[18px] border border-[color:var(--vm-color-line)] p-4"><div className="text-[10px] uppercase tracking-[.11em] text-[color:var(--vm-color-ink-muted)]">{label}</div><div className="mt-2 text-sm font-semibold">{value}</div></div>;
+  return <div className="rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-line)] p-4"><div className="text-xs uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">{label}</div><div className="mt-2 text-sm font-semibold">{value}</div></div>;
 }
 
 function contextualProfileValue(

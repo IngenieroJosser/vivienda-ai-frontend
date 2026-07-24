@@ -35,7 +35,7 @@ export function CommercialNextStep({
             <Icon name="target" className="h-4 w-4" />
           </span>
           <div className="min-w-0">
-            <div className="text-[9px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
+            <div className="text-[11px] font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">
               Qué debes hacer ahora
             </div>
             <p className="text-sm font-semibold">{title}</p>
@@ -67,7 +67,7 @@ export function CommercialNextStep({
   }
 
   return (
-    <section className="rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/20 bg-[linear-gradient(145deg,#eef8ff,#fffdf0)] p-6 shadow-[var(--vm-shadow-medium)]">
+    <section className="surface-guidance rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/20 p-6 shadow-[var(--vm-shadow-medium)]">
       <div className="flex items-center justify-between">
         <div className="text-xs font-bold uppercase tracking-[.14em] text-[color:var(--vm-color-brand-blue)]">Siguiente acción sugerida</div>
         <Icon name="target" className="h-5 w-5 text-[color:var(--vm-color-brand-blue)]" />

@@ -1,6 +1,6 @@
 # Sistema Visual Vivienda Match AI v1
 
-Estado: vigente e implementado de forma incremental
+Estado: vigente, con implementación incremental
 
 Alcance inicial: prospecto y asesor
 Fuera del producto activo del MVP: marketing y administración independientes
@@ -44,11 +44,15 @@ Los valores se exponen como propiedades CSS bajo el prefijo `--vm-`. Tailwind pu
 | `--vm-color-ink` | `#111820` | Texto principal |
 | `--vm-color-ink-muted` | `#52606d` | Texto secundario sobre superficie clara |
 | `--vm-color-canvas` | `#fafafa` | Fondo base |
+| `--vm-color-canvas-muted` | `#f5f7f8` | Fondo neutro de acceso y transiciones |
 | `--vm-color-surface` | `#ffffff` | Superficie sólida |
 | `--vm-color-info` | `#0067b1` | Información |
 | `--vm-color-success` | `#087a55` | Estado confirmado o exitoso |
-| `--vm-color-warning` | `#8a6500` | Revisión o beneficio potencial |
+| `--vm-color-success-soft` | `#ecfdf5` | Fondo de confirmación |
+| `--vm-color-warning` | `#805d00` | Revisión o beneficio potencial |
+| `--vm-color-warning-soft` | `#fffaf0` | Fondo de advertencia no bloqueante |
 | `--vm-color-error` | `#b4233a` | Error o bloqueo |
+| `--vm-color-error-soft` | `#fff1f3` | Fondo de error recuperable |
 | `--vm-color-focus` | `#005fcc` | Anillo de foco |
 | `--vm-color-on-dark` | `#ffffff` | Contenido sobre fondo oscuro |
 
@@ -80,10 +84,29 @@ No se permiten valores de blur superiores a `18px` en el MVP. En pantallas de ha
 | `--vm-shadow-medium` | `0 18px 54px rgba(17, 24, 32, 0.09)` |
 | `--vm-shadow-high` | `0 24px 70px rgba(17, 24, 32, 0.14)` |
 | `--vm-shadow-focus` | `0 0 0 3px rgba(0, 95, 204, 0.35)` |
+| `--vm-shadow-brand-control` | Elevación de selección compacta |
+| `--vm-shadow-brand-medium` | Elevación de acción principal |
+| `--vm-shadow-brand-high` | Elevación del siguiente paso público |
+| `--vm-shadow-accent` | Halo amarillo de énfasis |
+| `--vm-shadow-inset-active` | Indicador lateral de selección |
 
 Las sombras indican elevación, no decoración. Una superficie anidada no puede tener una sombra mayor que su contenedor.
 
-### 3.4 Radio
+### 3.4 Gradientes semánticos
+
+Los gradientes reutilizables se declaran como tokens y se consumen mediante una
+clase de superficie con propósito. No se escriben colores ni gradientes
+directamente en componentes.
+
+| Token | Uso |
+|---|---|
+| `--vm-gradient-guidance` | Resumen, recomendación y siguiente acción |
+| `--vm-gradient-result-action` | Cierre del resultado del prospecto |
+| `--vm-gradient-media-overlay` | Contraste de texto sobre fotografía |
+| `--vm-gradient-login-overlay` | Lectura del panel fotográfico de acceso |
+| `--vm-gradient-progress` | Progreso institucional |
+
+### 3.5 Radio
 
 | Token | Valor |
 |---|---:|
@@ -92,7 +115,7 @@ Las sombras indican elevación, no decoración. Una superficie anidada no puede 
 | `--vm-radius-elevated` | `28px` |
 | `--vm-radius-pill` | `999px` |
 
-### 3.5 Espaciado
+### 3.6 Espaciado
 
 Escala base de 4 px:
 
@@ -111,7 +134,7 @@ Escala base de 4 px:
 
 No se introducen valores nuevos cuando uno de la escala resuelve la composición con una diferencia menor a 2 px.
 
-### 3.6 Tipografía
+### 3.7 Tipografía
 
 | Token | Tamaño / línea | Peso | Uso |
 |---|---|---:|---|
@@ -122,11 +145,18 @@ No se introducen valores nuevos cuando uno de la escala resuelve la composición
 | `--vm-type-body` | `1rem / 1.6` | 400 | Prospecto |
 | `--vm-type-body-compact` | `0.875rem / 1.5` | 400 | Asesor |
 | `--vm-type-label` | `0.75rem / 1.3` | 650 | Etiqueta |
-| `--vm-type-caption` | `0.6875rem / 1.4` | 550 | Metadato |
+| `--vm-type-caption` | `0.6875rem / 1.4` | 550 | Metadato interno del asesor |
 
-La fuente se sirve localmente. El sistema no depende de una descarga de Google Fonts durante el build.
+Manrope se carga una sola vez desde el layout raíz mediante `next/font/local`.
+El archivo variable WOFF2 y su licencia SIL OFL se versionan en `app/fonts`.
+Next.js sirve la fuente desde el mismo origen, aplica `display: swap` y el build
+no depende de Google Fonts.
 
-### 3.7 Movimiento
+En la experiencia pública, el texto informativo no baja de 12 px y el cuerpo se
+mantiene en 16 px. En la densidad compacta, los metadatos pueden usar 11 px
+cuando no contienen una acción ni información necesaria para decidir.
+
+### 3.8 Movimiento
 
 | Token | Valor |
 |---|---:|
@@ -139,7 +169,7 @@ La fuente se sirve localmente. El sistema no depende de una descarga de Google F
 
 Solo se animan `transform` y `opacity` en interacciones frecuentes. Ninguna animación esencial dura más de 400 ms. Con `prefers-reduced-motion: reduce`, las transiciones quedan en `1ms` y se eliminan desplazamientos, órbitas y brillos animados.
 
-### 3.8 Densidad
+### 3.9 Densidad
 
 | Token | `density-guided` | `density-compact` |
 |---|---:|---:|
@@ -252,10 +282,9 @@ Navegación persistente, con icono y texto:
 
 ```text
 Resumen
-Leads
+Oportunidades
 Agenda
-Nutrición
-Comparador
+Acompañamiento
 ```
 
 Rutas objetivo:
@@ -263,10 +292,13 @@ Rutas objetivo:
 | Opción | Ruta |
 |---|---|
 | Resumen | `/asesor/resumen` |
-| Leads | `/asesor/leads` |
+| Oportunidades | `/asesor/leads` |
 | Agenda | `/asesor/agenda` |
-| Nutrición | `/asesor/nutricion` |
-| Comparador | `/asesor/comparador` |
+| Acompañamiento | `/asesor/nutricion` |
+
+El comparador existe como herramienta contextual en `/asesor/comparador`, pero
+no forma parte de la navegación persistente. Se abre únicamente desde un
+recorrido que aporta contexto de oportunidad.
 
 En pantallas pequeñas la navegación se convierte en drawer con botón etiquetado, cierre con `Escape`, bloqueo de scroll y devolución del foco al disparador.
 
@@ -308,6 +340,11 @@ Reglas de arquitectura:
 
 ## 8. Contratos de componentes y aceptación
 
+Los nombres siguientes describen los módulos objetivo del sistema visual. Durante
+la migración, algunos contratos todavía son satisfechos por clases y módulos
+existentes; no deben interpretarse como exportaciones ya disponibles hasta que
+el código las implemente y las pruebas cubran su interface.
+
 | Componente | Variante inicial | Criterios de aceptación |
 |---|---|---|
 | `GlassShell` | `glass-subtle` | Aplica densidad y presupuesto; funciona sin blur; no crea blur anidado |
@@ -320,8 +357,9 @@ Reglas de arquitectura:
 | `ConfidenceIndicator` | sólido | Expresa calidad del dato, no probabilidad; incluye texto alternativo |
 | `LoadingState` | sólido | Usa skeleton estático con movimiento reducido; `aria-busy` en el contenedor |
 | `EmptyState` | sólido | Explica causa y próxima acción; no culpa al usuario |
+| `FeedbackState` | sólido/embebido | Unifica error, éxito y vacío; acción recuperable opcional; jerarquía configurable |
 | `JourneyStepper` | subtle | Etapa textual; `aria-current="step"`; usable a 320 px |
-| `AdvisorSidebar` | subtle | Cinco opciones objetivo; estado activo inequívoco; drawer accesible |
+| `AdvisorSidebar` | subtle | Cuatro opciones principales; estado activo inequívoco; drawer accesible |
 | `ContextualHeader` | subtle/solid | Título, contexto y acción principal; no oculta foco ni contenido |
 
 ## 9. Matriz de migración
@@ -333,7 +371,7 @@ Reglas de arquitectura:
 | `.flow-panel` | `GlassCard` elevado o sólido | Conversación puede usar elevated; formularios usan solid |
 | `.flow-aside-card` | `GlassCard` subtle | Migrar después del shell del prospecto |
 | `.metric-card` / `StatCard` | `GlassCard density-compact` | Conservar métrica; retirar decoración no semántica |
-| `.portal-sidebar` / `PortalLayout` | `AdvisorSidebar` | Añadir Nutrición y renombrar Dashboard a Resumen |
+| `.portal-sidebar` / `PortalLayout` | `AdvisorSidebar` | Mantener Resumen, Oportunidades, Agenda y Acompañamiento |
 | `.portal-hero` / `PortalPage` | `ContextualHeader` | Migrar únicamente el portal del asesor |
 | `.form-field` | control base sólido | Nunca aplicar blur a cada input |
 | `.liquid-button` | `LiquidButton` | Unificar botón y enlace con la misma API visual |
@@ -448,6 +486,8 @@ Reglas globales:
 - Existe una sola acción primaria evidente por pantalla.
 - La conversación funciona a 320 px y con teclado.
 - El compositor acepta texto libre, crece sin ocultar el último mensaje y conserva una etiqueta accesible.
+- Las galerías móviles permiten swipe horizontal sin competir con el scroll vertical; el índice observado no reinicia el gesto.
+- El visor de imágenes conserva botones accesibles y añade swipe solo cuando existen varias imágenes.
 - Las únicas burbujas son mensajes enviados entre el prospecto y Vivienda Colsubsidio.
 - No se muestra cantidad de preguntas ni una duración fija de la conversación.
 - Volver o recargar recupera la sesión sin repetir datos confirmados ni duplicar mensajes.
@@ -457,9 +497,9 @@ Reglas globales:
 
 ### Asesor
 
-- Resumen, Leads, Agenda, Nutrición y Comparador permanecen accesibles y etiquetados.
+- Resumen, Oportunidades, Agenda y Acompañamiento permanecen accesibles y etiquetados.
 - Desde Resumen se llega a una acción comercial en máximo dos interacciones.
-- Búsqueda y filtros son visibles en Leads.
+- Búsqueda y filtros son visibles en Oportunidades.
 - Los filtros sobreviven al abrir y cerrar un detalle.
 - La prioridad incluye explicación; no se presenta como una caja negra.
 - La próxima mejor acción permanece visible sin ocultar contenido.

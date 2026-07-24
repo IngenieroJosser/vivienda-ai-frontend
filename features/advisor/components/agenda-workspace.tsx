@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { FeedbackState } from "@/components/feedback-state";
 import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
 import { useQualifiedLeads } from "@/features/conversation/components/use-qualified-leads";
@@ -92,8 +93,8 @@ function AgendaRow({ item }: { item: AgendaItem }) {
 }
 
 function AgendaMetric({ label, value, tone }: { label: string; value: number; tone: "red" | "blue" | "green" }) {
-  const colors = tone === "red" ? "bg-rose-50 text-rose-700" : tone === "green" ? "bg-emerald-50 text-emerald-700" : "bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]";
-  return <article className="surface-solid flex items-center justify-between p-5"><div><div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">{label}</div><div className="mt-2 text-3xl font-semibold">{value}</div></div><span className={`grid h-10 w-10 place-items-center rounded-full ${colors}`}><Icon name="calendar" className="h-4 w-4" /></span></article>;
+  const colors = tone === "red" ? "bg-[color:var(--vm-color-error-soft)] text-[color:var(--vm-color-error)]" : tone === "green" ? "bg-[color:var(--vm-color-success-soft)] text-[color:var(--vm-color-success)]" : "bg-[color:var(--vm-color-brand-blue)]/10 text-[color:var(--vm-color-brand-blue)]";
+  return <article className="surface-solid flex items-center justify-between p-5"><div><div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">{label}</div><div className="mt-2 text-3xl font-semibold">{value}</div></div><span className={`grid h-10 w-10 place-items-center rounded-full ${colors}`}><Icon name="calendar" className="h-4 w-4" /></span></article>;
 }
 
 function AgendaLoading() {
@@ -101,7 +102,15 @@ function AgendaLoading() {
 }
 
 function AgendaError({ onRetry }: { onRetry: () => void }) {
-  return <section role="alert" className="surface-solid p-9 text-center"><Icon name="alert" className="mx-auto h-7 w-7 text-rose-700" /><h2 className="mt-3 text-xl font-semibold">No pudimos cargar la agenda local</h2><button type="button" onClick={onRetry} className="mt-5 min-h-11 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white">Intentar nuevamente</button></section>;
+  return (
+    <FeedbackState
+      title="No pudimos cargar la agenda local"
+      description="Las actividades guardadas permanecen en este dispositivo."
+      icon="alert"
+      tone="error"
+      action={{ label: "Intentar nuevamente", onClick: onRetry }}
+    />
+  );
 }
 
 function formatDateTime(value: string): string {

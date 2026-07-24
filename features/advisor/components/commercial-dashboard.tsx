@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { FeedbackState } from "@/components/feedback-state";
 import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
 import { AdvisorIntelligence } from "@/features/conversation/components/advisor-intelligence";
@@ -180,7 +181,7 @@ function OperationalSummary({
       <section className="surface-solid overflow-hidden">
         <div className="flex flex-col justify-between gap-3 border-b border-[color:var(--vm-color-line)] px-5 py-4 sm:flex-row sm:items-center">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
+            <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
               Prioridades de hoy
             </div>
             <h2 className="mt-1 text-xl font-semibold tracking-[-.03em]">
@@ -276,7 +277,7 @@ function OpportunitySelector({
       aria-pressed={selected}
       className={`w-full px-4 py-4 text-left transition ${
         selected
-          ? "bg-[color:var(--vm-color-brand-blue)]/[.07] shadow-[inset_3px_0_0_var(--vm-color-brand-blue)]"
+          ? "bg-[color:var(--vm-color-brand-blue)]/[.07] shadow-[var(--vm-shadow-inset-active)]"
           : "bg-white hover:bg-[color:var(--vm-color-brand-blue)]/[.025]"
       }`}
     >
@@ -362,16 +363,16 @@ function CompactMetric({
   return (
     <article className="flex items-center justify-between gap-4 px-5 py-3.5">
       <div>
-        <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">
+        <div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">
           {label}
         </div>
-        <div className={`mt-1 text-2xl font-semibold ${warning && value ? "text-rose-700" : ""}`}>
+        <div className={`mt-1 text-2xl font-semibold ${warning && value ? "text-[color:var(--vm-color-error)]" : ""}`}>
           {value}
         </div>
       </div>
       <Icon
         name={warning ? "alert" : "chart"}
-        className={`h-4 w-4 ${warning && value ? "text-rose-700" : "text-[color:var(--vm-color-brand-blue)]"}`}
+        className={`h-4 w-4 ${warning && value ? "text-[color:var(--vm-color-error)]" : "text-[color:var(--vm-color-brand-blue)]"}`}
       />
     </article>
   );
@@ -408,13 +409,12 @@ function FilterSelect({
 
 function EmptyInbox() {
   return (
-    <section className="surface-solid p-10 text-center">
-      <Icon name="search" className="mx-auto h-7 w-7 text-[color:var(--vm-color-brand-blue)]" />
-      <h2 className="mt-3 font-semibold">No hay oportunidades con estos filtros</h2>
-      <p className="mt-1 text-sm text-[color:var(--vm-color-ink-muted)]">
-        Ajusta la búsqueda o los filtros. Los prospectos en preparación permanecen en Acompañamiento.
-      </p>
-    </section>
+    <FeedbackState
+      title="No hay oportunidades con estos filtros"
+      description="Ajusta la búsqueda o los filtros. Los prospectos en preparación permanecen en Acompañamiento."
+      icon="search"
+      variant="embedded"
+    />
   );
 }
 
@@ -457,21 +457,12 @@ function CommercialDashboardLoading({ fullInbox }: { fullInbox: boolean }) {
 
 function CommercialDashboardError({ onRetry }: { onRetry: () => void }) {
   return (
-    <section role="alert" className="surface-solid p-9 text-center">
-      <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-rose-50 text-rose-700">
-        <Icon name="alert" />
-      </span>
-      <h2 className="mt-4 text-xl font-semibold">No pudimos leer la gestión comercial local.</h2>
-      <p className="mt-2 text-sm text-[color:var(--vm-color-ink-muted)]">
-        Las evaluaciones no fueron modificadas. Intenta cargar nuevamente la información guardada en este dispositivo.
-      </p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="mt-5 min-h-11 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white"
-      >
-        Intentar nuevamente
-      </button>
-    </section>
+    <FeedbackState
+      title="No pudimos leer la gestión comercial local"
+      description="Las evaluaciones no fueron modificadas. Intenta cargar nuevamente la información guardada en este dispositivo."
+      icon="alert"
+      tone="error"
+      action={{ label: "Intentar nuevamente", onClick: onRetry }}
+    />
   );
 }

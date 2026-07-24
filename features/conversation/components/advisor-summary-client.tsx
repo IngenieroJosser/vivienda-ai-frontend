@@ -25,11 +25,11 @@ export function AdvisorSummaryClient() {
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores de calificación">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores de preparación comercial">
         <SummaryMetric icon="target" label="Listos para asesor" value={String(opportunities.length)} detail="Requieren atención comercial" accent />
         <SummaryMetric icon="heart" label="En acompañamiento" value={String(nurturing.length)} detail="Con condición de avance" />
-        <SummaryMetric icon="campaign" label="Pagos listos" value={String(paidReady)} detail="Leads de Meta priorizados" />
-        <SummaryMetric icon="document" label="Evidencia sólida" value={String(solidEvidence)} detail="Con información suficiente" />
+        <SummaryMetric icon="campaign" label="Oportunidades de pauta" value={String(paidReady)} detail="Preparadas para contacto" />
+        <SummaryMetric icon="document" label="Información confirmada" value={String(solidEvidence)} detail="Suficiente para orientar" />
       </section>
 
       <section className="surface-solid overflow-hidden">
@@ -49,7 +49,7 @@ export function AdvisorSummaryClient() {
                 <span className="grid h-12 w-12 place-items-center rounded-full bg-[color:var(--vm-color-brand-blue)] text-sm font-bold text-white">{scenario.displayName.slice(0, 2).toUpperCase()}</span>
                 <div>
                   <div className="flex items-center gap-2"><h3 className="font-bold">{scenario.displayName}</h3>{index === 0 ? <Pill tone="green">Primero</Pill> : null}</div>
-                  <div className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">{scenario.leadSource === "META" ? "Meta · lead pago" : "Canal orgánico"}</div>
+                  <div className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">{scenario.leadSource === "META" ? "Origen: campaña de Meta" : "Origen: canal orgánico"}</div>
                 </div>
               </div>
               <div>
@@ -57,7 +57,7 @@ export function AdvisorSummaryClient() {
                 <p className="mt-1.5 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{evaluation.factors.join(" · ")}</p>
               </div>
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">Capacidad y preparación</div>
+                <div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">Capacidad y preparación</div>
                 <div className="mt-2 text-lg font-semibold">{evaluation.capacity.estimatedHousingPayment ? `${formatCop(evaluation.capacity.estimatedHousingPayment)}/mes` : "Por completar"}</div>
                 <div className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">
                   Preparación {getReadinessPresentation(evaluation.readinessScore).label.toLowerCase()} · evidencia {getEvidencePresentation(evaluation.confidenceScore).label.toLowerCase()}
@@ -74,7 +74,7 @@ export function AdvisorSummaryClient() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-warning)]">No enviar a cierre</div>
-              <h2 className="mt-2 text-2xl font-semibold">Leads que necesitan maduración</h2>
+              <h2 className="mt-2 text-2xl font-semibold">Prospectos en preparación</h2>
             </div>
             <span className="grid h-11 w-11 place-items-center rounded-full bg-[color:var(--vm-color-brand-yellow)]/25 text-[color:var(--vm-color-warning)]"><Icon name="heart" /></span>
           </div>
@@ -89,7 +89,7 @@ export function AdvisorSummaryClient() {
           <Link href="/asesor/nutricion" className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[color:var(--vm-color-brand-blue)]">Abrir acompañamiento <Icon name="arrow" className="h-4 w-4" /></Link>
         </div>
 
-        <aside className="rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/15 bg-[linear-gradient(145deg,#eef8ff,#fffdf1)] p-6 sm:p-8">
+        <aside className="surface-guidance rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/15 p-6 sm:p-8">
           <Icon name="chart" className="h-7 w-7 text-[color:var(--vm-color-brand-blue)]" />
           <h2 className="mt-5 text-2xl font-semibold tracking-[-.035em]">Una sola decisión explicable.</h2>
           <p className="mt-3 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">Resumen, bandeja, detalle y acompañamiento leen la misma evaluación. Cambiar de vista no modifica la prioridad ni recalcula la capacidad.</p>
@@ -102,7 +102,7 @@ export function AdvisorSummaryClient() {
 function SummaryMetric({ icon, label, value, detail, accent = false }: { icon: Parameters<typeof Icon>[0]["name"]; label: string; value: string; detail: string; accent?: boolean }) {
   return (
     <article className={`rounded-[var(--vm-radius-card)] border p-5 shadow-[var(--vm-shadow-low)] ${accent ? "border-[color:var(--vm-color-brand-blue)]/20 bg-[color:var(--vm-color-brand-blue)] text-white" : "border-[color:var(--vm-color-line)] bg-white"}`}>
-      <div className="flex items-center justify-between gap-3"><div className={`text-[10px] font-bold uppercase tracking-[.1em] ${accent ? "text-white/75" : "text-[color:var(--vm-color-ink-muted)]"}`}>{label}</div><Icon name={icon} className="h-4 w-4" /></div>
+      <div className="flex items-center justify-between gap-3"><div className={`text-xs font-bold uppercase tracking-[.08em] ${accent ? "text-white/80" : "text-[color:var(--vm-color-ink-muted)]"}`}>{label}</div><Icon name={icon} className="h-4 w-4" /></div>
       <div className="mt-3 text-3xl font-semibold">{value}</div>
       <div className={`mt-1 text-xs ${accent ? "text-white/75" : "text-[color:var(--vm-color-ink-muted)]"}`}>{detail}</div>
     </article>

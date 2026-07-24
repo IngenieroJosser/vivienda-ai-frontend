@@ -67,7 +67,7 @@ export function LandingConversationComposer() {
             Tu mensaje continuará en la conversación después de autorizar el uso de la información.
           </p>
           {showCounter ? (
-            <p className="mt-1 text-[10px] text-[color:var(--vm-color-ink-muted)]">
+            <p className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">
               {message.length}/{CHAT_MESSAGE_MAX_LENGTH}
             </p>
           ) : null}

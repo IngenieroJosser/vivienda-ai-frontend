@@ -295,7 +295,7 @@ export function ProspectHandoff({ sessionId }: { sessionId?: string }) {
                 "Capacidad mensual estimada y factores que la sustentan.",
                 "Beneficios confirmados y aquellos por validar.",
                 "Proyectos recomendados y razones de coincidencia.",
-                "Conversación completa como evidencia de tu orientación.",
+                "Conversación completa como soporte de tu orientación.",
               ].map((item) => (
                 <li key={item} className="flex gap-2">
                   <Icon name="check" className="mt-1 h-4 w-4 shrink-0 text-[color:var(--vm-color-success)]" />
@@ -305,7 +305,7 @@ export function ProspectHandoff({ sessionId }: { sessionId?: string }) {
             </ul>
           </section>
 
-          <section className="rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-brand-blue)]/15 bg-[linear-gradient(145deg,#eef8ff,#fffdf1)] p-6">
+          <section className="surface-guidance rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-brand-blue)]/15 p-6">
             <div className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-brand-blue)]">
               Proyectos de tu orientación
             </div>
@@ -372,7 +372,7 @@ function RequestConfirmation({
       title="Tu solicitud ya está en proceso."
       description="Conservamos tus preferencias en este dispositivo para que puedas consultar el estado y retomarlas cuando lo necesites."
     >
-      <section className="mx-auto max-w-3xl rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/15 bg-[linear-gradient(145deg,#eef8ff,#fffdf1)] p-6 shadow-[var(--vm-shadow-medium)] sm:p-9">
+      <section className="surface-guidance mx-auto max-w-3xl rounded-[var(--vm-radius-elevated)] border border-[color:var(--vm-color-brand-blue)]/15 p-6 shadow-[var(--vm-shadow-medium)] sm:p-9">
         <div className="flex items-start gap-4">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[color:var(--vm-color-success)] text-white">
             <Icon name="check" />
@@ -428,7 +428,7 @@ function RequestConfirmation({
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-[var(--vm-radius-control)] bg-white p-4">
-      <dt className="text-[10px] font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">
+      <dt className="text-xs font-bold uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">
         {label}
       </dt>
       <dd className="mt-2 break-words text-sm font-semibold">{value}</dd>

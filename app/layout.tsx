@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope } from "next/font/google";
+import localFont from "next/font/local";
 import {
   absoluteUrl,
   getGoogleSiteVerification,
@@ -9,10 +9,13 @@ import {
 
 import "./globals.css";
 
-const manrope = Manrope({
-  subsets: ["latin"],
+const manrope = localFont({
+  src: "./fonts/Manrope-Variable.woff2",
   display: "swap",
   variable: "--font-manrope",
+  weight: "200 800",
+  fallback: ["Segoe UI", "Arial"],
+  adjustFontFallback: "Arial",
 });
 
 const googleSiteVerification = getGoogleSiteVerification();

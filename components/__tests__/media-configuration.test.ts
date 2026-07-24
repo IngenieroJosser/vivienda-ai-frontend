@@ -13,8 +13,28 @@ function sourceFiles(directory: string): string[] {
   });
 }
 
-const interfaceSources = ["app", "components", "features"]
-  .flatMap((directory) => sourceFiles(resolve(root, directory)))
+const interfacePaths = ["app", "components", "features"].flatMap((directory) =>
+  sourceFiles(resolve(root, directory)),
+);
+
+const interfaceSources = interfacePaths
+  .map((path) => readFileSync(path, "utf8"))
+  .join("\n");
+
+const visualSources = interfacePaths
+  .filter((path) => path !== resolve(root, "app/layout.tsx"))
+  .map((path) => readFileSync(path, "utf8"))
+  .join("\n");
+
+const prospectSources = [
+  ...sourceFiles(resolve(root, "features/prospect")),
+  resolve(root, "app/page.tsx"),
+  resolve(root, "app/orientacion/page.tsx"),
+  resolve(root, "app/vivienda/proyectos/page.tsx"),
+  resolve(root, "components/project-card.tsx"),
+  resolve(root, "components/project-catalog.tsx"),
+  resolve(root, "components/public-flow-shell.tsx"),
+]
   .map((path) => readFileSync(path, "utf8"))
   .join("\n");
 
@@ -58,10 +78,58 @@ describe("media configuration", () => {
   });
 
   it("uses the font variable emitted by next/font", () => {
+    const layout = readFileSync(resolve(root, "app/layout.tsx"), "utf8");
     const styles = readFileSync(resolve(root, "app/globals.css"), "utf8");
 
+    expect(layout).toContain('import localFont from "next/font/local"');
+    expect(layout).not.toContain("next/font/google");
+    expect(layout).toContain('src: "./fonts/Manrope-Variable.woff2"');
     expect(styles).toContain(
       '--vm-font-family: var(--font-manrope), "Segoe UI", Arial, sans-serif;',
+    );
+  });
+
+  it("keeps internal product terminology out of visible interface copy", () => {
+    const internalTerms = [
+      "Acceso de prototipo",
+      "Esta demostración",
+      "lead pago",
+      "Leads que necesitan maduración",
+      "matching original",
+      "Material comercial aprobado",
+      "Catálogo aprobado",
+      "proyectos documentados",
+      "vistas verificadas",
+    ];
+
+    for (const term of internalTerms) {
+      expect(interfaceSources).not.toContain(term);
+    }
+  });
+
+  it("keeps public supporting text at a readable minimum size", () => {
+    expect(prospectSources).not.toMatch(/text-\[(?:9|10)px\]/);
+  });
+
+  it("keeps component colors, gradients and shadows behind visual tokens", () => {
+    expect(visualSources).not.toMatch(/#[\da-f]{3,8}/i);
+    expect(visualSources).not.toMatch(/rgba?\(/i);
+    expect(visualSources).not.toMatch(/bg-\[linear-gradient/i);
+    expect(visualSources).not.toMatch(/shadow-\[(?!var\()/);
+    expect(visualSources).not.toMatch(
+      /(?:bg|border|text)-(?:emerald|rose)-\d+/,
+    );
+  });
+
+  it("shares feedback semantics across recoverable and empty states", () => {
+    const feedback = readFileSync(
+      resolve(root, "components/feedback-state.tsx"),
+      "utf8",
+    );
+
+    expect(feedback).toContain('role={tone === "error" ? "alert" : undefined}');
+    expect(interfaceSources.match(/<FeedbackState/g)?.length).toBeGreaterThanOrEqual(
+      4,
     );
   });
 
@@ -76,6 +144,30 @@ describe("media configuration", () => {
     expect(gallery).toContain(
       'fetchPriority={index === 0 ? "high" : "auto"}',
     );
+  });
+
+  it("keeps mobile gallery observation separate from requested navigation", () => {
+    const gallery = readFileSync(
+      resolve(root, "components/project-media-gallery.tsx"),
+      "utf8",
+    );
+
+    expect(gallery).toContain("getClosestSlideIndex");
+    expect(gallery).toContain("getCenteredSlideOffset");
+    expect(gallery).toContain("didDragRef");
+    expect(gallery).not.toContain("useEffect(");
+  });
+
+  it("supports intentional swipe gestures inside the image viewer", () => {
+    const viewer = readFileSync(
+      resolve(root, "components/project-image-viewer.tsx"),
+      "utf8",
+    );
+
+    expect(viewer).toContain("getHorizontalSwipeDirection");
+    expect(viewer).toContain("onPointerDown");
+    expect(viewer).toContain("onPointerUp");
+    expect(viewer).toContain("images.length < 2");
   });
 
   it("loads immersive viewers only after the user requests them", () => {

@@ -4,9 +4,9 @@ export function Pill({ children, tone = "blue" }: { children: ReactNode; tone?: 
   const classes = {
     blue: "bg-[color:var(--vm-color-orientation-sky-soft)] text-[color:var(--vm-color-brand-blue)]",
     yellow: "bg-[color:var(--vm-color-brand-yellow-soft)] text-[color:var(--vm-color-warning)]",
-    green: "bg-emerald-50 text-emerald-700",
+    green: "bg-[color:var(--vm-color-success-soft)] text-[color:var(--vm-color-success)]",
     gray: "bg-[color:var(--vm-color-orientation-wash)] text-[color:var(--vm-color-ink-muted)]",
-    red: "bg-rose-50 text-rose-700",
+    red: "bg-[color:var(--vm-color-error-soft)] text-[color:var(--vm-color-error)]",
     "image-overlay": "border border-[color:var(--vm-color-brand-blue)]/15 bg-[color:var(--vm-surface-solid)] text-[color:var(--vm-color-brand-blue-deep)] shadow-[var(--vm-shadow-medium)]",
   }[tone];
 

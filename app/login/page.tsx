@@ -5,7 +5,7 @@ import { LoginForm } from "@/features/auth/login-form";
 
 export default function LoginPage() {
   return (
-    <main className="login-stage grid min-h-screen bg-[#f5f7f8] lg:grid-cols-[minmax(500px,.9fr)_1.1fr]">
+    <main className="login-stage grid min-h-screen bg-[color:var(--vm-color-canvas-muted)] lg:grid-cols-[minmax(500px,.9fr)_1.1fr]">
       <section className="relative z-10 flex flex-col bg-white p-6 sm:p-10 lg:p-12">
         <ProductBrand />
         <div className="mx-auto flex w-full max-w-[430px] flex-1 flex-col justify-center py-12 sm:py-14">
@@ -23,10 +23,10 @@ export default function LoginPage() {
           sizes="55vw"
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,103,177,.08)_0%,rgba(0,65,112,.62)_55%,rgba(0,65,112,.96)_100%)]" />
+        <div className="login-readable-overlay absolute inset-0" />
         <div className="relative z-10 flex h-full flex-col justify-end p-10 xl:p-14">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/12 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.14em]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/12 px-3 py-1.5 text-xs font-bold uppercase tracking-[.1em]">
               Colsubsidio · Vivienda
             </div>
             <h2 className="mt-5 text-4xl font-semibold leading-[1.02] tracking-[-.045em] xl:text-5xl">

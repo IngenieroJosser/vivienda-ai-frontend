@@ -71,7 +71,7 @@ export function AdvisorProjectExplorer({
               Explora lo que verá el prospecto.
             </h2>
             <p>
-              Misma recomendación, evidencia y recursos utilizados durante la
+              Misma recomendación, información confirmada y recursos utilizados durante la
               orientación.
             </p>
           </div>

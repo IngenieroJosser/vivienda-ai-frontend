@@ -36,13 +36,13 @@ export function ProjectCard({ project }: { project: ProjectCatalogItem }) {
             <div className="mt-1 text-base font-extrabold tracking-[-.03em]">{project.priceLabel}</div>
           </div>
         </div>
-        <div className="mt-5 grid grid-cols-3 divide-x divide-[color:var(--vm-color-line)] rounded-[16px] border border-[color:var(--vm-color-line)] bg-[color:var(--vm-color-canvas)] py-3 text-center">
-          <div><div className="text-xs font-bold">{project.areaLabel}</div><div className="mt-1 text-[10px] text-[color:var(--vm-color-ink-muted)]">Área construida</div></div>
-          <div><div className="text-xs font-bold">{project.bedroomsLabel}</div><div className="mt-1 text-[10px] text-[color:var(--vm-color-ink-muted)]">Habitaciones</div></div>
-          <div><div className="text-xs font-bold">{project.totalUnitsLabel}</div><div className="mt-1 text-[10px] text-[color:var(--vm-color-ink-muted)]">Total proyecto</div></div>
+        <div className="mt-5 grid grid-cols-3 divide-x divide-[color:var(--vm-color-line)] rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-[color:var(--vm-color-canvas)] py-3 text-center">
+          <div><div className="text-xs font-bold">{project.areaLabel}</div><div className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">Área construida</div></div>
+          <div><div className="text-xs font-bold">{project.bedroomsLabel}</div><div className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">Habitaciones</div></div>
+          <div><div className="text-xs font-bold">{project.totalUnitsLabel}</div><div className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">Total proyecto</div></div>
         </div>
         <p className="mt-5 min-h-14 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">{project.summary}</p>
-        <Link href={`/vivienda/proyectos/${project.id}`} prefetch={false} className="liquid-button mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white shadow-[0_12px_30px_rgba(0,103,177,.18)] transition hover:-translate-y-1 hover:bg-[color:var(--vm-color-brand-blue-deep)]">Conocer el proyecto <Icon name="arrow" className="h-4 w-4" /></Link>
+        <Link href={`/vivienda/proyectos/${project.id}`} prefetch={false} className="liquid-button mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white shadow-[var(--vm-shadow-brand-medium)] transition hover:-translate-y-1 hover:bg-[color:var(--vm-color-brand-blue-deep)]">Conocer el proyecto <Icon name="arrow" className="h-4 w-4" /></Link>
       </div>
     </article>
   );
