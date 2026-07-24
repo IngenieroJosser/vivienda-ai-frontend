@@ -143,16 +143,76 @@ export function CommercialDashboard({ fullInbox = false }: { fullInbox?: boolean
             key={selected.lead.scenario.leadId}
             className="advisor-detail-enter min-w-0 scroll-mt-20"
           >
-            <AdvisorIntelligence
-              leadId={selected.lead.scenario.leadId}
-              embedded
-            />
+            {selected.lead.source === "BACKEND" ? (
+              <BackendLeadSummary opportunity={selected} />
+            ) : (
+              <AdvisorIntelligence
+                leadId={selected.lead.scenario.leadId}
+                embedded
+              />
+            )}
           </div>
         </section>
       ) : (
         <EmptyInbox />
       )}
     </div>
+  );
+}
+
+function BackendLeadSummary({
+  opportunity,
+}: {
+  readonly opportunity: CommercialOpportunity;
+}) {
+  const { lead } = opportunity;
+  const routeLabel: Record<typeof lead.evaluation.route, string> = {
+    ADVISOR_NOW: "Listo para contacto",
+    NON_AFFILIATE_PRIORITY: "Revisión comercial",
+    NURTURE_FINANCIAL: "Preparación financiera",
+    NURTURE_BENEFITS: "Validación de beneficios",
+    NURTURE_LONG_TERM: "Acompañamiento",
+    NEEDS_DATA: "Información pendiente",
+    OPTED_OUT: "Sin contacto",
+  };
+  const priorityLabel = lead.evaluation.priority === "HIGH"
+    ? "Alta"
+    : lead.evaluation.priority === "MEDIUM"
+      ? "Media"
+      : "Baja";
+
+  return (
+    <section className="surface-solid space-y-6 p-6 sm:p-8">
+      <div>
+        <div className="text-[10px] font-bold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">
+          Evaluación recibida del backend
+        </div>
+        <h2 className="mt-3 text-3xl font-semibold tracking-[-.04em]">
+          {lead.scenario.displayName}
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
+          El detalle de perfil, recomendaciones y auditoría estará disponible en A4.
+        </p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.05] p-4">
+          <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">Ruta</div>
+          <div className="mt-2 font-semibold">{routeLabel[lead.evaluation.route]}</div>
+        </div>
+        <div className="rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.05] p-4">
+          <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">Prioridad</div>
+          <div className="mt-2 font-semibold">{priorityLabel}</div>
+        </div>
+        <div className="rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.05] p-4">
+          <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">Readiness score</div>
+          <div className="mt-2 font-semibold">{lead.evaluation.readinessScore}</div>
+        </div>
+      </div>
+      <div className="rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] p-4">
+        <div className="text-[10px] font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-ink-muted)]">Recomendación principal</div>
+        <div className="mt-2 font-semibold">{opportunity.recommendedProject}</div>
+      </div>
+    </section>
   );
 }
 
@@ -412,7 +472,7 @@ function EmptyInbox() {
       <Icon name="search" className="mx-auto h-7 w-7 text-[color:var(--vm-color-brand-blue)]" />
       <h2 className="mt-3 font-semibold">No hay oportunidades con estos filtros</h2>
       <p className="mt-1 text-sm text-[color:var(--vm-color-ink-muted)]">
-        Ajusta la búsqueda o los filtros. Los prospectos en preparación permanecen en Acompañamiento.
+        Los leads sincronizados aparecerán aquí cuando exista información disponible.
       </p>
     </section>
   );

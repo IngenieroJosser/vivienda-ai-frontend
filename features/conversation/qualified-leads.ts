@@ -1,3 +1,4 @@
+import type { LeadListItem } from "../../lib/api/leads";
 import type { EvaluationResult, Scenario } from "./domain";
 import { evaluateProfile } from "./engine";
 import { getScenarioAnswers, scenarios } from "./scenarios";
@@ -5,6 +6,8 @@ import { getScenarioAnswers, scenarios } from "./scenarios";
 export type QualifiedLead = {
   scenario: Scenario;
   evaluation: EvaluationResult;
+  source?: "BACKEND" | "LOCAL";
+  backendLead?: LeadListItem;
 };
 
 export function getQualifiedScenarioLeads(): QualifiedLead[] {
@@ -15,6 +18,7 @@ export function getQualifiedScenarioLeads(): QualifiedLead[] {
     return {
       scenario,
       evaluation: evaluateProfile(scenario, "USE_KNOWN_DATA", answers),
+      source: "LOCAL" as const,
     };
   });
 }

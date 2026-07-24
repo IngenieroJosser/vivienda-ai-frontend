@@ -85,6 +85,32 @@ export type SessionSyncResponse = {
   evaluation: LeadEvaluationResponse;
 };
 
+export type LeadListItem = {
+  id: string;
+  session_id: string;
+  first_name: string | null;
+  source: string;
+  campaign: string;
+  is_paid: boolean | null;
+  status: string;
+  affiliation_status: string;
+  route: LeadRoute | null;
+  priority: LeadPriority | null;
+  readiness_score: number | null;
+  top_project_id: string | null;
+  updated_at: string;
+};
+
+export function listLeads(options: {
+  limit?: number;
+  signal?: AbortSignal;
+} = {}): Promise<LeadListItem[]> {
+  const limit = options.limit ?? 100;
+  return apiRequest<LeadListItem[]>(`/leads?limit=${limit}`, {
+    signal: options.signal,
+  });
+}
+
 export function toSessionSyncRequest(
   session: ProspectSession,
 ): SessionSyncRequest {

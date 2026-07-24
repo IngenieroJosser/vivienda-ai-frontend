@@ -108,7 +108,7 @@ export function projectCommercialOpportunities(
   now: Date,
 ): CommercialOpportunity[] {
   return leads
-    .filter(({ evaluation }) => isCommercialOpportunity(evaluation))
+    .filter(({ evaluation, source }) => source === "BACKEND" || isCommercialOpportunity(evaluation))
     .map((lead) => {
       const { scenario, evaluation } = lead;
       const campaignProject = scenario.campaignProjectId
