@@ -95,7 +95,6 @@ export function ProjectMediaGallery({
                     ? "(max-width: 1200px) 75vw, 850px"
                     : "120px"
                 }
-                priority={index === 0}
                 quality={90}
                 className="project-gallery__image"
               />

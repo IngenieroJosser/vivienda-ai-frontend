@@ -66,7 +66,7 @@
   --vm-space-16: 64px;
 
   /* Typography tokens. */
-  --vm-font-family: "Manrope", "Segoe UI", Arial, sans-serif;
+  --vm-font-family: var(--font-manrope), "Segoe UI", Arial, sans-serif;
   --vm-type-display-size: clamp(2.25rem, 5vw, 4.75rem);
   --vm-type-display-line: 0.98;
   --vm-type-h1-size: clamp(2rem, 3vw, 2.75rem);

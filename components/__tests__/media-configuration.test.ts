@@ -45,6 +45,23 @@ describe("media configuration", () => {
     expect(layout).toContain('data-scroll-behavior="smooth"');
   });
 
+  it("uses the font variable emitted by next/font", () => {
+    const styles = readFileSync(resolve(root, "app/globals.css"), "utf8");
+
+    expect(styles).toContain(
+      '--vm-font-family: var(--font-manrope), "Segoe UI", Arial, sans-serif;',
+    );
+  });
+
+  it("does not preload the below-header project gallery", () => {
+    const gallery = readFileSync(
+      resolve(root, "components/project-media-gallery.tsx"),
+      "utf8",
+    );
+
+    expect(gallery).not.toContain("priority={index === 0}");
+  });
+
   it("does not duplicate fullscreen permissions on embedded resources", () => {
     const viewer = readFileSync(
       resolve(root, "components/project-resource-viewer.tsx"),
