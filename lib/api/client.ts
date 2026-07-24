@@ -79,18 +79,3 @@ async function safeParseJson(response: Response): Promise<unknown> {
     return null;
   }
 }
-
-export type HealthResponse = {
-  status: string;
-  version: string;
-  database: string;
-  model_available: boolean;
-  processed_data_available: boolean;
-};
-
-/**
- * Sonda de disponibilidad del backend. Útil para validar conectividad y CORS.
- */
-export function getHealth(signal?: AbortSignal): Promise<HealthResponse> {
-  return apiRequest<HealthResponse>("/health", { signal });
-}

@@ -2,10 +2,10 @@ import type { ReactNode } from "react";
 
 export function Pill({ children, tone = "blue" }: { children: ReactNode; tone?: "blue" | "yellow" | "green" | "gray" | "red" | "image-overlay" }) {
   const classes = {
-    blue: "bg-[#0067b1]/10 text-[#0067b1]",
-    yellow: "bg-[#ffd000]/22 text-[#7a6100]",
+    blue: "bg-[color:var(--vm-color-orientation-sky-soft)] text-[color:var(--vm-color-brand-blue)]",
+    yellow: "bg-[color:var(--vm-color-brand-yellow-soft)] text-[color:var(--vm-color-warning)]",
     green: "bg-emerald-50 text-emerald-700",
-    gray: "bg-black/[.05] text-black/60",
+    gray: "bg-[color:var(--vm-color-orientation-wash)] text-[color:var(--vm-color-ink-muted)]",
     red: "bg-rose-50 text-rose-700",
     "image-overlay": "border border-[color:var(--vm-color-brand-blue)]/15 bg-[color:var(--vm-surface-solid)] text-[color:var(--vm-color-brand-blue-deep)] shadow-[var(--vm-shadow-medium)]",
   }[tone];
@@ -18,9 +18,9 @@ export function ProgressBar({ value, label }: { value: number; label?: string })
 
   return (
     <div>
-      {label ? <div className="mb-2.5 flex items-center justify-between text-[11px] text-black/48"><span>{label}</span><span className="font-bold text-[#0067b1]">{safeValue}%</span></div> : null}
-      <div className="h-2 overflow-hidden rounded-full bg-black/[.06]">
-        <div className="h-full rounded-full bg-gradient-to-r from-[#ffd000] via-[#49a4df] to-[#0067b1] transition-all duration-500" style={{ width: `${safeValue}%` }} />
+      {label ? <div className="mb-2.5 flex items-center justify-between text-[11px] text-[color:var(--vm-color-ink-muted)]"><span>{label}</span><span className="font-bold text-[color:var(--vm-color-brand-blue)]">{safeValue}%</span></div> : null}
+      <div className="h-2 overflow-hidden rounded-full bg-[color:var(--vm-color-orientation-wash)]">
+        <div className="h-full rounded-full bg-gradient-to-r from-[color:var(--vm-color-brand-yellow)] via-[color:var(--vm-color-brand-blue-light)] to-[color:var(--vm-color-brand-blue)] transition-all duration-500" style={{ width: `${safeValue}%` }} />
       </div>
     </div>
   );
