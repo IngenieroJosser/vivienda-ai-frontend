@@ -11,10 +11,9 @@ Esta carpeta contiene los escenarios end-to-end que el equipo debe poder ejecuta
 - **Qué debe pasar en la UI y en el backend.**
 - **Qué errores se esperan ver en condiciones controladas.**
 
-Los escenarios se piensan como guía verificable. Funcionan como:
-
-1. **Manual:** se ejecutan en navegador siguiendo los pasos numerados.
-2. **Automatizado:** se traducen a tests Playwright (ver `tests/`).
+Los escenarios son una guía manual verificable. Se ejecutan en navegador
+siguiendo los pasos numerados y registrando la evidencia indicada. La
+automatización de navegador todavía no está implementada.
 
 ## Prerrequisitos
 
@@ -24,26 +23,6 @@ Los escenarios se piensan como guía verificable. Funcionan como:
 | BD inicializada | `python -m app.cli db-init && python -m app.cli seed-projects` | 18 proyectos sembrados |
 | Frontend corriendo | `cd vivienda-ai-frontend && npm run dev` | `http://localhost:3000` |
 | Token de asesor | `python -m app.cli issue-token --sub advisor-demo --role ADVISOR --minutes 480` | Token JWT con `role: ADVISOR` |
-
-## Cómo correr la suite (cuando los tests Playwright estén listos)
-
-```bash
-cd vivienda-ai-frontend
-npm install --save-dev @playwright/test
-npx playwright install chromium
-
-# Toda la suite
-npm run test:e2e
-
-# Solo un escenario
-npm run test:e2e -- 01-prospecto-listo
-
-# Con video (útil para video de respaldo de la demo)
-npm run test:e2e -- --video=on
-
-# Modo interactivo para depurar
-npm run test:e2e -- --ui
-```
 
 ## Los siete escenarios
 
@@ -90,7 +69,8 @@ Datos sintéticos del prospecto (Jonathan, Laura, Camila, Andrés).
 
 ## Datos sintéticos
 
-Los tres perfiles canónicos viven en [`fixtures/scenarios.ts`](fixtures/scenarios.ts):
+Los perfiles locales de referencia viven en
+[`features/conversation/scenarios.ts`](../features/conversation/scenarios.ts):
 
 - **Jonathan** — afiliado, ingresos altos, ahorro listo, horizonte 0–3 meses → `READY_TO_CLOSE`.
 - **Laura** — no afiliada, ingresos medios, sin ahorro → `NON_AFFILIATE_REVIEW`.
@@ -99,7 +79,9 @@ Los tres perfiles canónicos viven en [`fixtures/scenarios.ts`](fixtures/scenari
 
 ## Tokens
 
-[`fixtures/auth.ts`](fixtures/auth.ts) lee el token de `.env.local` (`NEXT_PUBLIC_ADVISOR_ACCESS_TOKEN`) o emite uno nuevo con `app.cli issue-token` cuando se necesita un token fresco.
+El frontend lee `NEXT_PUBLIC_ADVISOR_ACCESS_TOKEN` desde `.env.local`. El token
+se emite desde el backend con `python -m app.cli issue-token`; nunca se
+versiona en esta carpeta.
 
 ## Lo que NO cubre esta suite
 

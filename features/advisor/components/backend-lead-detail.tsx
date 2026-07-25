@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
 import { getHousingProject } from "../../../lib/housing-catalog";
@@ -17,9 +17,15 @@ import {
 import {
   claimLeadAndRefresh,
   createActivityAndRefresh,
+  type CommercialLeadSnapshot,
   updateWorkflowAndRefresh,
 } from "../../../lib/api/commercial-operations";
 import { getCommercialErrorMessage } from "../../../lib/api/commercial-errors";
+import {
+  ACTIVITY_TYPE_LABELS,
+  resolveActivityAttempt,
+  type ActivityAttempt,
+} from "../commercial-ui-model";
 
 function isCommercialWorkflowMissing(error: unknown): boolean {
   if (!(error instanceof ApiError)) return false;
@@ -41,24 +47,14 @@ const routeLabels: Record<LeadRoute, string> = {
 
 type ActivityStatus = "LOADING" | "READY" | "EMPTY" | "ERROR";
 
-const ACTIVITY_TYPE_LABELS: Record<string, string> = {
-  CONTACT_ATTEMPT: "Intento de contacto",
-  CONTACT_SUCCESS: "Contacto exitoso",
-  FOLLOW_UP: "Seguimiento programado",
-  APPOINTMENT_SCHEDULED: "Cita agendada",
-  CLOSE_WON: "Cierre exitoso",
-  CLOSE_LOST: "Cierre sin conversión",
-  OPT_OUT: "Solicitud de no contacto",
-  NOTE: "Nota interna",
-};
-
 export function BackendLeadDetail({
-  detail,
+  detail: initialDetail,
   embedded = false,
 }: {
   readonly detail: LeadDetailResponse;
   readonly embedded?: boolean;
 }) {
+  const [detail, setDetail] = useState(initialDetail);
   const [activeTab, setActiveTab] = useState<DetailTab>("SUMMARY");
   const [activities, setActivities] = useState<CommercialActivity[]>([]);
   const [activityStatus, setActivityStatus] = useState<ActivityStatus>("LOADING");
@@ -94,16 +90,6 @@ export function BackendLeadDetail({
       cancelled = true;
     };
   }, [detail.id, refreshTick, activeTab]);
-
-  useEffect(() => {
-    const handler = (event: Event) => {
-      const custom = event as CustomEvent<{ leadId?: string }>;
-      if (custom.detail?.leadId && custom.detail.leadId !== detail.id) return;
-      setRefreshTick((current) => current + 1);
-    };
-    window.addEventListener("vivienda:lead-refresh", handler);
-    return () => window.removeEventListener("vivienda:lead-refresh", handler);
-  }, [detail.id]);
 
   const evaluation = detail.evaluation;
   const journey = detail.journey;
@@ -197,11 +183,12 @@ export function BackendLeadDetail({
     </div>
   );
 
-  function refreshAfterMutation(): void {
+  function refreshAfterMutation(snapshot: CommercialLeadSnapshot): void {
+    setDetail(snapshot.lead);
+    setActivities(snapshot.activities);
+    setActivityStatus(snapshot.activities.length ? "READY" : "EMPTY");
+    setActivityError("");
     setRefreshTick((current) => current + 1);
-    window.dispatchEvent(
-      new CustomEvent("vivienda:lead-refresh", { detail: { leadId: detail.id } }),
-    );
   }
 }
 
@@ -619,7 +606,7 @@ function AdvisorActionsPanel({
   onChanged,
 }: {
   readonly detail: LeadDetailResponse;
-  readonly onChanged: () => void;
+  readonly onChanged: (snapshot: CommercialLeadSnapshot) => void;
 }) {
   const workflow = detail.commercial_workflow;
   const handoff = detail.journey?.handoff;
@@ -646,13 +633,19 @@ function AdvisorActionsPanel({
   const [activityBusy, setActivityBusy] = useState(false);
   const [activityError, setActivityError] = useState("");
   const [activitySuccess, setActivitySuccess] = useState("");
+  const activityAttemptRef = useRef<ActivityAttempt | null>(null);
+
+  function applySnapshot(snapshot: CommercialLeadSnapshot): void {
+    setTargetState(snapshot.workflow.state as CommercialStateValue);
+    onChanged(snapshot);
+  }
 
   async function handleClaim() {
     setClaimBusy(true);
     setClaimError("");
     try {
-      await claimLeadAndRefresh(detail.id);
-      onChanged();
+      const snapshot = await claimLeadAndRefresh(detail.id);
+      applySnapshot(snapshot);
     } catch (error) {
       setClaimError(getCommercialErrorMessage(error));
     } finally {
@@ -668,14 +661,14 @@ function AdvisorActionsPanel({
     setWorkflowBusy(true);
     setWorkflowError("");
     try {
-      await updateWorkflowAndRefresh(detail.id, {
+      const snapshot = await updateWorkflowAndRefresh(detail.id, {
         state: targetState,
         expected_workflow_version: workflowVersion,
         updated_at: new Date().toISOString(),
         outcome: outcome.trim() || null,
       });
       setOutcome("");
-      onChanged();
+      applySnapshot(snapshot);
     } catch (error) {
       setWorkflowError(getCommercialErrorMessage(error));
     } finally {
@@ -695,23 +688,37 @@ function AdvisorActionsPanel({
     setActivityBusy(true);
     setActivityError("");
     setActivitySuccess("");
+    const attempt = resolveActivityAttempt(
+      activityAttemptRef.current,
+      {
+        activityType,
+        channel,
+        result: activityResult.trim(),
+        note: activityNote.trim(),
+        workflowVersion,
+      },
+      generateIdempotencyKey,
+    );
+    activityAttemptRef.current = attempt;
+    const activityInput = {
+      activity_type: activityType,
+      channel,
+      result: activityResult.trim(),
+      managed_at: attempt.managedAt,
+      note: activityNote.trim() || null,
+      expected_workflow_version: workflowVersion,
+    };
     try {
-      await createActivityAndRefresh(
+      const snapshot = await createActivityAndRefresh(
         detail.id,
-        {
-          activity_type: activityType,
-          channel,
-          result: activityResult.trim(),
-          managed_at: new Date().toISOString(),
-          note: activityNote.trim() || null,
-          expected_workflow_version: workflowVersion,
-        },
-        generateIdempotencyKey(),
+        activityInput,
+        attempt.key,
       );
+      activityAttemptRef.current = null;
       setActivityResult("");
       setActivityNote("");
-      setActivitySuccess("Actividad registrada. Actualiza la pestaña Actividades para verla.");
-      onChanged();
+      setActivitySuccess("Actividad registrada y disponible en el historial.");
+      applySnapshot(snapshot);
     } catch (error) {
       setActivityError(getCommercialErrorMessage(error));
     } finally {

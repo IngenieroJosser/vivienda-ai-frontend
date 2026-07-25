@@ -11,6 +11,7 @@ import {
   type LeadListItem,
 } from "../../../lib/api/leads";
 import { ApiError } from "../../../lib/api/client";
+import { resolveSelectedLead } from "../commercial-ui-model";
 
 type DashboardSection = "CLAIM" | "ASSIGNED" | "SLA";
 
@@ -73,6 +74,9 @@ export function CommercialDashboard({ fullInbox = false }: { fullInbox?: boolean
   const [sla, setSla] = useState<SectionState>({ status: "LOADING", items: [] });
   const [retryKey, setRetryKey] = useState(0);
   const [activeSection, setActiveSection] = useState<DashboardSection>("ASSIGNED");
+  const [selectedBySection, setSelectedBySection] = useState<
+    Partial<Record<DashboardSection, string>>
+  >({});
   const detailRef = useRef<HTMLDivElement>(null);
 
   const loadSection = useCallback(
@@ -116,10 +120,20 @@ export function CommercialDashboard({ fullInbox = false }: { fullInbox?: boolean
   };
 
   const activeState = sections[activeSection];
-  const selectedItem = activeState.items[0];
+  const selectedItem = resolveSelectedLead(
+    activeState.items,
+    selectedBySection[activeSection] ?? null,
+  );
 
   function selectSection(section: DashboardSection) {
     setActiveSection(section);
+  }
+
+  function selectLead(leadId: string) {
+    setSelectedBySection((current) => ({
+      ...current,
+      [activeSection]: leadId,
+    }));
     if (!window.matchMedia("(max-width: 1279px)").matches) return;
     window.requestAnimationFrame(() => {
       detailRef.current?.scrollIntoView({ block: "start" });
@@ -178,6 +192,7 @@ export function CommercialDashboard({ fullInbox = false }: { fullInbox?: boolean
                   item={item}
                   selected={selectedItem?.id === item.id}
                   first={index === 0}
+                  onSelect={() => selectLead(item.id)}
                 />
               ))}
             </div>
@@ -185,6 +200,7 @@ export function CommercialDashboard({ fullInbox = false }: { fullInbox?: boolean
 
           <div
             ref={detailRef}
+            id="advisor-selected-lead"
             key={selectedItem?.id}
             className="advisor-detail-enter min-w-0 scroll-mt-20"
           >
@@ -246,18 +262,22 @@ function LeadItemRow({
   item,
   selected,
   first,
+  onSelect,
 }: {
   item: LeadListItem;
   selected: boolean;
   first: boolean;
+  onSelect: () => void;
 }) {
   const initials = (item.first_name ?? item.id).slice(0, 2).toUpperCase();
   return (
-    <Link
-      href={`/asesor/leads/${item.id}`}
-      aria-current={selected ? "true" : undefined}
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      aria-controls="advisor-selected-lead"
       data-testid={`lead-row-${item.id}`}
-      className={`flex items-center gap-3 px-4 py-3 transition ${
+      className={`flex w-full items-center gap-3 px-4 py-3 text-left transition ${
         selected
           ? "bg-[color:var(--vm-color-brand-blue)]/[.07]"
           : "bg-white hover:bg-[color:var(--vm-color-brand-blue)]/[.025]"
@@ -280,7 +300,7 @@ function LeadItemRow({
       <Pill tone={priorityTone(item.priority)}>
         {priorityLabel(item.priority)}
       </Pill>
-    </Link>
+    </button>
   );
 }
 

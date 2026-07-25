@@ -20,7 +20,7 @@
 | **E1** — Alinear tipos, mapper y estados | Erick | ✅ **COMPLETADO (estado: done)** | Merge `c496ee0` del 24/07. |
 | **E2** — Cliente API de A4.7 | Erick | ✅ **COMPLETADO (estado: done)** | `claimLead`, `updateWorkflow`, `createActivity`, `listActivities` listos. |
 | **E3** — Cliente API del chat | Erick | ❌ **SIN TERMINAR (estado: not-started)** | Bloqueado por J3. |
-| **E4** — Pruebas de integración frontend | Erick | 🟡 **EN PROCESO (estado: partial)** | 164/164 tests pasan; faltan casos de chat. |
+| **E4** — Pruebas de integración frontend | Erick | 🟡 **EN PROCESO (estado: partial)** | 168/168 tests pasan; faltan casos de chat. |
 | **A1** — Detalle operativo del asesor | Alejandro | ✅ **COMPLETADO (estado: done)** | Probado en vivo el 25/07 con lead `83453dbf-...`. |
 | **A2** — Dashboard mínimo del asesor | Alejandro | ✅ **COMPLETADO (estado: done)** | Tres secciones con `listLeads({ pendingAssignment, assignedToMe, slaOverdue })`. |
 | **A3** — Experiencia del chat | Alejandro | 🟡 **EN PROCESO (estado: partial)** | Bloqueado por J3 + E3. |
@@ -741,7 +741,7 @@ Alejandro puede integrar la conversación sin construir llamadas HTTP dentro de 
 7. ❌ Mensaje de chat exitoso (depende de E3).
 8. ❌ Fallback del chat (depende de E3).
 
-**Resultado:** 164/164 tests pasan (147 previos + 17 nuevos de `lib/api/__tests__/`).
+**Resultado:** 168/168 tests pasan (147 previos + 21 pruebas de integración y regresión).
 
 #### Definición de terminado
 
@@ -762,7 +762,7 @@ Las pruebas nuevas y las 147 existentes quedan verdes.
 - ✅ Mostrar estado, asesor asignado, próxima acción y seguimiento. *(Pill de estado, versión del workflow, `next_action`.)*
 - ✅ Mostrar historial persistido de actividades. *(Pestaña "Actividades" con `listActivities(id)`.)*
 - ✅ Estados de carga, vacío, error y conflicto. *(LOADING con skeleton, EMPTY con mensaje, ERROR con reintento, 404 `COMMERCIAL_WORKFLOW_NOT_FOUND` como EMPTY.)*
-- ✅ Recargar el detalle después de mutaciones. *(Evento `vivienda:lead-refresh` disparado por cada acción.)*
+- ✅ Actualizar el detalle después de mutaciones con el snapshot canónico devuelto por la API.
 - 🟡 Eliminar lecturas canónicas desde `features/advisor/storage.ts`. *(`AdvisorActionsPanel` ya no lee del storage; queda en A2.)*
 
 #### Definición de terminado
