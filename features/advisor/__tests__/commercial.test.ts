@@ -48,11 +48,11 @@ describe("commercial opportunity workspace", () => {
       type: "CONTACT_RECORDED",
       description: "Contacto registrado por el asesor.",
       timestamp: "2026-07-23T15:05:00.000-05:00",
-      status: "CONTACTING",
+      status: "IN_PROGRESS",
       firstContact: true,
     });
 
-    expect(updated.status).toBe("CONTACTING");
+    expect(updated.status).toBe("IN_PROGRESS");
     expect(updated.firstContactAt).toBeDefined();
     expect(updated.activities).toHaveLength(1);
     expect(lead.evaluation.readinessScore).toBe(originalScore);
@@ -66,7 +66,7 @@ describe("commercial opportunity workspace", () => {
       type: "CONTACT_RECORDED",
       description: "Primer contacto.",
       timestamp: "2026-07-23T14:30:00.000-05:00",
-      status: "CONTACTING",
+      status: "IN_PROGRESS",
       firstContact: true,
     });
     const opportunities = projectCommercialOpportunities(

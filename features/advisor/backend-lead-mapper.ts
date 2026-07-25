@@ -2,6 +2,21 @@ import type { LeadListItem } from "../../lib/api/leads";
 import type { EvaluationResult, ProfileAnswers, Scenario } from "../conversation/domain";
 import type { QualifiedLead } from "../conversation/qualified-leads";
 
+export type BackendCommercialContext = {
+  readinessLevel: LeadListItem["readiness_level"];
+  commercialState: LeadListItem["commercial_state"];
+  workflowVersion: LeadListItem["workflow_version"];
+  assignedAdvisorId: LeadListItem["assigned_advisor_id"];
+  nextFollowUpAt: LeadListItem["next_follow_up_at"];
+  slaDueAt: LeadListItem["sla_due_at"];
+  slaOverdue: LeadListItem["sla_overdue"];
+  nextAction: LeadListItem["next_action"];
+};
+
+export type BackendQualifiedLead = QualifiedLead & {
+  backend: BackendCommercialContext;
+};
+
 const routeMap: Record<NonNullable<LeadListItem["route"]>, EvaluationResult["route"]> = {
   READY_TO_CLOSE: "ADVISOR_NOW",
   NEEDS_VALIDATION: "NEEDS_DATA",
@@ -11,7 +26,7 @@ const routeMap: Record<NonNullable<LeadListItem["route"]>, EvaluationResult["rou
   OPTED_OUT: "OPTED_OUT",
 };
 
-export function mapBackendLeadToQualified(item: LeadListItem): QualifiedLead {
+export function mapBackendLeadToQualified(item: LeadListItem): BackendQualifiedLead {
   const leadId = item.id as Scenario["leadId"];
   const profile: ProfileAnswers = {};
   if (item.affiliation_status === "AFFILIATE" || item.affiliation_status === "NON_AFFILIATE") {
@@ -52,13 +67,10 @@ export function mapBackendLeadToQualified(item: LeadListItem): QualifiedLead {
 
   const evaluation: EvaluationResult = {
     leadId,
-    readinessScore:
-      item.readiness_level === "HIGH"
-        ? 80
-        : item.readiness_level === "DEVELOPING"
-          ? 55
-          : 25,
-    confidenceScore: 0,
+    // El contrato de lista solo expone un nivel cualitativo. NaN mantiene la
+    // compatibilidad temporal con el modelo legado sin fabricar precisión.
+    readinessScore: Number.NaN,
+    confidenceScore: Number.NaN,
     priority,
     route,
     projectIds: item.top_project_id ? [item.top_project_id] : [],
@@ -85,10 +97,22 @@ export function mapBackendLeadToQualified(item: LeadListItem): QualifiedLead {
     scenario,
     evaluation,
     source: "BACKEND",
+    backend: {
+      readinessLevel: item.readiness_level,
+      commercialState: item.commercial_state,
+      workflowVersion: item.workflow_version,
+      assignedAdvisorId: item.assigned_advisor_id,
+      nextFollowUpAt: item.next_follow_up_at,
+      slaDueAt: item.sla_due_at,
+      slaOverdue: item.sla_overdue,
+      nextAction: item.next_action,
+    },
   };
 }
 
-export function mapBackendLeadsToQualified(items: LeadListItem[]): QualifiedLead[] {
+export function mapBackendLeadsToQualified(
+  items: LeadListItem[],
+): BackendQualifiedLead[] {
   return items.map(mapBackendLeadToQualified);
 }
 
