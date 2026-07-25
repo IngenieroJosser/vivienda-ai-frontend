@@ -24,7 +24,10 @@ export function buildAgendaItems(
   now: Date,
 ): AgendaItem[] {
   return projectCommercialOpportunities(leads, states, now)
-    .filter(({ state }) => !["WON", "DEFERRED", "NOT_VIABLE"].includes(state.status))
+    .filter(
+      ({ state }) =>
+        !["CLOSED_WON", "CLOSED_LOST", "OPTED_OUT"].includes(state.status),
+    )
     .map(({ lead, state }) => {
       const followUp = state.followUpAt;
       const type: AgendaItem["type"] = followUp

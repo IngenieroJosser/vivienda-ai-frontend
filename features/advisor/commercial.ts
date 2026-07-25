@@ -1,21 +1,20 @@
 import { getHousingProject } from "../../lib/housing-catalog";
+import type { CommercialState } from "../../lib/api/leads";
 import type { QualifiedLead } from "../conversation/qualified-leads";
 import { isCommercialOpportunity } from "../conversation/qualified-leads";
 
 export const COMMERCIAL_STATUS = [
-  "NEW",
+  "PENDING",
   "ASSIGNED",
-  "CONTACTING",
+  "IN_PROGRESS",
   "FOLLOW_UP",
-  "VISIT",
-  "SIMULATION",
-  "DOCUMENTATION",
-  "WON",
-  "DEFERRED",
-  "NOT_VIABLE",
+  "APPOINTMENT_SCHEDULED",
+  "CLOSED_WON",
+  "CLOSED_LOST",
+  "OPTED_OUT",
 ] as const;
 
-export type CommercialStatus = (typeof COMMERCIAL_STATUS)[number];
+export type CommercialStatus = CommercialState;
 export type CommercialActivityType =
   | "OPPORTUNITY_ACCEPTED"
   | "STATUS_CHANGED"
@@ -76,16 +75,14 @@ const horizonRank: Record<string, number> = {
 };
 
 export const commercialStatusLabels: Record<CommercialStatus, string> = {
-  NEW: "Nueva",
+  PENDING: "Pendiente",
   ASSIGNED: "Asignada",
-  CONTACTING: "Contactando",
+  IN_PROGRESS: "En gestión",
   FOLLOW_UP: "En seguimiento",
-  VISIT: "Visita",
-  SIMULATION: "Simulación",
-  DOCUMENTATION: "Documentación",
-  WON: "Ganada",
-  DEFERRED: "Aplazada",
-  NOT_VIABLE: "No viable",
+  APPOINTMENT_SCHEDULED: "Cita agendada",
+  CLOSED_WON: "Cierre ganado",
+  CLOSED_LOST: "Cierre perdido",
+  OPTED_OUT: "No desea continuar",
 };
 
 export function createCommercialState(
@@ -94,7 +91,7 @@ export function createCommercialState(
 ): CommercialOpportunityState {
   return {
     leadId,
-    status: "NEW",
+    status: "PENDING",
     subsidyValidationRequired: false,
     financingValidationRequired: false,
     activities: [],
@@ -148,6 +145,11 @@ export function compareOpportunities(
   a: CommercialOpportunity,
   b: CommercialOpportunity,
 ): number {
+  const aIsBackend = "backend" in a.lead;
+  const bIsBackend = "backend" in b.lead;
+  if (aIsBackend && bIsBackend) return 0;
+  if (aIsBackend !== bIsBackend) return aIsBackend ? -1 : 1;
+
   return (
     priorityRank[b.lead.evaluation.priority] -
       priorityRank[a.lead.evaluation.priority] ||
@@ -181,7 +183,7 @@ export function calculateCommercialMetrics(
 
   return {
     total: opportunities.length,
-    newCount: opportunities.filter(({ state }) => state.status === "NEW").length,
+    newCount: opportunities.filter(({ state }) => state.status === "PENDING").length,
     unassigned: opportunities.filter(({ state }) => !state.assignedTo).length,
     pendingFirstContact: opportunities.filter(({ state }) => !state.firstContactAt)
       .length,

@@ -16,7 +16,11 @@ export type CommercialWorkflow = {
   completedSteps: number;
 };
 
-const terminalStatuses = new Set(["WON", "DEFERRED", "NOT_VIABLE"]);
+const terminalStatuses = new Set([
+  "CLOSED_WON",
+  "CLOSED_LOST",
+  "OPTED_OUT",
+]);
 
 export function getCommercialWorkflow(
   state: CommercialOpportunityState | undefined,
@@ -41,7 +45,7 @@ export function getCommercialWorkflow(
       completedSteps: 1,
     };
   }
-  if (state.status === "CONTACTING" || state.status === "ASSIGNED") {
+  if (state.status === "IN_PROGRESS" || state.status === "ASSIGNED") {
     return {
       action: "RESULT",
       title: "Registra cómo resultó el contacto",

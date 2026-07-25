@@ -76,7 +76,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
       type: "CONTACT_RECORDED",
       description: "",
       timestamp,
-      status: "CONTACTING",
+      status: "IN_PROGRESS",
       firstContact: true,
     });
   }
@@ -319,8 +319,10 @@ function PostContactManagement({
   ) => void;
 }) {
   const [result, setResult] = useState<CommercialStatus>(state.status);
-  const terminal = ["WON", "DEFERRED", "NOT_VIABLE"].includes(state.status);
-  const resultRecorded = !["ASSIGNED", "CONTACTING"].includes(state.status);
+  const terminal = ["CLOSED_WON", "CLOSED_LOST", "OPTED_OUT"].includes(
+    state.status,
+  );
+  const resultRecorded = !["ASSIGNED", "IN_PROGRESS"].includes(state.status);
 
   if (terminal) {
     return (
@@ -353,7 +355,7 @@ function PostContactManagement({
             }
           >
             {Object.entries(commercialStatusLabels)
-              .filter(([value]) => value !== "NEW" && value !== "ASSIGNED")
+              .filter(([value]) => value !== "PENDING" && value !== "ASSIGNED")
               .map(([value, label]) => (
                 <option key={value} value={value}>
                   {label}

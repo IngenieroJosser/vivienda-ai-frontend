@@ -25,6 +25,7 @@ type RequestOptions = {
   body?: unknown;
   signal?: AbortSignal;
   advisorAuth?: boolean;
+  headers?: Record<string, string>;
 };
 
 /**
@@ -35,7 +36,13 @@ export async function apiRequest<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { method = "GET", body, signal, advisorAuth = false } = options;
+  const {
+    method = "GET",
+    body,
+    signal,
+    advisorAuth = false,
+    headers = {},
+  } = options;
   const url = `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
   let response: Response;
@@ -51,6 +58,7 @@ export async function apiRequest<T>(
               Authorization: `Bearer ${process.env.NEXT_PUBLIC_ADVISOR_ACCESS_TOKEN}`,
             }
           : {}),
+        ...headers,
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });

@@ -26,7 +26,7 @@ describe("commercial workflow", () => {
     expect(
       getCommercialWorkflow({
         ...assigned,
-        status: "CONTACTING",
+        status: "IN_PROGRESS",
         firstContactAt: capturedAt,
       }).action,
     ).toBe("RESULT");
