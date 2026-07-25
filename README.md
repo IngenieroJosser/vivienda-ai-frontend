@@ -146,3 +146,313 @@ La suite protege las reglas principales del sistema:
 - Verifica la carga diferida y la configuración de imágenes y visores.
 - Comprueba umbral, dirección y predominio horizontal de los gestos de galería.
 - Confirma que la fuente local y su variable CSS permanezcan conectadas.
+
+---
+
+## Estado de la integración al 2026-07-25
+
+> **Rama:** `feature/Alejandro` (basada en `feature/integration-between-back&front` + merge de `Erick`)
+
+### ✅ Lo que funciona end-to-end
+
+| Verificado | Detalle |
+|---|---|
+| ✅ `GET /health` | Backend responde 200 en `:3001` |
+| ✅ `GET /projects` y `GET /projects/{id}` | 18 proyectos sembrados |
+| ✅ `POST /leads/sync` | Crea el lead con perfil canónico |
+| ✅ `POST /leads/{id}/handoff` | Activa el workflow comercial cuando la ruta lo permite |
+| ✅ `GET /leads` (con token) | Bandeja real del asesor |
+| ✅ `GET /leads/{id}` (con token) | Detalle con perfil, discovery, evaluation, journey |
+| ✅ `POST /leads/{id}/claim` | Reclamo atómico (probado en `83453dbf-999e-4989-a168-c2c50a54c884`) |
+| ✅ `PATCH /leads/{id}/workflow` | Cambio de estado con `workflow_version` (probado, workflow ahora en IN_PROGRESS v4) |
+| ✅ `POST /leads/{id}/activities` | Registro con `Idempotency-Key` (probado, ID `fd145d93-3f6e-4629-b0d9-72caf1722272`) |
+| ✅ `GET /leads/{id}/activities` | Lista de actividades registradas |
+
+### 🟡 Lo que está parcialmente hecho
+
+- 🟡 **AdvisorActionsPanel** (en `backend-lead-detail.tsx`) consume claim/workflow/activity pero el botón "Cambiar estado" requiere seleccionar un estado distinto al actual para activarse (lógica correcta pero UX mejorable).
+- 🟡 **Pestaña Actividades** en el detalle usa `listActivities(id)` y maneja 404 `COMMERCIAL_WORKFLOW_NOT_FOUND` como estado vacío, pero solo carga cuando el usuario abre la pestaña (optimización intencional para no spammear 404 en consola).
+- 🟡 `e2e/` solo contiene documentación markdown de los 7 escenarios; no hay scripts Playwright automatizados todavía.
+
+### ❌ Lo que falta
+
+- ❌ Conectar `claim` y `workflow` desde el botón "Aplicar cambio" con la página sin recarga (la UI muestra el resultado solo tras `Ctrl+R`).
+- ✅ **A2 — Dashboard mínimo del asesor** (`commercial-dashboard.tsx` migrado a `listLeads()` con tres secciones reales: Por reclamar, Asignadas a mí, SLA o seguimiento vencido).
+- ❌ **A3 — Chatbot con backend** (`POST /leads/{id}/chat/messages` aún no existe en backend, dependencia de Josser).
+- ❌ Selector visual de escenarios para demo (`/_dev/seed` o `/demo`).
+- ❌ Datos sintéticos para los 4 escenarios canónicos (Jonathan listo, Camila nutrición, Laura no afiliada, Andrés comprador previo).
+- ❌ Video de respaldo de la demo.
+- ❌ Tests frontend para flujo comercial (Playwright).
+
+---
+
+## Cambios aplicados en esta rama
+
+### Merge de la rama `Erick` (1 commit)
+
+```
+c32950b  merge: bring in Erick's A4.7 API integration (claim, workflow, activities)
+c496ee0  feat(advisor-api): integrate commercial workflow operations
+```
+
+**Archivos recibidos de Erick:**
+
+| Archivo | Qué agrega |
+|---|---|
+| `lib/api/leads.ts` | `claimLead`, `updateWorkflow`, `createActivity` (con `Idempotency-Key`), `listActivities` y filtros de `listLeads` (`assignedToMe`, `pendingAssignment`, `commercialState`, `slaOverdue`, `overdueFollowUp`, `nextAction`, `reevaluationDate`) |
+| `lib/api/commercial-operations.ts` | Helpers `claimLeadAndRefresh`, `updateWorkflowAndRefresh`, `createActivityAndRefresh` que devuelven `{ workflow, lead, activities }` |
+| `lib/api/commercial-errors.ts` | `getCommercialErrorMessage` traduce códigos (`LEAD_ALREADY_ASSIGNED`, `STALE_WORKFLOW_VERSION`, `INVALID_WORKFLOW_TRANSITION`, `TERMINAL_WORKFLOW_IMMUTABLE`, `ACTIVITY_IDEMPOTENCY_CONFLICT`, `RESOURCE_FORBIDDEN`) |
+| `lib/api/__tests__/commercial-operations.test.ts` | 95 líneas de tests |
+| `lib/api/__tests__/commercial-errors.test.ts` | 44 líneas de tests |
+| `lib/api/__tests__/leads.test.ts` | +163 líneas (tests ampliados) |
+
+**Por qué importan estos cambios:** sin ellos, no podríamos llamar a `claim`/`workflow`/`activities` desde el frontend. Erick dejó la capa de transporte lista; Alejandro solo la consume.
+
+### Cambios propios de `feature/Alejandro`
+
+| Archivo | Qué hace |
+|---|---|
+| `features/advisor/components/backend-lead-detail.tsx` | Agrega `AdvisorActionsPanel` con botones `claim`/`workflow`/`activity`, pestaña "Actividades" con `listActivities`, manejo de 404 `COMMERCIAL_WORKFLOW_NOT_FOUND`, escucha del evento `vivienda:lead-refresh` |
+| `app/asesor/leads/[id]/page.tsx` | Soporta IDs sin scenario local (título genérico) |
+| `e2e/README.md` y `e2e/scenarios/*.md` | Documentación de los 7 escenarios E2E obligatorios del ROADMAPV4 |
+
+### Regeneración de tipos
+
+```bash
+npx openapi-typescript ../vivienda-ai-backend/docs/openapi.json -o lib/api/generated.ts
+```
+
+`generated.ts` actualizado para incluir `commercial_workflow` y `CommercialWorkflowResponse`.
+
+---
+
+## Pruebas manuales realizadas (25/07)
+
+### 1. Verificar backend y crear token
+
+```bash
+cd ../vivienda-ai-backend
+source .venv/bin/activate
+python -m app.cli issue-token --sub advisor-demo --role ADVISOR --minutes 480
+```
+
+Copiar el token a `vivienda-ai-frontend/.env.local` como `NEXT_PUBLIC_ADVISOR_ACCESS_TOKEN`.
+
+### 2. Crear lead Jonathan (perfil de listo)
+
+```bash
+TOKEN=$(... )
+
+curl -X POST -H "Content-Type: application/json" \
+  -d "{
+    \"session_id\":\"demo-jonathan-$(date +%s)\",
+    \"session_version\":1,
+    \"lead_id\":null,
+    \"first_name\":\"Jonathan\",
+    \"acquisition\":{\"source\":\"meta\",\"campaign\":\"vivienda_junio\",\"content\":\"home\",\"lead_reference\":null,\"is_paid\":true},
+    \"status\":\"IN_PROGRESS\",
+    \"consent_accepted_at\":\"2026-07-25T10:00:00Z\",
+    \"customer_relationship\":\"NEW\",
+    \"profile\":{\"affiliation\":\"AFFILIATE\",\"location\":\"Bogotá\",\"income_range\":\"SMLV_8_10\",\"obligations\":\"low\",\"savings\":\"ready\",\"horizon\":\"0_3\",\"household_size\":\"3\",\"subsidy_interest\":\"yes\"},
+    \"discovery\":{\"housing_vision\":\"PRIMARY\",\"intended_for\":\"FAMILY\",\"motivation\":\"Mejor ubicación\",\"obstacle\":\"\",\"advance_need\":\"\"},
+    \"turns\":[{\"id\":\"t1\",\"user_text\":\"Soy afiliado, ingresos altos\",\"assistant_text\":\"Excelente\",\"extracted_fields\":[],\"created_at\":\"2026-07-25T10:00:00Z\"}],
+    \"created_at\":\"2026-07-25T10:00:00Z\",
+    \"updated_at\":\"2026-07-25T10:00:00Z\"
+  }" \
+  "http://127.0.0.1:3001/api/v1/leads/sync"
+# → route: READY_TO_CLOSE, recommendations: [Araucaria, Inari, Los Nogales]
+```
+
+### 3. Crear handoff (crea workflow en PENDING)
+
+```bash
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"channel":"WHATSAPP","time_preference":"Mañana 9-12","project_ids":[],"requested_at":"2026-07-25T12:00:00Z"}' \
+  "http://127.0.0.1:3001/api/v1/leads/$LEAD_ID/handoff"
+# → handoff.status: REQUESTED, workflow.state: PENDING
+```
+
+### 4. Probar UI completa
+
+```
+http://localhost:3000/asesor/leads/83453dbf-999e-4989-a168-c2c50a54c884
+```
+
+Pasos verificados:
+
+1. ✅ Sección "Acciones del asesor" visible arriba de "Perfil y contexto".
+2. ✅ Botón "Tomar oportunidad" presente (workflow PENDING, sin asignar).
+3. ✅ Click → `POST /claim` 200, UI muestra `Estado actual: ASSIGNED`.
+4. ✅ Selector "Nuevo estado" cambia a `IN_PROGRESS`, click "Aplicar cambio" → `PATCH /workflow` 200.
+5. ✅ Formulario "Registrar nueva actividad" con tipo/canal/resultado/nota.
+6. ✅ Click "Registrar actividad" → `POST /activities` 201 con `Idempotency-Key` automático.
+7. ✅ Pestaña "Actividades" muestra la entrada recién creada.
+
+### 5. Validar persistencia
+
+- `Ctrl+R` en la página del detalle: el estado sigue en `IN_PROGRESS`, la actividad sigue visible.
+- `GET /leads/{id}/activities` vía curl: 1 actividad registrada con ID real (`fd145d93-3f6e-4629-b0d9-72caf1722272`).
+
+### 6. Resetear workflow para repetir pruebas
+
+Si necesitas probar el flujo de claim desde cero:
+
+```bash
+sqlite3 vivienda_match.db "UPDATE lead_commercial_workflows SET state='PENDING', assigned_advisor_id=NULL, workflow_version=1 WHERE lead_id='83453dbf-999e-4989-a168-c2c50a54c884'"
+sqlite3 vivienda_match.db "DELETE FROM lead_activities WHERE lead_id='83453dbf-999e-4989-a168-c2c50a54c884'"
+```
+
+(No es código de producto; solo atajo de desarrollo para repetir la demo.)
+
+---
+
+## Estado del ROADMAPV4 (secciones A1–A4, Alejandro)
+
+### ✅ Completado
+
+- **A1 — Detalle operativo del asesor (P0)**
+  - ✅ Renderizar `CommercialActions` desde el panel de acciones (claim, workflow, actividad).
+  - ✅ Mostrar estado actual, asesor asignado, próxima acción, versión del workflow.
+  - ✅ Mostrar historial persistido de actividades (pestaña "Actividades").
+  - ✅ Estados de carga, vacío, error y reintento en `listActivities`.
+  - ✅ Recargar el detalle después de mutaciones (evento `vivienda:lead-refresh`).
+
+### 🟡 En proceso
+
+- 🟡 A1 — Eliminar lecturas canónicas desde `features/advisor/storage.ts`: parcialmente. `AdvisorActionsPanel` ya no lee del storage local, pero `commercial-dashboard.tsx` (A2) todavía sí.
+
+### ❌ Sin terminar
+
+- ❌ **A2 — Dashboard mínimo del asesor (P1)**: tres vistas (por reclamar, asignadas a mí, SLA vencido).
+- ❌ **A3 — Experiencia del chat (P0)**: pendiente del endpoint `POST /leads/{id}/chat/messages` que libera Josser (backend bloqueante).
+- ❌ **A4 — Datos de demo y presentación**: video, capturas, datos sintéticos para 4 prospectos canónicos.
+
+### ✅ Completado por Erick (en el merge)
+
+- ✅ **E1** — Tipos regenerados desde OpenAPI; estados sintéticos eliminados en mi código.
+- ✅ **E2** — Cliente API de A4.7: `claimLead`, `updateWorkflow`, `createActivity` con `Idempotency-Key`, `listActivities`, errores traducidos.
+- ✅ **E4** — Tests nuevos para cliente API: 17 tests adicionales (164 totales, 31 archivos).
+
+### ❌ Pendiente de Josser
+
+- ❌ **J1** — Proteger `/admin/*`, `/analytics/*`, `/ai/*` (siguen públicos).
+- ❌ **J2** — Allowlist/denylist de features en scoring y recomendador.
+- ❌ **J3** — Chat con LLM configurable, fallback determinístico, credencial de prospecto.
+- ❌ **J4** — Contrato final congelado y OpenAPI sincronizado.
+
+---
+
+## Para el equipo (información útil)
+
+### Bugs del backend pendientes (no resueltos en esta rama)
+
+1. **`POST /leads/sync` con `session_version: 1` retorna `409 SESSION_VERSION_IN_PROGRESS`** incluso cuando el `session_id` es único. Imposible crear más leads vía API. Workaround: usar leads existentes (`83453dbf-...`, `9713a35d-...`, `d1905483-...`).
+2. **`handoff.status === NOT_REQUESTED`** para leads con `route: NURTURE` aunque exista el workflow. El backend rechaza con `409 HANDOFF_NOT_ALLOWED`.
+3. **Las rutas `/admin/*`, `/analytics/*`, `/ai/*` están públicamente accesibles** sin token. Riesgo de seguridad previo a despliegue.
+
+### Decisiones que necesitan confirmarse
+
+- ¿Persistir el chat del prospecto en `conversation_turns` (existente) o crear `chat_messages`? Josser ya extendió `conversation_turns` con metadatos LLM; A4.8 los normaliza.
+- ¿Quién emite los tokens en producción? El CLI actual es demo-only.
+- ¿Qué hacer con leads NURTURE que no piden handoff en N meses? (Reactivación, archivo, lead scoring).
+
+### Setup local rápido
+
+```bash
+# Terminal 1 — backend
+cd vivienda-ai-backend
+source .venv/bin/activate
+python -m app.cli db-init
+python -m app.cli seed-projects
+python -m uvicorn app.main:app --reload --port 3001
+
+# Terminal 2 — frontend
+cd vivienda-ai-frontend
+echo "NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1" > .env.local
+echo "NEXT_PUBLIC_ADVISOR_ACCESS_TOKEN=$(python -m app.cli issue-token --sub advisor-demo --role ADVISOR --minutes 480 | python3 -c 'import json,sys;print(json.load(sys.stdin)[\"access_token\"])')" >> .env.local
+npm install
+npm run dev
+
+# Validación
+npm test
+```
+
+### Leads de prueba disponibles al 25/07
+
+| `lead_id` | `first_name` | `route` | `workflow.state` | Para qué sirve |
+|---|---|---|---|---|
+| `83453dbf-...` | Jonathan | READY_TO_CLOSE | **IN_PROGRESS v4** | Demo end-to-end del flujo comercial |
+| `9713a35d-...` | (null) | NURTURE | None | Mostrar mensaje "sin handoff" en la UI |
+| `d1905483-...` | smoke | NURTURE | None | Smoke / pruebas |
+
+### Cómo conectar el dashboard (A2, próxima tarea)
+
+1. En `commercial-dashboard.tsx`, reemplazar `useCommercialStates()` y `useQualifiedLeads()` por:
+   ```ts
+   import { listLeads } from "@/lib/api/leads";
+   const [opportunities, setOpportunities] = useState([]);
+   useEffect(() => {
+     listLeads({ assignedToMe: true }).then(setOpportunities);
+   }, []);
+   ```
+2. Añadir selectores para `pendingAssignment: true`, `slaOverdue: true`, `overdueFollowUp: true`.
+3. Mantener el orden que devuelve el backend (`PRIORITY_ORDER`).
+
+### Cómo conectar el chat (A3, depende de Josser)
+
+1. Esperar a que Josser libere `POST /leads/{id}/chat/messages` con credencial de prospecto.
+2. Erick generará `lib/api/chat.ts` con `sendProspectMessage(leadId, content)` y `getProspectConversation(leadId)`.
+3. En `prospect-conversation.tsx`, reemplazar `answerProspectMessage()` por la llamada al backend.
+4. Mantener el motor determinístico como fallback.
+
+---
+
+## Pruebas automatizadas (vitest)
+
+```bash
+npm test
+```
+
+```
+Test Files  31 passed (31)
+Tests        164 passed (164)
+```
+
+Detalle:
+- Tests previos a merge: 147
+- Tests nuevos por Erick (en `lib/api/__tests__/`): +17
+- Tests propios de Alejandro: 0 nuevos (no agregué tests todavía — pendiente)
+
+---
+
+## Comando rápido de validación manual
+
+```bash
+# Estado del backend
+curl http://127.0.0.1:3001/api/v1/health
+
+# Bandeja del asesor
+TOKEN=$(cd ../vivienda-ai-backend && source .venv/bin/activate && \
+  python -m app.cli issue-token --sub advisor-demo --role ADVISOR --minutes 480 | \
+  python3 -c "import json,sys;print(json.load(sys.stdin)['access_token'])")
+curl -H "Authorization: Bearer $TOKEN" "http://127.0.0.1:3001/api/v1/leads?limit=10" | python3 -m json.tool
+```
+
+---
+
+## Próximos pasos inmediatos (orden)
+
+1. **Conectar mutaciones sin recarga** (refresco automático en `BackendLeadDetail`).
+2. **A2 — Dashboard** (`commercial-dashboard.tsx`).
+3. **Datos sintéticos** (script para Jonathan/Camila/Laura/Andrés).
+4. **A4 — Video de respaldo y capturas** (sábado 26/07 10:00 a. m.).
+5. **Tests Playwright** (opcional, post-demo).
+
+---
+
+## Contactos rápidos
+
+- **Backend/IA/Scoring**: Josser.
+- **Cliente API / Mapper**: Erick.
+- **Páginas, UX, E2E, demo**: Alejandro (este repo, `feature/Alejandro`).
+- **Fecha límite**: domingo 26/07/2026 11:30 a. m. (hora Colombia).
