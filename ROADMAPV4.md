@@ -12,24 +12,46 @@
 
 | Tarea | Responsable | Estado | Nota corta |
 |---|---|---|---|
-| **M0** — Base compartida y ramas | Los tres | ✅ **COMPLETADO** | Base commiteada, contrato preliminar listo. |
-| **J1** — Config reproducible + endpoints seguros | Josser | 🟡 **EN PROCESO** | `.env` OK; `/admin/*`, `/analytics/*`, `/ai/*` aún públicos. |
-| **J2** — Integridad del scoring y recomendador | Josser | ❌ **SIN TERMINAR** | Bono por campaña (+15 %) no eliminado. |
-| **J3** — Chat con LLM y fallback | Josser | ❌ **SIN TERMINAR** | Endpoint `POST /chat/messages` no existe. |
-| **J4** — Contrato final y validación backend | Josser | ❌ **SIN TERMINAR** | OpenAPI no congelado. |
-| **E1** — Alinear tipos, mapper y estados | Erick | ✅ **COMPLETADO** | Merge `c496ee0` del 24/07. |
-| **E2** — Cliente API de A4.7 | Erick | ✅ **COMPLETADO** | `claimLead`, `updateWorkflow`, `createActivity`, `listActivities` listos. |
-| **E3** — Cliente API del chat | Erick | ❌ **SIN TERMINAR** | Bloqueado por J3. |
-| **E4** — Pruebas de integración frontend | Erick | 🟡 **EN PROCESO** | 164/164 tests pasan; faltan casos de chat. |
-| **A1** — Detalle operativo del asesor | Alejandro | ✅ **COMPLETADO** | Probado en vivo el 25/07 con lead `83453dbf-...`. |
-| **A2** — Dashboard mínimo del asesor | Alejandro | ✅ **COMPLETADO** | Tres secciones con `listLeads({ pendingAssignment, assignedToMe, slaOverdue })`. |
-| **A3** — Experiencia del chat | Alejandro | 🟡 **EN PROCESO** | Bloqueado por J3 + E3. |
-| **A4** — E2E, datos de demo y presentación | Alejandro | 🟡 **EN PROCESO** | 7 escenarios documentados en `e2e/scenarios/*.md`; faltan datos sintéticos y video. |
+| **M0** — Base compartida y ramas | Los tres | ✅ **COMPLETADO (estado: done)** | Base commiteada, contrato preliminar listo. |
+| **J1** — Config reproducible + endpoints seguros | Josser | 🟡 **EN PROCESO (estado: partial)** | `.env` OK; `/admin/*`, `/analytics/*`, `/ai/*` aún públicos. |
+| **J2** — Integridad del scoring y recomendador | Josser | ❌ **SIN TERMINAR (estado: not-started)** | Bono por campaña (+15 %) no eliminado. |
+| **J3** — Chat con LLM y fallback | Josser | ❌ **SIN TERMINAR (estado: not-started)** | Endpoint `POST /chat/messages` no existe. |
+| **J4** — Contrato final y validación backend | Josser | ❌ **SIN TERMINAR (estado: not-started)** | OpenAPI no congelado. |
+| **E1** — Alinear tipos, mapper y estados | Erick | ✅ **COMPLETADO (estado: done)** | Merge `c496ee0` del 24/07. |
+| **E2** — Cliente API de A4.7 | Erick | ✅ **COMPLETADO (estado: done)** | `claimLead`, `updateWorkflow`, `createActivity`, `listActivities` listos. |
+| **E3** — Cliente API del chat | Erick | ❌ **SIN TERMINAR (estado: not-started)** | Bloqueado por J3. |
+| **E4** — Pruebas de integración frontend | Erick | 🟡 **EN PROCESO (estado: partial)** | 164/164 tests pasan; faltan casos de chat. |
+| **A1** — Detalle operativo del asesor | Alejandro | ✅ **COMPLETADO (estado: done)** | Probado en vivo el 25/07 con lead `83453dbf-...`. |
+| **A2** — Dashboard mínimo del asesor | Alejandro | ✅ **COMPLETADO (estado: done)** | Tres secciones con `listLeads({ pendingAssignment, assignedToMe, slaOverdue })`. |
+| **A3** — Experiencia del chat | Alejandro | 🟡 **EN PROCESO (estado: partial)** | Bloqueado por J3 + E3. |
+| **A4** — E2E, datos de demo y presentación | Alejandro | 🟡 **EN PROCESO (estado: partial)** | 7 escenarios documentados en `e2e/scenarios/*.md`; faltan datos sintéticos y video. |
 
 **Leyenda:**
-- ✅ **COMPLETADO** — entregable verificado, cumple definición de terminado.
-- 🟡 **EN PROCESO** — trabajo iniciado, falta parte del alcance.
-- ❌ **SIN TERMINAR** — no se ha iniciado o depende de otro frente.
+- ✅ **COMPLETADO (estado: done)** — entregable verificado, cumple definición de terminado.
+- 🟡 **EN PROCESO (estado: partial)** — trabajo iniciado, falta parte del alcance.
+- ❌ **SIN TERMINAR (estado: not-started)** — no se ha iniciado o depende de otro frente.
+
+### 0.1 Qué falta para cerrar las tareas en proceso
+
+**J1 (en proceso — Josser)** falta por hacer:
+- Proteger `/admin/*`, `/analytics/*` con rol `SUPERVISOR` o deshabilitarlos.
+- Proteger `/ai/*` con `ADVISOR` o `SUPERVISOR`.
+- Auditar que los logs del backend no expongan tokens, notas ni contenido sensible.
+
+**E4 (en proceso — Erick)** falta por hacer:
+- Tests explícitos de reclamo concurrente (dos asesores).
+- Tests explícitos de transición inválida de workflow.
+- Tests del flujo de chat (depende de E3 y J3).
+
+**A3 (en proceso — Alejandro)** falta por hacer:
+- Sustituir el motor determinístico local (`features/prospect/engine.ts`) por la llamada al backend cuando Josser libere `POST /leads/{id}/chat/messages` y Erick exponga `sendProspectMessage`.
+- Diferenciar visualmente las respuestas `LLM` vs `DETERMINISTIC_FALLBACK` en `prospect-conversation.tsx`.
+
+**A4 (en proceso — Alejandro)** falta por hacer:
+- Grabar video corto de respaldo (sábado 26/07 10:00-11:00).
+- Tomar capturas de pantalla del flujo principal.
+- Ejecutar los 7 escenarios E2E manualmente en navegador (sábado 14:00-17:00).
+- (Opcional) Instalar Playwright si sobra tiempo.
 
 ---
 
@@ -450,7 +472,7 @@ Erick genera o actualiza los tipos una sola vez después del freeze. Alejandro t
 
 ---
 
-### J1 — Configuración reproducible y endpoints seguros **(EN PROCESO)**
+### J1 — Configuración reproducible y endpoints seguros **(estado: EN PROCESO)**
 
 **Responsable:** Josser  
 **Dependencia:** M0  
@@ -481,7 +503,7 @@ Las rutas internas no son públicas y cualquier integrante puede arrancar el bac
 
 ---
 
-### J2 — Integridad mínima del scoring y recomendador **(SIN TERMINAR)**
+### J2 — Integridad mínima del scoring y recomendador **(estado: SIN TERMINAR)**
 
 **Responsable:** Josser  
 **Dependencia:** M0  
@@ -511,7 +533,7 @@ La recomendación no aprende ni comunica información asociada con fuga, marketi
 
 ---
 
-### J3 — Chat mínimo con LLM, persistencia y fallback **(SIN TERMINAR)**
+### J3 — Chat mínimo con LLM, persistencia y fallback **(estado: SIN TERMINAR)**
 
 **Responsable:** Josser  
 **Dependencias:** M0 y J1  
@@ -575,7 +597,7 @@ El prospecto puede enviar un mensaje, recibir una respuesta contextual, recargar
 
 ---
 
-### J4 — Contrato final y validación backend **(SIN TERMINAR)**
+### J4 — Contrato final y validación backend **(estado: SIN TERMINAR)**
 
 **Responsable:** Josser  
 **Dependencias:** J1, J2 y J3  
@@ -602,7 +624,7 @@ Después de este punto solo se permiten cambios compatibles o correcciones de bl
 
 ---
 
-### E1 — Alinear tipos, mapper y estados del frontend **(COMPLETADO 2026-07-25)**
+### E1 — Alinear tipos, mapper y estados del frontend **(estado: COMPLETADO)**
 
 **Responsable:** Erick  
 **Dependencia:** M0; cierre final después de J4  
@@ -637,7 +659,7 @@ Frontend y backend comparten los mismos tipos, estados y significado comercial.
 
 ---
 
-### E2 — Cliente API de A4.7 **(COMPLETADO 2026-07-25)**
+### E2 — Cliente API de A4.7 **(estado: COMPLETADO)**
 
 **Responsable:** Erick  
 **Dependencias:** M0 y contrato preliminar  
@@ -679,7 +701,7 @@ Ninguna acción comercial esencial depende de `localStorage`.
 
 ---
 
-### E3 — Cliente API del chat **(SIN TERMINAR – bloqueado por Josser)**
+### E3 — Cliente API del chat **(estado: SIN TERMINAR — bloqueado por J3)**
 
 **Responsable:** Erick  
 **Dependencia:** contrato preliminar de J3  
@@ -701,7 +723,7 @@ Alejandro puede integrar la conversación sin construir llamadas HTTP dentro de 
 
 ---
 
-### E4 — Pruebas de integración frontend **(EN PROCESO)**
+### E4 — Pruebas de integración frontend **(estado: EN PROCESO)**
 
 **Responsable:** Erick  
 **Dependencias:** E1, E2 y E3  
@@ -727,7 +749,7 @@ Las pruebas nuevas y las 147 existentes quedan verdes.
 
 ---
 
-### A1 — Detalle operativo del asesor **(COMPLETADO 2026-07-25)**
+### A1 — Detalle operativo del asesor **(estado: COMPLETADO)**
 
 **Responsable:** Alejandro  
 **Dependencia:** interfaces preliminares de E2  
@@ -751,7 +773,7 @@ Un asesor puede reclamar, gestionar y registrar una actividad desde el navegador
 
 ---
 
-### A2 — Dashboard mínimo del asesor **(COMPLETADO 2026-07-25)**
+### A2 — Dashboard mínimo del asesor **(estado: COMPLETADO)**
 
 **Responsable:** Alejandro  
 **Dependencia:** interfaces de E1 y E2  
@@ -785,7 +807,7 @@ El asesor identifica qué atender primero usando datos reales del backend.
 
 ---
 
-### A3 — Experiencia del chat **(EN PROCESO – bloqueado por Josser)**
+### A3 — Experiencia del chat **(estado: EN PROCESO — bloqueado por J3 y E3)**
 
 **Responsable:** Alejandro  
 **Dependencia:** interfaz preliminar de E3  
@@ -812,7 +834,7 @@ El chat funciona con respuesta LLM y con fallback determinístico sin romper la 
 
 ---
 
-### A4 — E2E, datos de demo y presentación **(EN PROCESO)**
+### A4 — E2E, datos de demo y presentación **(estado: EN PROCESO)**
 
 **Responsable:** Alejandro  
 **Apoyo:** Josser y Erick para bloqueadores de sus módulos  

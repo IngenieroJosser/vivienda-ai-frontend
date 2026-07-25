@@ -152,37 +152,80 @@ La suite protege las reglas principales del sistema:
 ## Estado de la integración al 2026-07-25
 
 > **Rama:** `feature/Alejandro` (basada en `feature/integration-between-back&front` + merge de `Erick`)
+>
+> **Fecha límite del reto:** domingo 26/07/2026 11:30 a. m. (hora Colombia)
 
-### ✅ Lo que funciona end-to-end
+### Quién hizo qué — dependencia de Alejandro con Erick y Josser
+
+Alejandro **depende** del trabajo de Erick (cliente API) y de Josser (backend + chat LLM).
+Esta sección documenta las dependencias y contribuciones para que el equipo
+pueda continuar sin ambigüedad.
+
+#### Contribuciones de Erick (merge del 24/07, commit `c32950b`)
+
+Erick construyó la capa de transporte que Alejandro consume directamente.
+**Sin esto, mi A1 y A2 no existirían.**
+
+| Archivo | Función que Alejandro usa |
+|---|---|
+| `lib/api/leads.ts` | `claimLead`, `updateWorkflow`, `createActivity`, `listActivities`, `listLeads` con filtros |
+| `lib/api/commercial-operations.ts` | `claimLeadAndRefresh`, `updateWorkflowAndRefresh`, `createActivityAndRefresh` |
+| `lib/api/commercial-errors.ts` | `getCommercialErrorMessage` para traducir códigos del backend |
+| `lib/api/__tests__/commercial-operations.test.ts` | Tests que validan el cliente |
+| `lib/api/__tests__/commercial-errors.test.ts` | Tests que validan la traducción de errores |
+| `lib/api/__tests__/leads.test.ts` | +163 líneas de tests |
+
+**Estado actual:** Erick cumple E1, E2, E4 (parcial). E3 bloqueado por J3.
+
+#### Contribuciones de Alejandro (este repo, `feature/Alejandro`)
+
+| Commit | Archivo | Qué hace |
+|---|---|---|
+| `c32561a` | `ROADMAPV4.md` | Mirror del roadmap versionado en el frontend |
+| `081f54a` | `e2e/` (nuevo) | 7 escenarios documentados para la demo |
+| `3a34686` | `app/asesor/leads/[id]/page.tsx` | Wrapper que soporta IDs sin scenario local |
+| `f866b1d` | `features/advisor/components/backend-lead-detail.tsx` | **A1** — `AdvisorActionsPanel` con claim/workflow/activity |
+| `490ddc4` | `features/advisor/components/commercial-dashboard.tsx` | **A2** — Dashboard con tres secciones del backend |
+| `71e72a6` | `README.md` | Esta documentación |
+| `d1c85a4` | `scripts/seed-demo-leads.py` | Crea 4 prospectos canónicos directo en BD |
+| `c286438` | `features/advisor/components/backend-lead-detail.tsx` | SLA badge visual |
+
+**Estado actual:** Alejandro cumple A1, A2 (completados). A3 bloqueado por J3. A4 en proceso.
+
+#### Pendiente de Josser (backend)
+
+Josser es el dueño del backend y de las decisiones regulatorias. Alejandro
+**no puede avanzar** en A3 hasta que Josser libere lo siguiente:
+
+| Pieza | Por qué bloquea Alejandro |
+|---|---|
+| `J1` — Proteger `/admin/*`, `/analytics/*`, `/ai/*` | Riesgo de seguridad visible en la demo |
+| `J2` — Denylist de features y eliminar bono de campaña | El recomendador aún sesga por `channel`/`campaign` |
+| `J3` — `POST /leads/{id}/chat/messages` | Sin este endpoint, A3 no puede progresar |
+| `J4` — Contrato final congelado | Estabiliza el alcance de la demo |
+
+---
+
+### ✅ Lo que funciona end-to-end (probado el 25/07)
 
 | Verificado | Detalle |
 |---|---|
 | ✅ `GET /health` | Backend responde 200 en `:3001` |
 | ✅ `GET /projects` y `GET /projects/{id}` | 18 proyectos sembrados |
-| ✅ `POST /leads/sync` | Crea el lead con perfil canónico |
-| ✅ `POST /leads/{id}/handoff` | Activa el workflow comercial cuando la ruta lo permite |
-| ✅ `GET /leads` (con token) | Bandeja real del asesor |
-| ✅ `GET /leads/{id}` (con token) | Detalle con perfil, discovery, evaluation, journey |
-| ✅ `POST /leads/{id}/claim` | Reclamo atómico (probado en `83453dbf-999e-4989-a168-c2c50a54c884`) |
-| ✅ `PATCH /leads/{id}/workflow` | Cambio de estado con `workflow_version` (probado, workflow ahora en IN_PROGRESS v4) |
+| ✅ `GET /leads` (con token) | Bandeja real del asesor con filtros `pendingAssignment`, `assignedToMe`, `slaOverdue` |
+| ✅ `GET /leads/{id}` (con token) | Detalle con perfil, discovery, evaluation, journey, commercial_workflow |
+| ✅ `POST /leads/{id}/claim` | Reclamo atómico (probado con `83453dbf-...`) |
+| ✅ `PATCH /leads/{id}/workflow` | Cambio de estado con `workflow_version` (workflow ahora en IN_PROGRESS v4) |
 | ✅ `POST /leads/{id}/activities` | Registro con `Idempotency-Key` (probado, ID `fd145d93-3f6e-4629-b0d9-72caf1722272`) |
 | ✅ `GET /leads/{id}/activities` | Lista de actividades registradas |
-
-### 🟡 Lo que está parcialmente hecho
-
-- 🟡 **AdvisorActionsPanel** (en `backend-lead-detail.tsx`) consume claim/workflow/activity pero el botón "Cambiar estado" requiere seleccionar un estado distinto al actual para activarse (lógica correcta pero UX mejorable).
-- 🟡 **Pestaña Actividades** en el detalle usa `listActivities(id)` y maneja 404 `COMMERCIAL_WORKFLOW_NOT_FOUND` como estado vacío, pero solo carga cuando el usuario abre la pestaña (optimización intencional para no spammear 404 en consola).
-- 🟡 `e2e/` solo contiene documentación markdown de los 7 escenarios; no hay scripts Playwright automatizados todavía.
+| ✅ `GET /asesor` y `/asesor/leads` | Dashboard con tres secciones (Por reclamar, Asignadas a mí, SLA vencido) |
 
 ### ❌ Lo que falta
 
-- ❌ Conectar `claim` y `workflow` desde el botón "Aplicar cambio" con la página sin recarga (la UI muestra el resultado solo tras `Ctrl+R`).
-- ✅ **A2 — Dashboard mínimo del asesor** (`commercial-dashboard.tsx` migrado a `listLeads()` con tres secciones reales: Por reclamar, Asignadas a mí, SLA o seguimiento vencido).
 - ❌ **A3 — Chatbot con backend** (`POST /leads/{id}/chat/messages` aún no existe en backend, dependencia de Josser).
-- ❌ Selector visual de escenarios para demo (`/_dev/seed` o `/demo`).
-- ❌ Datos sintéticos para los 4 escenarios canónicos (Jonathan listo, Camila nutrición, Laura no afiliada, Andrés comprador previo).
 - ❌ Video de respaldo de la demo.
-- ❌ Tests frontend para flujo comercial (Playwright).
+- ❌ Capturas de pantalla del flujo completo.
+- ❌ Selector visual de escenarios para demo (`/_dev/seed` o `/demo`).
 
 ---
 
@@ -442,17 +485,15 @@ curl -H "Authorization: Bearer $TOKEN" "http://127.0.0.1:3001/api/v1/leads?limit
 
 ## Próximos pasos inmediatos (orden)
 
-1. **Conectar mutaciones sin recarga** (refresco automático en `BackendLeadDetail`).
-2. **A2 — Dashboard** (`commercial-dashboard.tsx`).
-3. **Datos sintéticos** (script para Jonathan/Camila/Laura/Andrés).
-4. **A4 — Video de respaldo y capturas** (sábado 26/07 10:00 a. m.).
-5. **Tests Playwright** (opcional, post-demo).
+1. **Video de respaldo** (sábado 26/07 10:00-11:00).
+2. **Ensayo E2E** con los 4 prospectos (sábado 14:00-17:00).
+3. **Capturas de pantalla** durante el ensayo.
 
 ---
 
 ## Contactos rápidos
 
-- **Backend/IA/Scoring**: Josser.
+- **Backend / IA / Scoring**: Josser.
 - **Cliente API / Mapper**: Erick.
 - **Páginas, UX, E2E, demo**: Alejandro (este repo, `feature/Alejandro`).
 - **Fecha límite**: domingo 26/07/2026 11:30 a. m. (hora Colombia).
