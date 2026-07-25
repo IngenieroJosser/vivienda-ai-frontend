@@ -1,16 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
 import { getHousingProject } from "../../../lib/housing-catalog";
-import type {
-  LeadDetailEvaluation,
-  LeadDetailResponse,
-  LeadRoute,
-  ProjectRecommendation,
+import { ApiError } from "../../../lib/api/client";
+import {
+  listActivities,
+  type CommercialActivity,
+  type LeadDetailEvaluation,
+  type LeadDetailResponse,
+  type LeadRoute,
+  type ProjectRecommendation,
 } from "../../../lib/api/leads";
+import {
+  claimLeadAndRefresh,
+  createActivityAndRefresh,
+  updateWorkflowAndRefresh,
+} from "../../../lib/api/commercial-operations";
+import { getCommercialErrorMessage } from "../../../lib/api/commercial-errors";
+
+function isCommercialWorkflowMissing(error: unknown): boolean {
+  if (!(error instanceof ApiError)) return false;
+  if (error.status !== 404) return false;
+  const detail = (error.details as { detail?: { code?: string } } | null)?.detail;
+  return detail?.code === "COMMERCIAL_WORKFLOW_NOT_FOUND";
+}
 
 type DetailTab = "SUMMARY" | "PROJECTS" | "CONVERSATION" | "ACTIVITY";
 
@@ -23,6 +39,19 @@ const routeLabels: Record<LeadRoute, string> = {
   OPTED_OUT: "Sin contacto",
 };
 
+type ActivityStatus = "LOADING" | "READY" | "EMPTY" | "ERROR";
+
+const ACTIVITY_TYPE_LABELS: Record<string, string> = {
+  CONTACT_ATTEMPT: "Intento de contacto",
+  CONTACT_SUCCESS: "Contacto exitoso",
+  FOLLOW_UP: "Seguimiento programado",
+  APPOINTMENT_SCHEDULED: "Cita agendada",
+  CLOSE_WON: "Cierre exitoso",
+  CLOSE_LOST: "Cierre sin conversión",
+  OPT_OUT: "Solicitud de no contacto",
+  NOTE: "Nota interna",
+};
+
 export function BackendLeadDetail({
   detail,
   embedded = false,
@@ -31,13 +60,58 @@ export function BackendLeadDetail({
   readonly embedded?: boolean;
 }) {
   const [activeTab, setActiveTab] = useState<DetailTab>("SUMMARY");
+  const [activities, setActivities] = useState<CommercialActivity[]>([]);
+  const [activityStatus, setActivityStatus] = useState<ActivityStatus>("LOADING");
+  const [activityError, setActivityError] = useState("");
+  const [refreshTick, setRefreshTick] = useState(0);
+
+  useEffect(() => {
+    if (activeTab !== "ACTIVITY") return;
+    let cancelled = false;
+    listActivities(detail.id)
+      .then((response) => {
+        if (cancelled) return;
+        setActivities(response);
+        setActivityStatus(response.length === 0 ? "EMPTY" : "READY");
+        setActivityError("");
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        if (isCommercialWorkflowMissing(error)) {
+          setActivities([]);
+          setActivityStatus("EMPTY");
+          setActivityError("");
+          return;
+        }
+        setActivityStatus("ERROR");
+        setActivityError(
+          error instanceof Error
+            ? error.message
+            : "No pudimos cargar el historial de actividades.",
+        );
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [detail.id, refreshTick, activeTab]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const custom = event as CustomEvent<{ leadId?: string }>;
+      if (custom.detail?.leadId && custom.detail.leadId !== detail.id) return;
+      setRefreshTick((current) => current + 1);
+    };
+    window.addEventListener("vivienda:lead-refresh", handler);
+    return () => window.removeEventListener("vivienda:lead-refresh", handler);
+  }, [detail.id]);
+
   const evaluation = detail.evaluation;
   const journey = detail.journey;
   const tabs: Array<{ value: DetailTab; label: string; icon: Parameters<typeof Icon>[0]["name"] }> = [
     { value: "SUMMARY", label: "Resumen", icon: "document" },
     { value: "PROJECTS", label: "Proyectos", icon: "building" },
     { value: "CONVERSATION", label: "Conversación", icon: "mail" },
-    { value: "ACTIVITY", label: "Trazabilidad", icon: "history" },
+    { value: "ACTIVITY", label: "Actividades", icon: "history" },
   ];
 
   return (
@@ -103,12 +177,32 @@ export function BackendLeadDetail({
         </nav>
       </section>
 
-      {activeTab === "SUMMARY" ? <SummaryPanel detail={detail} /> : null}
+      {activeTab === "SUMMARY" ? (
+        <>
+          <AdvisorActionsPanel detail={detail} onChanged={refreshAfterMutation} />
+          <SummaryPanel detail={detail} />
+        </>
+      ) : null}
       {activeTab === "PROJECTS" ? <RecommendationsPanel recommendations={journey?.recommendations ?? []} /> : null}
       {activeTab === "CONVERSATION" ? <ConversationPanel detail={detail} /> : null}
-      {activeTab === "ACTIVITY" ? <ActivityPanel detail={detail} /> : null}
+      {activeTab === "ACTIVITY" ? (
+        <ActivityPanel
+          detail={detail}
+          activities={activities}
+          activityStatus={activityStatus}
+          activityError={activityError}
+          onRetry={() => setRefreshTick((current) => current + 1)}
+        />
+      ) : null}
     </div>
   );
+
+  function refreshAfterMutation(): void {
+    setRefreshTick((current) => current + 1);
+    window.dispatchEvent(
+      new CustomEvent("vivienda:lead-refresh", { detail: { leadId: detail.id } }),
+    );
+  }
 }
 
 function SummaryPanel({ detail }: { readonly detail: LeadDetailResponse }) {
@@ -229,12 +323,32 @@ function ConversationPanel({ detail }: { readonly detail: LeadDetailResponse }) 
   );
 }
 
-function ActivityPanel({ detail }: { readonly detail: LeadDetailResponse }) {
+function ActivityPanel({
+  detail,
+  activities,
+  activityStatus,
+  activityError,
+  onRetry,
+}: {
+  readonly detail: LeadDetailResponse;
+  readonly activities: CommercialActivity[];
+  readonly activityStatus: ActivityStatus;
+  readonly activityError: string;
+  readonly onRetry: () => void;
+}) {
   const evaluation = detail.evaluation;
   return (
     <>
       <section className="surface-solid p-6 sm:p-8">
-        <SectionHeading title="Trazabilidad de la oportunidad" description="Actualizaciones y decisiones registradas durante el recorrido." />
+        <SectionHeading
+          title="Actividades registradas"
+          description="Acciones del asesor sobre esta oportunidad, en orden cronológico."
+        />
+        {renderActivitiesBody({ activityStatus, activityError, onRetry, activities })}
+      </section>
+
+      <section className="surface-solid p-6 sm:p-8">
+        <SectionHeading title="Trazabilidad de la oportunidad" description="Eventos del sistema registrados durante el recorrido." />
         {detail.audit_events.length ? (
           <ol className="mt-5 space-y-4">
             {detail.audit_events.map((event, index) => (
@@ -299,6 +413,73 @@ function KeyValueGrid({ values, emptyLabel }: { readonly values: Record<string, 
   return <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{entries.map(([key, value]) => <Fact key={key} label={humanizeKey(key)} value={formatValue(value)} />)}</div>;
 }
 
+function renderActivitiesBody({
+  activityStatus,
+  activityError,
+  onRetry,
+  activities,
+}: {
+  activityStatus: ActivityStatus;
+  activityError: string;
+  onRetry: () => void;
+  activities: CommercialActivity[];
+}) {
+  if (activityStatus === "LOADING") {
+    return (
+      <div aria-live="polite" aria-busy="true" className="mt-5 space-y-3">
+        <div className="h-12 animate-pulse rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white" />
+        <div className="h-12 animate-pulse rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white" />
+        <span className="sr-only">Cargando actividades</span>
+      </div>
+    );
+  }
+  if (activityStatus === "ERROR") {
+    return (
+      <div className="surface-warning-soft mt-5 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-warning)]/25 p-4 text-sm text-[color:var(--vm-color-warning)]">
+        <p>{activityError || "No pudimos cargar las actividades."}</p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-3 inline-flex min-h-9 items-center rounded-full border border-[color:var(--vm-color-warning)]/30 bg-white px-4 text-xs font-bold text-[color:var(--vm-color-warning)]"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+  if (activityStatus === "EMPTY") {
+    return (
+      <EmptyPanel label="Esta oportunidad todavía no tiene un flujo comercial. Tómala para empezar a registrar actividades." />
+    );
+  }
+  return (
+    <ol className="mt-5 space-y-4">
+      {activities.map((activity) => (
+        <li
+          key={`${activity.id}-${activity.created_at ?? "no-date"}`}
+          className="border-l-2 border-[color:var(--vm-color-brand-blue)]/25 pl-4"
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <strong className="text-sm">
+              {ACTIVITY_TYPE_LABELS[activity.activity_type] ??
+                humanizeKey(activity.activity_type)}
+            </strong>
+            <Pill tone="gray">{humanizeKey(activity.advisor_id)}</Pill>
+          </div>
+          {activity.note ? (
+            <p className="mt-1 text-sm leading-5 text-[color:var(--vm-color-ink-muted)]">
+              {activity.note}
+            </p>
+          ) : null}
+          <time className="mt-1 block text-xs text-[color:var(--vm-color-ink-muted)]">
+            {formatDate(activity.created_at ?? activity.managed_at ?? null)}
+          </time>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 function ListBlock({ title, values, emptyLabel }: { readonly title: string; readonly values: string[]; readonly emptyLabel: string }) {
   return (
     <div>
@@ -330,7 +511,8 @@ function EmptyPanel({ label }: { readonly label: string }) {
   return <p className="mt-5 rounded-[var(--vm-radius-control)] border border-dashed border-[color:var(--vm-color-line)] p-5 text-center text-sm text-[color:var(--vm-color-ink-muted)]">{label}</p>;
 }
 
-function formatDate(value: string): string {
+function formatDate(value: string | null | undefined): string {
+  if (!value) return "Por confirmar";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Por confirmar";
   return new Intl.DateTimeFormat("es-CO", { dateStyle: "medium", timeStyle: "short" }).format(date);
@@ -345,15 +527,23 @@ function formatValue(value: unknown): string {
   if (value === null || value === undefined || value === "") return "Por confirmar";
   if (Array.isArray(value)) return value.map((item) => formatValue(item)).join(", ");
   if (typeof value === "object") return JSON.stringify(value);
-  return String(value);
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return JSON.stringify(value);
 }
 
 function humanizeKey(value: string): string {
   return value.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/^./, (letter) => letter.toUpperCase());
 }
 
+const PRIORITY_LABELS: Record<"HIGH" | "MEDIUM" | "LOW", string> = {
+  HIGH: "Prioridad alta",
+  MEDIUM: "Prioridad media",
+  LOW: "Prioridad baja",
+};
+
 function priorityLabel(value: "HIGH" | "MEDIUM" | "LOW"): string {
-  return value === "HIGH" ? "Prioridad alta" : value === "MEDIUM" ? "Prioridad media" : "Prioridad baja";
+  return PRIORITY_LABELS[value];
 }
 
 function getSafeExternalUrl(value: string): string | null {
@@ -370,3 +560,346 @@ const readinessLabels = {
   DEVELOPING: "En desarrollo",
   INITIAL: "Etapa inicial",
 };
+
+type CommercialStateValue =
+  | "PENDING"
+  | "ASSIGNED"
+  | "IN_PROGRESS"
+  | "FOLLOW_UP"
+  | "APPOINTMENT_SCHEDULED"
+  | "CLOSED_WON"
+  | "CLOSED_LOST"
+  | "OPTED_OUT";
+
+type ActivityTypeValue =
+  | "CONTACT_ATTEMPT"
+  | "CONTACT_SUCCESS"
+  | "FOLLOW_UP_SCHEDULED"
+  | "APPOINTMENT_SCHEDULED"
+  | "CLOSED_WON"
+  | "CLOSED_LOST"
+  | "OPTED_OUT";
+
+type ChannelValue = "PHONE" | "WHATSAPP" | "EMAIL" | "IN_PERSON";
+
+const COMMERCIAL_STATE_OPTIONS: ReadonlyArray<{ value: CommercialStateValue; label: string }> = [
+  { value: "PENDING", label: "Pendiente" },
+  { value: "ASSIGNED", label: "Asignada" },
+  { value: "IN_PROGRESS", label: "En progreso" },
+  { value: "FOLLOW_UP", label: "Seguimiento" },
+  { value: "APPOINTMENT_SCHEDULED", label: "Cita agendada" },
+  { value: "CLOSED_WON", label: "Cierre exitoso" },
+  { value: "CLOSED_LOST", label: "Cierre sin conversión" },
+  { value: "OPTED_OUT", label: "Sin contacto" },
+];
+
+const ACTIVITY_TYPE_OPTIONS: ReadonlyArray<{ value: ActivityTypeValue; label: string }> = [
+  { value: "CONTACT_ATTEMPT", label: "Intento de contacto" },
+  { value: "CONTACT_SUCCESS", label: "Contacto exitoso" },
+  { value: "FOLLOW_UP_SCHEDULED", label: "Seguimiento programado" },
+  { value: "APPOINTMENT_SCHEDULED", label: "Cita agendada" },
+  { value: "CLOSED_WON", label: "Cierre exitoso" },
+  { value: "CLOSED_LOST", label: "Cierre sin conversión" },
+  { value: "OPTED_OUT", label: "Solicitud de no contacto" },
+];
+
+const CHANNEL_OPTIONS: ReadonlyArray<{ value: ChannelValue; label: string }> = [
+  { value: "PHONE", label: "Teléfono" },
+  { value: "WHATSAPP", label: "WhatsApp" },
+  { value: "EMAIL", label: "Correo" },
+  { value: "IN_PERSON", label: "Presencial" },
+];
+
+function generateIdempotencyKey(): string {
+  return crypto.randomUUID();
+}
+
+function AdvisorActionsPanel({
+  detail,
+  onChanged,
+}: {
+  readonly detail: LeadDetailResponse;
+  readonly onChanged: () => void;
+}) {
+  const workflow = detail.commercial_workflow;
+  const handoff = detail.journey?.handoff;
+  const handoffRequested = handoff?.requested ?? false;
+  const hasWorkflow = Boolean(workflow);
+  const isPendingAndUnassigned =
+    workflow?.state === "PENDING" && !workflow.assigned_advisor_id;
+  const needsClaim = !hasWorkflow || isPendingAndUnassigned;
+  const workflowVersion = workflow?.workflow_version ?? 0;
+  const currentState = (workflow?.state ?? "PENDING") as CommercialStateValue;
+
+  const [claimBusy, setClaimBusy] = useState(false);
+  const [claimError, setClaimError] = useState("");
+
+  const [targetState, setTargetState] = useState<CommercialStateValue>(currentState);
+  const [outcome, setOutcome] = useState("");
+  const [workflowBusy, setWorkflowBusy] = useState(false);
+  const [workflowError, setWorkflowError] = useState("");
+
+  const [activityType, setActivityType] = useState<ActivityTypeValue>("CONTACT_ATTEMPT");
+  const [channel, setChannel] = useState<ChannelValue>("PHONE");
+  const [activityResult, setActivityResult] = useState("");
+  const [activityNote, setActivityNote] = useState("");
+  const [activityBusy, setActivityBusy] = useState(false);
+  const [activityError, setActivityError] = useState("");
+  const [activitySuccess, setActivitySuccess] = useState("");
+
+  async function handleClaim() {
+    setClaimBusy(true);
+    setClaimError("");
+    try {
+      await claimLeadAndRefresh(detail.id);
+      onChanged();
+    } catch (error) {
+      setClaimError(getCommercialErrorMessage(error));
+    } finally {
+      setClaimBusy(false);
+    }
+  }
+
+  async function handleWorkflowChange() {
+    if (!workflowVersion) {
+      setWorkflowError("La oportunidad todavía no tiene flujo comercial.");
+      return;
+    }
+    setWorkflowBusy(true);
+    setWorkflowError("");
+    try {
+      await updateWorkflowAndRefresh(detail.id, {
+        state: targetState,
+        expected_workflow_version: workflowVersion,
+        updated_at: new Date().toISOString(),
+        outcome: outcome.trim() || null,
+      });
+      setOutcome("");
+      onChanged();
+    } catch (error) {
+      setWorkflowError(getCommercialErrorMessage(error));
+    } finally {
+      setWorkflowBusy(false);
+    }
+  }
+
+  async function handleCreateActivity() {
+    if (!workflowVersion) {
+      setActivityError("Toma la oportunidad antes de registrar una actividad.");
+      return;
+    }
+    if (!activityResult.trim()) {
+      setActivityError("Describe el resultado de la actividad.");
+      return;
+    }
+    setActivityBusy(true);
+    setActivityError("");
+    setActivitySuccess("");
+    try {
+      await createActivityAndRefresh(
+        detail.id,
+        {
+          activity_type: activityType,
+          channel,
+          result: activityResult.trim(),
+          managed_at: new Date().toISOString(),
+          note: activityNote.trim() || null,
+          expected_workflow_version: workflowVersion,
+        },
+        generateIdempotencyKey(),
+      );
+      setActivityResult("");
+      setActivityNote("");
+      setActivitySuccess("Actividad registrada. Actualiza la pestaña Actividades para verla.");
+      onChanged();
+    } catch (error) {
+      setActivityError(getCommercialErrorMessage(error));
+    } finally {
+      setActivityBusy(false);
+    }
+  }
+
+  return (
+    <section className="surface-solid p-6 sm:p-8" data-testid="advisor-actions">
+      <SectionHeading
+        title="Acciones del asesor"
+        description={
+          !handoffRequested
+            ? "Esta oportunidad todavía no tiene flujo comercial porque el prospecto no ha solicitado contacto."
+            : needsClaim
+              ? "Esta oportunidad está disponible. Tómala para empezar a gestionarla."
+              : "Cambia el estado, registra una actividad o consulta la trazabilidad."
+        }
+      />
+
+      {!handoffRequested ? (
+        <div
+          className="surface-warning-soft mt-5 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-warning)]/25 p-4 text-sm text-[color:var(--vm-color-warning)]"
+          data-testid="handoff-required"
+        >
+          <p className="font-semibold">El prospecto aún no ha solicitado contacto.</p>
+          <p className="mt-1 leading-5">
+            El flujo comercial solo se activa después de que el prospecto complete la orientación y
+            pida hablar con un asesor. Esta oportunidad aparecerá aquí automáticamente cuando lo
+            haga.
+          </p>
+        </div>
+      ) : needsClaim ? (
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={handleClaim}
+            disabled={claimBusy}
+            data-testid="claim-button"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white disabled:opacity-60"
+          >
+            {claimBusy ? "Tomando…" : "Tomar oportunidad"}
+            <Icon name="arrow" className="h-4 w-4" />
+          </button>
+          {claimError ? (
+            <p role="alert" className="text-sm text-[color:var(--vm-color-error)]">
+              {claimError}
+            </p>
+          ) : null}
+        </div>
+      ) : (
+        <div className="mt-5 space-y-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <Pill tone="blue">Estado actual: {currentState}</Pill>
+            <span className="text-xs text-[color:var(--vm-color-ink-muted)]">
+              Versión del workflow: {workflowVersion}
+            </span>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+            <label className="space-y-1.5 text-xs font-bold text-[color:var(--vm-color-ink-muted)]">
+              <span>Nuevo estado</span>
+              <select
+                value={targetState}
+                onChange={(event) => setTargetState(event.target.value as CommercialStateValue)}
+                disabled={workflowBusy}
+                data-testid="workflow-state-select"
+                className="h-11 w-full rounded-full border border-[color:var(--vm-color-line)] bg-white px-4 text-sm font-semibold"
+              >
+                {COMMERCIAL_STATE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="space-y-1.5 text-xs font-bold text-[color:var(--vm-color-ink-muted)]">
+              <span>Resultado o nota del cambio</span>
+              <input
+                value={outcome}
+                onChange={(event) => setOutcome(event.target.value)}
+                disabled={workflowBusy}
+                placeholder="Opcional"
+                data-testid="workflow-outcome-input"
+                className="h-11 w-full rounded-full border border-[color:var(--vm-color-line)] bg-white px-4 text-sm"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={handleWorkflowChange}
+              disabled={workflowBusy || targetState === currentState}
+              data-testid="workflow-apply-button"
+              className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white disabled:opacity-60"
+            >
+              {workflowBusy ? "Aplicando…" : "Aplicar cambio"}
+            </button>
+          </div>
+          {workflowError ? (
+            <p role="alert" className="text-sm text-[color:var(--vm-color-error)]">
+              {workflowError}
+            </p>
+          ) : null}
+
+          <div className="border-t border-[color:var(--vm-color-line)] pt-5">
+            <h3 className="text-sm font-semibold">Registrar nueva actividad</h3>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <label className="space-y-1.5 text-xs font-bold text-[color:var(--vm-color-ink-muted)]">
+                <span>Tipo</span>
+                <select
+                  value={activityType}
+                  onChange={(event) => setActivityType(event.target.value as ActivityTypeValue)}
+                  disabled={activityBusy}
+                  data-testid="activity-type-select"
+                  className="h-11 w-full rounded-full border border-[color:var(--vm-color-line)] bg-white px-4 text-sm font-semibold"
+                >
+                  {ACTIVITY_TYPE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="space-y-1.5 text-xs font-bold text-[color:var(--vm-color-ink-muted)]">
+                <span>Canal</span>
+                <select
+                  value={channel}
+                  onChange={(event) => setChannel(event.target.value as ChannelValue)}
+                  disabled={activityBusy}
+                  data-testid="activity-channel-select"
+                  className="h-11 w-full rounded-full border border-[color:var(--vm-color-line)] bg-white px-4 text-sm font-semibold"
+                >
+                  {CHANNEL_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="space-y-1.5 text-xs font-bold text-[color:var(--vm-color-ink-muted)] sm:col-span-2">
+                <span>Resultado (obligatorio)</span>
+                <input
+                  value={activityResult}
+                  onChange={(event) => setActivityResult(event.target.value)}
+                  disabled={activityBusy}
+                  maxLength={240}
+                  placeholder="Ej: Llamada contestada, agendar visita"
+                  data-testid="activity-result-input"
+                  className="h-11 w-full rounded-full border border-[color:var(--vm-color-line)] bg-white px-4 text-sm"
+                />
+              </label>
+              <label className="space-y-1.5 text-xs font-bold text-[color:var(--vm-color-ink-muted)] sm:col-span-2">
+                <span>Nota (opcional)</span>
+                <textarea
+                  value={activityNote}
+                  onChange={(event) => setActivityNote(event.target.value)}
+                  disabled={activityBusy}
+                  maxLength={1000}
+                  rows={2}
+                  placeholder="Detalles relevantes para la trazabilidad"
+                  data-testid="activity-note-input"
+                  className="w-full rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white p-3 text-sm"
+                />
+              </label>
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={handleCreateActivity}
+                disabled={activityBusy}
+                data-testid="activity-submit-button"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)] px-5 text-sm font-bold text-white disabled:opacity-60"
+              >
+                {activityBusy ? "Registrando…" : "Registrar actividad"}
+              </button>
+              {activityError ? (
+                <p role="alert" className="text-sm text-[color:var(--vm-color-error)]">
+                  {activityError}
+                </p>
+              ) : null}
+              {activitySuccess ? (
+                <output className="text-sm text-[color:var(--vm-color-success)]">
+                  {activitySuccess}
+                </output>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
