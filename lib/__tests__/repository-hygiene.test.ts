@@ -26,6 +26,7 @@ describe("repository hygiene", () => {
       "public/next.svg",
       "public/vercel.svg",
       "public/window.svg",
+      "scripts/seed-demo-leads.py",
     ];
 
     for (const path of forbiddenPaths) {
