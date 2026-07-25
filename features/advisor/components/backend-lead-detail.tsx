@@ -769,6 +769,7 @@ function AdvisorActionsPanel({
             <span className="text-xs text-[color:var(--vm-color-ink-muted)]">
               Versión del workflow: {workflowVersion}
             </span>
+            {workflow ? <SlaBadge workflow={workflow} /> : null}
           </div>
 
           <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
@@ -901,5 +902,33 @@ function AdvisorActionsPanel({
         </div>
       )}
     </section>
+  );
+}
+
+function SlaBadge({
+  workflow,
+}: {
+  readonly workflow: NonNullable<LeadDetailResponse["commercial_workflow"]>;
+}) {
+  const dueAt = workflow.sla_due_at;
+  const [now] = useState(() => Date.now());
+  if (!dueAt) return null;
+  const dueDate = new Date(dueAt);
+  if (Number.isNaN(dueDate.getTime())) return null;
+  const ms = dueDate.getTime() - now;
+  const overdue = ms < 0;
+  const hours = Math.abs(Math.round(ms / (1000 * 60 * 60)));
+  let label: string;
+  if (overdue) {
+    label = `SLA vencido hace ${hours} h`;
+  } else if (hours <= 1) {
+    label = "SLA vence en <1 h";
+  } else {
+    label = `SLA vence en ${hours} h`;
+  }
+  return (
+    <Pill tone={overdue ? "yellow" : "gray"}>
+      {label}
+    </Pill>
   );
 }
