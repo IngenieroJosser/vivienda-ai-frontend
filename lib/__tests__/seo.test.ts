@@ -15,7 +15,7 @@ const previousSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
 describe("SEO contracts", () => {
   beforeAll(() => {
-    process.env.NEXT_PUBLIC_SITE_URL = "https://vivienda.example";
+    process.env.NEXT_PUBLIC_SITE_URL = "https://vivienda-ai.vercel.app";
   });
 
   afterAll(() => {
