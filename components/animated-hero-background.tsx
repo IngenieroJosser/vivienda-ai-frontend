@@ -5,8 +5,6 @@ type AnimatedBackgroundVariant =
   | "vivienda"
   | "projects"
   | "asesor"
-  | "marketing"
-  | "admin"
   | "dark";
 
 type AnimatedHeroBackgroundProps = {
