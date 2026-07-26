@@ -27,6 +27,18 @@ describe("prospect signal extractor", () => {
     ).toBe("REQUIRES_REVIEW");
   });
 
+  it("extracts several financial signals from one natural answer", () => {
+    const result = extractProspectSignals(
+      "En casa recibimos cerca de 4 millones, pagamos 500 mil en cuotas " +
+        "y tenemos 25 millones ahorrados.",
+      "FINANCIAL_CONTEXT",
+    );
+
+    expect(result.profile.incomeRange).toBe("MID");
+    expect(result.profile.obligations).toBe("LOW");
+    expect(result.profile.savings).toBe("READY");
+  });
+
   it("captures the contact details used by the advisor handoff", () => {
     expect(
       extractProspectSignals("Me llamo Laura Gómez", "fullName").profile

@@ -75,7 +75,7 @@ export function buildServiceGuidance(input: {
       route: "BENEFITS_GUIDANCE",
       title: "Revisemos los beneficios relacionados con tu vivienda.",
       description:
-        "Usaremos la información de tu compra anterior como punto de partida y separaremos los beneficios conocidos de aquellos que requieren validación.",
+        "Tu experiencia anterior nos ayudará a orientarte con más claridad y a reconocer los beneficios que vale la pena validar.",
       capacitySummary:
         "No calculamos capacidad para una nueva compra porque solicitaste orientación sobre beneficios.",
       benefitSummary: input.knownBenefits.length

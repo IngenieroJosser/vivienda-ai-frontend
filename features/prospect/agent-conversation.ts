@@ -255,6 +255,8 @@ function toDiscovery(input: Record<string, string>): DiscoveryContext {
 function toConversationAction(value: string): ConversationAction {
   if (
     value === "OPEN_DISCOVERY" ||
+    value === "HOUSING_CONTEXT" ||
+    value === "FINANCIAL_CONTEXT" ||
     value === "DISCOVER_PREVIOUS_BUYER_INTENT" ||
     value === "DISCOVER_MOTIVATION" ||
     value === "DISCOVER_OBSTACLE" ||

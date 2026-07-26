@@ -67,7 +67,8 @@ export const campaignExperiences: Record<CampaignExperience["id"], CampaignExper
     title: "Encuentra una vivienda acorde con tus posibilidades.",
     description: "Conversemos para conocer tu capacidad orientativa, los beneficios por validar y los proyectos que podrían ajustarse a ti.",
     promise: "A tu ritmo · Información protegida",
-    assistantIntro: "Quiero ayudarte a entender qué camino puede acercarte a tu vivienda, sin volver a preguntarte información que ya tengamos.",
+    assistantIntro:
+      "Quiero acompañarte a descubrir qué camino puede acercarte a la vivienda que sueñas.",
     knownSignals: { dreamGoal: "FIND_MATCHES" },
   },
 };

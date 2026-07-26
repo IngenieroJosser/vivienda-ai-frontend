@@ -175,7 +175,7 @@ describe("paid acquisition prospect journey", () => {
     );
 
     expect(vague.nextAction).toBe("DISCOVER_MOTIVATION");
-    expect(detailed.nextAction).toBe("incomeRange");
+    expect(detailed.nextAction).toBe("FINANCIAL_CONTEXT");
     expect(vague.turns[0]?.assistantText).not.toBe(detailed.turns[0]?.assistantText);
     expect(detailed.turns[0]?.extractedFields.length).toBeGreaterThan(vague.turns[0]?.extractedFields.length ?? 0);
   });
