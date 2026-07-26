@@ -107,7 +107,7 @@ export type ProspectSession = {
   authoritativeJourney?: AgentJourney;
   agentMode?: AgentMode;
   conversationState?: string;
-  quickReplies?: string[];
+  prospectAccessToken?: string;
   agentWelcomeMessage?: string;
   lastTrainingRecordId?: string;
   createdAt: string;

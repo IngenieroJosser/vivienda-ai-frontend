@@ -1037,6 +1037,8 @@ export interface components {
              * Format: date-time
              */
             generated_at: string;
+            /** Prospect Access Token */
+            prospect_access_token?: string | null;
         };
         /**
          * ConversationState

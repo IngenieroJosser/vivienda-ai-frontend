@@ -81,11 +81,14 @@ export function BackendLeadDetail({
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Metric
               label="Preparación"
-              value={evaluation ? `${evaluation.readiness_score}/100` : readinessLabels[journey.readiness.level]}
+              value={readinessLabels[journey.readiness.level]}
             />
             <Metric
               label="Confianza de datos"
-              value={evaluation ? `${evaluation.confidence_score}/100` : `${journey.readiness.missing_fields.length} pendientes`}
+              value={evidenceLabel(
+                evaluation?.confidence_score,
+                journey.readiness.missing_fields.length,
+              )}
             />
             <Metric label="Cuota estimada" value={formatCop(journey.capacity.estimated_monthly_payment ?? 0)} />
             <Metric label="Siguiente acción" value={journey.handoff.next_action} />
@@ -478,3 +481,18 @@ const readinessLabels = {
   DEVELOPING: "En desarrollo",
   INITIAL: "Etapa inicial",
 };
+
+function evidenceLabel(
+  confidenceScore: number | undefined,
+  missingFields: number,
+): string {
+  if (typeof confidenceScore === "number") {
+    const ratio = confidenceScore > 1 ? confidenceScore / 100 : confidenceScore;
+    if (ratio >= 0.8) return "Sólida";
+    if (ratio >= 0.65) return "Parcial";
+    return "Por completar";
+  }
+  if (missingFields === 0) return "Sólida";
+  if (missingFields <= 2) return "Parcial";
+  return "Por completar";
+}

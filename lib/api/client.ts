@@ -2,7 +2,7 @@ const DEFAULT_BASE_URL = "https://vivienda-ai-backend.onrender.com/api/v1";
 
 /**
  * Base URL del backend. Se configura con `NEXT_PUBLIC_API_URL` en `.env.local`.
- * Si no está definida, cae al backend local por defecto.
+ * Si no está definida, utiliza el servicio desplegado configurado para la demo.
  */
 export const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_BASE_URL

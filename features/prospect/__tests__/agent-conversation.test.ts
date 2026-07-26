@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { AgentConversationResponse } from "../../../lib/api/conversations";
 import { campaignExperiences, sanitizeAcquisitionContext } from "../campaigns";
-import { applyAgentSnapshot } from "../agent-conversation";
+import {
+  applyAgentSnapshot,
+  mapAgentResponseToEvaluation,
+} from "../agent-conversation";
 import { acceptProspectConsent, createProspectSession } from "../engine";
 
 function response(): AgentConversationResponse {
@@ -89,6 +92,7 @@ function response(): AgentConversationResponse {
     prompt_version: "housing-agent-3.0.0",
     model_name: "gpt-5.4-mini",
     generated_at: "2026-07-26T02:00:00.000Z",
+    prospect_access_token: "prospect-token",
   };
 }
 
@@ -127,5 +131,10 @@ describe("agent conversation snapshot", () => {
     expect(synchronized.turns).toEqual(session.turns);
     expect(synchronized.agentWelcomeMessage).toBe("Hablemos de Versalles.");
     expect(synchronized.syncVersion).toBe(8);
+    expect(synchronized.prospectAccessToken).toBe("prospect-token");
+    expect(
+      mapAgentResponseToEvaluation(response(), synchronized).confidenceScore,
+    ).toBe(0.85);
+    expect("quickReplies" in synchronized).toBe(false);
   });
 });

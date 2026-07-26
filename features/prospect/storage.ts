@@ -15,10 +15,22 @@ function readSessions(): ProspectSession[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(SESSIONS_KEY);
-    return raw ? (JSON.parse(raw) as ProspectSession[]) : [];
+    if (!raw) return [];
+    const sessions = JSON.parse(raw) as ProspectSession[];
+    return sessions.map(removeLegacyPresentationFields);
   } catch {
     return [];
   }
+}
+
+function removeLegacyPresentationFields(
+  session: ProspectSession,
+): ProspectSession {
+  const current = { ...session } as ProspectSession & {
+    quickReplies?: unknown;
+  };
+  delete current.quickReplies;
+  return current;
 }
 
 export function getStoredProspectSessions(): ProspectSession[] {
@@ -116,9 +128,9 @@ export function loadProspectSessionResult(
     if (!raw) return { status: "MISSING" };
     const sessions = JSON.parse(raw) as unknown;
     if (!Array.isArray(sessions)) return { status: "ERROR" };
-    const session = (sessions as ProspectSession[]).find(
-      (candidate) => candidate.id === id,
-    );
+    const session = (sessions as ProspectSession[])
+      .map(removeLegacyPresentationFields)
+      .find((candidate) => candidate.id === id);
     return session ? { status: "FOUND", session } : { status: "MISSING" };
   } catch {
     return { status: "ERROR" };

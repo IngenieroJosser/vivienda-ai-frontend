@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getLead } from "../leads";
+import { API_BASE_URL } from "../client";
 
 const leadDetail = {
   id: "lead-1",
@@ -25,7 +26,7 @@ describe("getLead", () => {
     await expect(getLead("lead/with spaces")).resolves.toEqual(leadDetail);
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:3001/api/v1/leads/lead%2Fwith%20spaces",
+      `${API_BASE_URL}/leads/lead%2Fwith%20spaces`,
       expect.objectContaining({ method: "GET" }),
     );
   });

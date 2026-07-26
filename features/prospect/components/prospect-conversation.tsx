@@ -103,6 +103,9 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
       outgoing: { id: string; text: string },
     ) => {
       try {
+        if (!currentSession.prospectAccessToken) {
+          throw new Error("La sesión remota no está disponible.");
+        }
         const createdAt = new Date().toISOString();
         const response = await sendAgentConversationMessage(
           currentSession.id,
@@ -111,6 +114,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
             message: outgoing.text,
             created_at: createdAt,
           },
+          currentSession.prospectAccessToken,
         );
         const updated = applyAgentMessage(currentSession, {
           userText: outgoing.text,
@@ -152,8 +156,12 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
   const synchronizeAgentConversation = useCallback(
     async (stored: ProspectSession) => {
       if (!stored.consentAcceptedAt || stored.status !== "ACTIVE") return;
+      if (!stored.prospectAccessToken) return;
       try {
-        const response = await getAgentConversation(stored.id);
+        const response = await getAgentConversation(
+          stored.id,
+          stored.prospectAccessToken,
+        );
         const current = sessionRef.current;
         if (
           !current ||
@@ -642,20 +650,6 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
               Enter para enviar · Shift + Enter para nueva línea
             </span>
           </div>
-          {session.quickReplies?.length && chatState.phase === "idle" ? (
-            <div className="mb-3 flex flex-wrap gap-2 px-1" aria-label="Respuestas sugeridas">
-              {session.quickReplies.map((reply) => (
-                <button
-                  key={reply}
-                  type="button"
-                  onClick={() => submitMessage(reply)}
-                  className="min-h-9 rounded-full border border-[color:var(--vm-color-line)] bg-white px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)] transition hover:border-[color:var(--vm-color-brand-blue)] hover:bg-[color:var(--vm-color-brand-blue)]/[.04]"
-                >
-                  {reply}
-                </button>
-              ))}
-            </div>
-          ) : null}
           <form
             onSubmit={(event) => {
               event.preventDefault();
