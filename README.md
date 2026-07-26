@@ -1,154 +1,154 @@
-# Vivienda Match AI — Colsubsidio
+# Vivienda Match AI — Frontend
 
-Frontend integral para el reto de **perfilamiento inteligente de leads de vivienda**. El proyecto incluye la experiencia del afiliado, el portal comercial, marketing, administración, favicon y sistema visual del producto.
+Experiencia digital para el reto de Vivienda Colsubsidio. El producto combina
+información conocida y una conversación natural para orientar al prospecto y
+entregar oportunidades accionables al equipo comercial.
 
-## Stack
+Está construido con Next.js 16, React 19, TypeScript y Tailwind CSS. El frontend
+consume los servicios FastAPI disponibles y conserva una experiencia local
+funcional cuando la API no responde.
 
-- Next.js 16.2.11 con App Router
-- React 19
-- TypeScript
-- Tailwind CSS 4
-- Datos simulados en memoria para demostración
+## Ejecución local
+
+Requisitos:
+
+- Node.js 20 o superior.
+- npm 10 o superior.
+- Backend de Vivienda Match AI para probar los recorridos conectados.
+
+Crea `.env.local`:
+
+```dotenv
+NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
+```
+
+Luego ejecuta:
+
+```bash
+npm install
+npm run dev
+```
+
+La aplicación queda disponible en `http://localhost:3000`.
+
+## Validación
+
+```bash
+npm run lint
+npm test
+npm run build
+```
+
+## Recorridos activos
+
+### Prospecto
+
+- `/` — entrada pública centrada en la conversación.
+- `/orientacion` — identificación, consentimiento e inicio.
+- `/orientacion/[sessionId]` — conversación libre y recuperable.
+- `/orientacion/resultado/[sessionId]` — resultado, proyectos y siguiente paso.
+- `/vivienda/proyectos` — catálogo de proyectos.
+- `/vivienda/proyectos/[id]` — información, galería y recursos de cada proyecto.
+- `/vivienda/agendar` — preferencia de contacto y horario.
+
+### Equipo comercial
+
+- `/login` — acceso local al recorrido comercial.
+- `/asesor` y `/asesor/resumen` — prioridades y estado de atención.
+- `/asesor/leads` — bandeja de oportunidades.
+- `/asesor/leads/[id]` — detalle, recomendación y evidencia disponible.
+- `/asesor/agenda` — actividades y seguimientos.
+- `/asesor/nutricion` — acompañamiento de prospectos en preparación.
+- `/asesor/inteligencia` — revisión de ChatLead y aprendizaje supervisado.
+- `/asesor/comparador` — comparación contextual de proyectos; no forma parte de
+  la navegación principal.
+
+## Integración con servicios
+
+La URL base se configura mediante `NEXT_PUBLIC_API_URL`. Durante la
+demostración, las vistas internas también requieren
+`NEXT_PUBLIC_ADVISOR_ACCESS_TOKEN`. Puede generarse desde el backend:
+
+```powershell
+python -m app.cli issue-token --sub advisor-demo --role ADVISOR --minutes 480
+```
+
+El token firmado es únicamente para la demostración local y expira. En una
+integración productiva debe obtenerse después de autenticar al asesor, no
+incorporarse al bundle público. Los recorridos conectados usan actualmente:
+
+- `POST /conversations` para crear o reanudar una sesión del perfilador.
+- `POST /conversations/{session_id}/messages` para ejecutar el agente, reglas y
+  persistencia de cada turno.
+- `GET /conversations/{session_id}` para recuperar el estado canónico.
+- `POST /conversations/chat-records/{id}/feedback` para revisión humana.
+- `GET /conversations/chat-training/summary` y `POST
+  /conversations/chat-training/export` para el ciclo supervisado de ChatLead.
+- `POST /leads/{id}/handoff` para persistir la solicitud y preferencia de
+  contacto.
+- `PUT /leads/{id}/nurture` para persistir hitos y estado del acompañamiento.
+- `GET /leads` para alimentar la bandeja comercial.
+- `GET /leads/{id}` para consultar perfil, conversación, recomendaciones y
+  trazabilidad.
+
+Las rutas de asesor y acompañamiento envían Bearer Token; la sincronización y
+la solicitud inicial de contacto permanecen públicas.
+
+La sesión se guarda primero en el dispositivo. La sincronización ocurre en
+segundo plano y no bloquea la conversación. Si el servicio no está disponible,
+la interfaz mantiene los datos locales y presenta estados recuperables. Cuando
+el backend responde, su nivel, ruta, capacidad, plan y recomendaciones son la
+fuente autoritativa para la presentación.
+
+Los contratos TypeScript se generan desde el OpenAPI versionado del backend:
+
+```bash
+npm run api:types
+```
+
+El resultado se conserva en `lib/api/generated.ts`; no debe editarse a mano.
+
+## Arquitectura
+
+| Módulo                  | Responsabilidad                                          |
+| ----------------------- | -------------------------------------------------------- |
+| `features/prospect`     | Sesión, consentimiento, conversación y resultado público |
+| `features/conversation` | Evaluación, adaptación y bandeja unificada               |
+| `features/advisor`      | Flujo comercial, actividad y agenda                      |
+| `features/nurturing`    | Planes y progreso de acompañamiento                      |
+| `lib/api`               | Cliente HTTP y contratos de servicios                    |
+| `lib/housing-catalog`   | Catálogo, fuentes y consultas de proyectos               |
+| `components`            | Identidad, navegación, feedback y presentación compartida |
+
+La capacidad, prioridad, beneficios y coincidencias se reciben como resultados
+explicables. Prospecto y asesor comparten los mismos identificadores de sesión,
+oportunidad y proyecto.
+
+Los estados vacíos y los errores recuperables consumen `FeedbackState`. Los
+skeletons permanecen junto a cada recorrido porque reproducen la estructura
+real del contenido y evitan saltos de layout.
 
 ## Sistema visual
 
-- Amarillo: `#ffd000`
-- Azul: `#0067b1`
-- Fondo: `#fafafa`
-- Texto y superficies oscuras: `#111820`
+Los tokens y superficies autorizadas están en `app/globals.css`. La
+especificación completa se mantiene en `docs/SISTEMA_VISUAL_V1.md`.
 
-La experiencia visual adopta un sistema de fondos líquidos amarillos inspirado en la referencia suministrada. El tratamiento se usa con mayor intensidad en la portada y de forma controlada en flujos, login y portales internos:
+El sistema diferencia una experiencia guiada para el prospecto y una densidad
+operativa para el asesor. El blur está limitado a superficies autorizadas,
+cuenta con fallback sólido y respeta `prefers-reduced-motion`.
 
-- Fondo líquido animado con pliegues, luces, profundidad y movimiento orgánico.
-- Nueva identidad **Vivienda Match AI**.
-- Navegación pública diferenciada de la landing.
-- Flujo del afiliado con stepper, panel contextual y estados explicables.
-- Portal empresarial con sidebar claro, navegación por roles y jerarquía visual consistente.
-- Tarjetas de alto contraste, sombras controladas, microinteracciones, tablas, formularios y botones refinados.
-- Variantes visuales claras para portada, flujo del afiliado, login y portales empresariales.
-- Diseño responsive para móvil, tableta y escritorio.
-- Tipografía autohospedada por Next.js mediante `next/font`.
+Manrope se sirve mediante `next/font/local` desde un único archivo variable
+WOFF2. Su licencia SIL OFL está versionada junto a la fuente en `app/fonts`.
 
-## Marca y favicon
+En móvil, las galerías usan desplazamiento nativo con ajuste por imagen. El
+visor ampliado acepta gestos horizontales y conserva botones accesibles como
+alternativa; ambos controles desaparecen cuando solo existe una imagen.
 
-Archivos principales:
+La suite protege las reglas principales del sistema:
 
-```text
-public/brand/vivienda-match-ai-logo.png
-public/brand/vivienda-match-ai-icon.png
-app/favicon.ico
-app/icon.png
-app/apple-icon.png
-```
-
-
-## Ejecución
-
-Instalar dependencias:
-
-```bash
-yarn install
-```
-
-Desarrollo:
-
-```bash
-yarn dev
-```
-
-Producción:
-
-```bash
-yarn build
-yarn start
-```
-
-## Pantallas incluidas
-
-### Experiencia del afiliado
-
-- `/` — Landing inmersiva con fondo líquido amarillo animado.
-- `/vivienda/inicio` — Identificación, consentimientos y seguridad.
-- `/vivienda/perfilamiento` — Perfilamiento conversacional adaptativo.
-- `/vivienda/documentos` — Carga, OCR y validación documental.
-- `/vivienda/analizando` — Procesamiento y estados del análisis.
-- `/vivienda/resultado` — Resultado, explicabilidad y siguientes pasos.
-- `/vivienda/proyectos` — Proyectos recomendados.
-- `/vivienda/proyectos/reserva-del-parque` — Detalle del proyecto.
-- `/vivienda/simulador` — Simulador financiero interactivo.
-- `/vivienda/agendar` — Agenda de asesoría.
-- `/vivienda/confirmacion` — Confirmación y preparación de la cita.
-
-### Portal comercial
-
-- `/login` — Acceso empresarial.
-- `/asesor/dashboard` — Dashboard del asesor.
-- `/asesor/leads` — Bandeja y filtros de leads.
-- `/asesor/leads/lead-001` — Detalle y trazabilidad del lead.
-- `/asesor/agenda` — Agenda comercial.
-- `/asesor/comparador` — Comparador de proyectos.
-
-### Marketing y administración
-
-- `/marketing/dashboard` — Inteligencia de adquisición.
-- `/marketing/campanas` — Gestión de campañas.
-- `/admin/proyectos` — Administración de proyectos.
-- `/admin/scoring` — Configuración versionada del scoring.
-- `/admin/auditoria` — Auditoría y trazabilidad.
-
-## Validación recomendada
-
-Antes de desplegar:
-
-```bash
-yarn install --frozen-lockfile
-yarn lint
-yarn build
-```
-
-La animación respeta `prefers-reduced-motion` para no afectar a usuarios que reduzcan el movimiento del sistema.
-
-## Alcance
-
-El proyecto es un frontend funcional para demo y hackathon. Los formularios, filtros, simulador, selección de citas, comparador, estados de campañas y configuración visual del scoring tienen interacción local. Para producción deben conectarse a APIs, autenticación corporativa, almacenamiento documental, CRM, motor de scoring, analítica y servicios de agenda.
-
-## Sistema visual animado v2
-
-El proyecto incorpora `components/animated-hero-background.tsx`, un fondo reutilizable y optimizado con:
-
-- movimiento orgánico mediante `transform` y `opacity`;
-- formas que aparecen, se transforman y desaparecen progresivamente;
-- movimiento autónomo sin listeners del cursor ni trabajo continuo en JavaScript;
-- variantes visuales para `vivienda`, `projects`, `asesor`, `marketing`, `admin`, `hero` y `dark`;
-- compatibilidad con `prefers-reduced-motion`;
-- reutilización en la página principal, el flujo de vivienda, proyectos, login y portales internos.
-
-Las pantallas de administración, asesoría, marketing, vivienda y proyectos comparten ahora un sistema coherente de superficies translúcidas, hero contextual, entradas escalonadas, tarjetas interactivas y fondos animados por dominio.
-
-## Optimización de rendimiento
-
-Esta versión incorpora una revisión específica de carga inicial y navegación:
-
-- `AnimatedHeroBackground` funciona únicamente con CSS y no registra listeners globales del puntero.
-- Las animaciones se limitan a `transform` y `opacity`; se eliminaron cambios continuos de `filter` y `border-radius`.
-- En móvil se reducen automáticamente capas, desenfoques, sombras y formas secundarias.
-- Los portales de asesoría, marketing y administración usan layouts persistentes: sidebar, encabezado y fondo no se reconstruyen al cambiar de pantalla.
-- El flujo de vivienda conserva el encabezado y el fondo entre rutas.
-- Las rutas siguientes se precargan durante tiempo ocioso para acelerar botones que usan `router.push`.
-- Se añadieron `loading.tsx` por dominio para ofrecer respuesta visual inmediata durante cualquier transición.
-- Los detalles de proyectos y leads conocidos se generan estáticamente con `generateStaticParams` y `dynamicParams = false`.
-- El logo visible se renderiza como SVG inline; no descarga una imagen PNG pesada en cada pantalla.
-- Se eliminó la descarga de una fuente web global y se usa la pila tipográfica nativa del sistema para acelerar el primer render.
-- Las ilustraciones SVG se sirven sin pasar por el optimizador de imágenes y declaran tamaños responsivos.
-- Los iconos PNG se cuantizaron sin modificar sus dimensiones, reduciendo significativamente su peso.
-- El contenido fuera del viewport usa `content-visibility: auto` cuando el navegador lo soporta.
-
-### Presupuesto recomendado
-
-Para conservar la experiencia rápida al conectar APIs reales:
-
-- Evitar consultas bloqueantes en layouts compartidos.
-- Paginar tablas y listas desde el backend.
-- Cargar gráficos avanzados mediante importación dinámica.
-- Mantener imágenes de proyectos por debajo de 180 KB en WebP o AVIF.
-- No añadir librerías de animación para efectos que puedan resolverse con CSS.
+- No permite colores, gradientes o sombras directas en módulos de interfaz.
+- Impide texto público de 9 o 10 px.
+- Detecta vocabulario interno o técnico en textos visibles.
+- Verifica la carga diferida y la configuración de imágenes y visores.
+- Comprueba umbral, dirección y predominio horizontal de los gestos de galería.
+- Confirma que la fuente local y su variable CSS permanezcan conectadas.

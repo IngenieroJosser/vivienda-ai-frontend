@@ -2,45 +2,35 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { ProductBrand } from "./brand";
 import { Icon } from "./icon";
-import { AnimatedHeroBackground } from "./animated-hero-background";
+import { buildAgendaItems } from "@/features/advisor/agenda";
+import { useCommercialStates } from "@/features/advisor/use-commercial-states";
+import { useQualifiedLeads } from "@/features/conversation/components/use-qualified-leads";
+import {
+  isCommercialOpportunity,
+  isNurturingLead,
+} from "@/features/conversation/qualified-leads";
 
-type Role = "asesor" | "marketing" | "admin";
-type NavItem = { label: string; href: string; icon: Parameters<typeof Icon>[0]["name"] };
+type Role = "asesor";
+type NavItem = {
+  label: string;
+  href: string;
+  icon: Parameters<typeof Icon>[0]["name"];
+  count?: "opportunities" | "agenda" | "nurturing";
+};
 
-const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[]; insight: string }> = {
+const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[] }> = {
   asesor: {
     label: "Portal comercial",
-    userRole: "Asesora senior",
-    insight: "Tienes 7 oportunidades de alta prioridad pendientes de contacto.",
+    userRole: "Equipo comercial",
     nav: [
-      { label: "Dashboard", href: "/asesor/dashboard", icon: "grid" },
-      { label: "Leads", href: "/asesor/leads", icon: "users" },
-      { label: "Agenda", href: "/asesor/agenda", icon: "calendar" },
-      { label: "Comparador", href: "/asesor/comparador", icon: "compare" },
-    ],
-  },
-  marketing: {
-    label: "Marketing intelligence",
-    userRole: "Marketing manager",
-    insight: "La campaña “Subsidio + vivienda” concentra la mejor calidad de lead esta semana.",
-    nav: [
-      { label: "Dashboard", href: "/marketing/dashboard", icon: "chart" },
-      { label: "Campañas", href: "/marketing/campanas", icon: "campaign" },
-      { label: "Leads", href: "/asesor/leads", icon: "users" },
-    ],
-  },
-  admin: {
-    label: "Administración",
-    userRole: "Administración",
-    insight: "El modelo v2.4.1 permanece estable y sin alertas críticas de drift.",
-    nav: [
-      { label: "Proyectos", href: "/admin/proyectos", icon: "building" },
-      { label: "Motor de scoring", href: "/admin/scoring", icon: "brain" },
-      { label: "Auditoría", href: "/admin/auditoria", icon: "shield" },
-      { label: "Marketing", href: "/marketing/dashboard", icon: "chart" },
+      { label: "Resumen", href: "/asesor", icon: "chart" },
+      { label: "Oportunidades", href: "/asesor/leads", icon: "users", count: "opportunities" },
+      { label: "Agenda", href: "/asesor/agenda", icon: "calendar", count: "agenda" },
+      { label: "Acompañamiento", href: "/asesor/nutricion", icon: "heart", count: "nurturing" },
+      { label: "Inteligencia", href: "/asesor/inteligencia", icon: "brain" },
     ],
   },
 };
@@ -50,95 +40,105 @@ const PortalChromeContext = createContext<Role | null>(null);
 export function PortalLayout({ role, children }: { role: Role; children: ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [roleOpen, setRoleOpen] = useState(false);
   const config = roleConfig[role];
+  const qualifiedLeads = useQualifiedLeads();
+  const { states } = useCommercialStates();
+  const now = useMemo(() => new Date(), []);
+  const counts = useMemo(() => {
+    const opportunities = qualifiedLeads.filter(
+      ({ evaluation, scenario }) =>
+        isCommercialOpportunity(evaluation) &&
+        !["WON", "DEFERRED", "NOT_VIABLE"].includes(
+          states[scenario.leadId]?.status ?? "NEW",
+        ),
+    ).length;
+    return {
+      opportunities,
+      agenda: buildAgendaItems(qualifiedLeads, states, now).length,
+      nurturing: qualifiedLeads.filter(
+        ({ evaluation, source }) =>
+          source === "BACKEND" && isNurturingLead(evaluation),
+      ).length,
+    };
+  }, [now, qualifiedLeads, states]);
 
 
   const nav = (
     <>
-      <div className="px-3"><ProductBrand compact /></div>
-      <div className="mx-2 mt-7 rounded-[18px] border border-[#0067b1]/10 bg-gradient-to-br from-[#f7fbff] to-white p-3.5">
+      <div className="flex flex-col items-center border-b border-[color:var(--vm-color-line)] px-3 pb-5 text-center">
+        <ProductBrand compact iconOnly className="w-full justify-center" />
+        <span className="mt-1 text-sm font-bold tracking-[-.025em] text-[color:var(--vm-color-brand-blue-deep)]">
+          Vivienda
+        </span>
+      </div>
+      <div className="mx-2 mt-7 rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-line)] bg-gradient-to-br from-[color:var(--vm-color-orientation-sky-soft)] to-white p-3.5">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#0067b1]/65">Espacio actual</div>
-            <div className="mt-1 truncate text-sm font-bold text-[#111820]">{config.label}</div>
+            <div className="text-[11px] font-extrabold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]">Espacio actual</div>
+            <div className="mt-1 truncate text-sm font-bold text-[color:var(--vm-color-ink)]">{config.label}</div>
           </div>
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[12px] bg-[#ffd000] text-[#111820] shadow-[0_8px_20px_rgba(255,208,0,.22)]"><Icon name="sparkles" className="h-4 w-4" /></span>
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-orientation-sky-soft)] text-[color:var(--vm-color-brand-blue)]"><Icon name="briefcase" className="h-4 w-4" /></span>
         </div>
       </div>
       <nav className="mt-5 space-y-1 px-2">
         {config.nav.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const active = item.href === "/asesor"
+            ? pathname === "/asesor" || pathname === "/asesor/resumen"
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const count = item.count ? counts[item.count] : 0;
           return (
             <Link
               key={item.href}
               href={item.href}
               prefetch
               onClick={() => setMobileOpen(false)}
-              className={`group flex items-center gap-3 rounded-[15px] px-3.5 py-3 text-sm transition ${active ? "bg-[#0067b1] text-white shadow-[0_10px_26px_rgba(0,103,177,.18)]" : "text-black/52 hover:bg-[#0067b1]/[.055] hover:text-[#0067b1]"}`}
+              className={`group flex items-center gap-3 rounded-[var(--vm-radius-control)] px-3.5 py-3 text-sm transition ${active ? "bg-[color:var(--vm-color-brand-blue)] text-white shadow-[var(--vm-shadow-brand-medium)]" : "text-[color:var(--vm-color-ink-muted)] hover:bg-[color:var(--vm-color-orientation-sky-soft)] hover:text-[color:var(--vm-color-brand-blue)]"}`}
             >
-              <span className={`grid h-8 w-8 place-items-center rounded-[10px] transition ${active ? "bg-white/12" : "bg-black/[.035] group-hover:bg-white"}`}><Icon name={item.icon} className="h-[17px] w-[17px]" /></span>
+              <span className={`grid h-8 w-8 place-items-center rounded-[var(--vm-radius-control)] transition ${active ? "bg-white/12" : "bg-[color:var(--vm-color-orientation-wash)] group-hover:bg-white"}`}><Icon name={item.icon} className="h-[17px] w-[17px]" /></span>
               <span className="font-semibold">{item.label}</span>
-              {active ? <span className="ml-auto h-2 w-2 rounded-full bg-[#ffd000]" /> : null}
+              {count ? (
+                <span className={`ml-auto grid min-w-6 place-items-center rounded-full px-1.5 py-0.5 text-[10px] font-extrabold ${active ? "bg-white text-[color:var(--vm-color-brand-blue)]" : "bg-[color:var(--vm-color-orientation-sky-soft)] text-[color:var(--vm-color-brand-blue)]"}`}>
+                  {count}
+                </span>
+              ) : null}
             </Link>
           );
         })}
       </nav>
       <div className="mt-auto px-2 pb-1">
-        <div className="rounded-[18px] bg-[#111820] p-4 text-white shadow-[0_14px_36px_rgba(17,24,32,.13)]">
-          <div className="flex items-center justify-between"><div className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#ffd000]">Insight del día</div><Icon name="brain" className="h-4 w-4 text-[#ffd000]" /></div>
-          <p className="mt-3 text-[11px] leading-5 text-white/58">{config.insight}</p>
-          <Link href={role === "admin" ? "/admin/scoring" : role === "marketing" ? "/marketing/dashboard" : "/asesor/leads"} prefetch className="mt-4 inline-flex items-center gap-2 text-[11px] font-bold text-white">Ver detalle <Icon name="arrow" className="h-3.5 w-3.5" /></Link>
-        </div>
-        <Link href="/login" prefetch className="mt-3 flex items-center gap-3 rounded-[15px] px-3.5 py-3 text-xs font-semibold text-black/40 transition hover:bg-black/[.035] hover:text-black"><Icon name="logout" className="h-4 w-4" />Cerrar sesión</Link>
+        <Link href="/login" prefetch className="mt-3 flex items-center gap-3 rounded-[var(--vm-radius-control)] px-3.5 py-3 text-xs font-semibold text-[color:var(--vm-color-ink-muted)] transition hover:bg-[color:var(--vm-color-orientation-wash)] hover:text-[color:var(--vm-color-ink)]"><Icon name="logout" className="h-4 w-4" />Cerrar sesión</Link>
       </div>
     </>
   );
 
   return (
     <PortalChromeContext.Provider value={role}>
-      <div className={`portal-app portal-app--${role} text-[#111820]`}>
-        <AnimatedHeroBackground variant={role} className="fixed inset-0" />
-        <aside className="portal-sidebar fixed inset-y-0 left-0 z-50 hidden w-[254px] border-r border-black/[.055] px-3 py-5 lg:flex lg:flex-col">{nav}</aside>
+      <div className={`portal-app portal-app--${role} text-[color:var(--vm-color-ink)]`}>
+        <aside className="portal-sidebar fixed inset-y-0 left-0 z-50 hidden w-[254px] border-r border-[color:var(--vm-color-line)] px-3 py-5 lg:flex lg:flex-col">{nav}</aside>
 
-        {mobileOpen ? <button aria-label="Cerrar menú" className="fixed inset-0 z-40 bg-[#111820]/35 lg:hidden" onClick={() => setMobileOpen(false)} /> : null}
-        <aside className={`portal-sidebar fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-black/[.06] p-4 transition-transform lg:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
-          <div className="mb-2 flex justify-end"><button onClick={() => setMobileOpen(false)} className="grid h-9 w-9 place-items-center rounded-full border border-black/[.08] bg-white"><Icon name="close" className="h-4 w-4" /></button></div>
+        {mobileOpen ? <button aria-label="Cerrar menú" className="fixed inset-0 z-40 bg-[color:var(--vm-color-brand-blue-deep)]/35 lg:hidden" onClick={() => setMobileOpen(false)} /> : null}
+        <aside className={`portal-sidebar fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-[color:var(--vm-color-line)] p-4 transition-transform lg:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
+          <div className="mb-2 flex justify-end"><button onClick={() => setMobileOpen(false)} className="grid h-9 w-9 place-items-center rounded-full border border-[color:var(--vm-color-line)] bg-white"><Icon name="close" className="h-4 w-4" /></button></div>
           {nav}
         </aside>
 
         <main className="relative lg:pl-[254px]">
-          <div className="portal-content-grid pointer-events-none fixed inset-x-0 top-0 z-0 h-[360px] lg:left-[254px]" />
-          <header className="sticky top-0 z-30 border-b border-black/[.055] bg-white/95">
-            <div className="flex h-[72px] items-center justify-between px-5 sm:px-8 lg:px-9">
+          <header className="sticky top-0 z-30 border-b border-[color:var(--vm-color-line)] bg-white/95">
+            <div className="flex h-[64px] items-center justify-between px-5 sm:px-8 lg:px-9">
               <div className="flex items-center gap-3">
-                <button onClick={() => setMobileOpen(true)} className="grid h-10 w-10 place-items-center rounded-[13px] border border-black/[.08] bg-white shadow-sm lg:hidden"><Icon name="menu" /></button>
-                <div className="relative hidden md:block">
-                  <button onClick={() => setRoleOpen((value) => !value)} className="flex items-center gap-2 rounded-full border border-black/[.065] bg-white px-4 py-2.5 text-xs font-bold text-black/62 shadow-sm transition hover:border-[#0067b1]/20">
-                    {config.label}<Icon name="chevron" className={`h-3.5 w-3.5 transition ${roleOpen ? "rotate-90" : ""}`} />
-                  </button>
-                  {roleOpen ? (
-                    <div className="absolute left-0 top-12 z-50 w-60 rounded-[18px] border border-black/[.075] bg-white p-2 shadow-[0_22px_60px_rgba(17,24,32,.14)]">
-                      <Link href="/asesor/dashboard" prefetch className="block rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-black/[.035]">Portal comercial</Link>
-                      <Link href="/marketing/dashboard" prefetch className="block rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-black/[.035]">Marketing intelligence</Link>
-                      <Link href="/admin/proyectos" prefetch className="block rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-black/[.035]">Administración</Link>
-                    </div>
-                  ) : null}
-                </div>
+                <button onClick={() => setMobileOpen(true)} className="grid h-10 w-10 place-items-center rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-white shadow-sm lg:hidden"><Icon name="menu" /></button>
+                <div className="hidden rounded-full border border-[color:var(--vm-color-line)] bg-white px-4 py-2.5 text-xs font-bold text-[color:var(--vm-color-ink-muted)] shadow-sm md:block">{config.label}</div>
               </div>
               <div className="flex items-center gap-2.5">
-                <button className="relative grid h-10 w-10 place-items-center rounded-[13px] border border-black/[.065] bg-white shadow-sm"><Icon name="search" className="h-4 w-4 text-black/52" /></button>
-                <button className="relative grid h-10 w-10 place-items-center rounded-[13px] border border-black/[.065] bg-white shadow-sm"><Icon name="alert" className="h-4 w-4 text-black/52" /><span className="absolute right-1.5 top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#0067b1] px-1 text-[8px] font-black text-white ring-2 ring-white">3</span></button>
-                <div className="flex items-center gap-3 rounded-full border border-black/[.065] bg-white py-1.5 pl-1.5 pr-3 shadow-sm">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-[#0067b1] to-[#004f8c] text-[10px] font-extrabold text-white">LC</span>
-                  <div className="hidden text-left sm:block"><div className="text-[11px] font-bold">Laura Cárdenas</div><div className="text-[9px] text-black/40">{config.userRole}</div></div>
-                  <Icon name="chevron" className="hidden h-3 w-3 text-black/35 sm:block" />
+                <div className="flex items-center gap-3 rounded-full border border-[color:var(--vm-color-line)] bg-white py-1.5 pl-1.5 pr-3 shadow-sm">
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-[color:var(--vm-color-brand-blue)] to-[color:var(--vm-color-brand-blue-deep)] text-[10px] font-extrabold text-white">AS</span>
+                  <div className="hidden text-left sm:block"><div className="text-xs font-bold">Sesión de asesor</div><div className="text-[11px] text-[color:var(--vm-color-ink-muted)]">{config.userRole}</div></div>
                 </div>
               </div>
             </div>
           </header>
 
-          <div className="portal-page relative z-10 px-5 py-7 sm:px-8 lg:px-9 lg:py-8">{children}</div>
+          <div className="portal-page relative z-10 px-5 py-5 sm:px-8 lg:px-9 lg:py-6">{children}</div>
         </main>
       </div>
     </PortalChromeContext.Provider>
@@ -149,19 +149,14 @@ function PortalPage({ role, title, subtitle, actions, children }: { role: Role; 
   const config = roleConfig[role];
   return (
     <>
-      <section className={`portal-hero portal-hero--${role} mb-7 overflow-hidden rounded-[30px] border border-white/60 px-6 py-6 shadow-[0_18px_54px_rgba(17,24,32,.065)] sm:px-8 sm:py-7`}>
-        <AnimatedHeroBackground variant={role} compact interactive={false} />
-        <div className="portal-hero__content relative z-10 flex flex-col justify-between gap-6 xl:flex-row xl:items-end">
+      <section className={`portal-hero portal-hero--${role} mb-4 overflow-hidden rounded-[var(--vm-radius-card)] border border-[color:var(--vm-color-line)] bg-white px-5 py-3.5 shadow-[var(--vm-shadow-low)] sm:px-6 sm:py-4`}>
+        <div className="portal-hero__content relative z-10 flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/55 bg-white/72 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[.15em] text-[#0067b1] shadow-sm"><span className="h-1.5 w-1.5 rounded-full bg-[#ffd000] shadow-[0_0_0_5px_rgba(255,208,0,.14)]" />{config.label}</div>
-            <h1 className="max-w-4xl text-3xl font-bold tracking-[-0.052em] text-[#101820] sm:text-4xl lg:text-[2.75rem]">{title}</h1>
-            {subtitle ? <p className="mt-3 max-w-3xl text-sm leading-6 text-black/52">{subtitle}</p> : null}
+            <div className="mb-1.5 inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[.12em] text-[color:var(--vm-color-brand-blue)]"><span className="h-1.5 w-1.5 rounded-full bg-[color:var(--vm-color-brand-yellow)]" />{config.label}</div>
+            <h1 className="max-w-4xl text-xl font-bold tracking-[-0.035em] text-[color:var(--vm-color-ink)] sm:text-2xl">{title}</h1>
+            {subtitle ? <p className="mt-1.5 max-w-3xl text-xs leading-5 text-[color:var(--vm-color-ink-muted)] sm:text-sm">{subtitle}</p> : null}
           </div>
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-            <div className="portal-hero__signal hidden rounded-[18px] border border-white/55 bg-white/70 px-4 py-3 md:block">
-              <div className="text-[9px] font-extrabold uppercase tracking-[.13em] text-black/38">Sistema en línea</div>
-              <div className="mt-1 flex items-center gap-2 text-[11px] font-bold"><span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,.12)]" />Datos actualizados</div>
-            </div>
             {actions ? <div className="flex flex-wrap gap-2.5">{actions}</div> : null}
           </div>
         </div>

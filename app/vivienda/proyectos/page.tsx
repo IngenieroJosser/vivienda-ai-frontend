@@ -1,27 +1,67 @@
-import { ProjectCard } from "@/components/project-card";
-import { projects } from "@/lib/data";
+import type { Metadata } from "next";
+import { getHousingProjectsFromBackend } from "@/lib/housing-catalog/data-source";
 import { Icon } from "@/components/icon";
 import { AnimatedHeroBackground } from "@/components/animated-hero-background";
+import { ProjectCatalog } from "@/components/project-catalog";
+import { createProjectCatalogItems } from "@/components/project-catalog-model";
+import { StructuredData } from "@/components/structured-data";
+import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 
-export default function ProyectosPage() {
+export const metadata: Metadata = createPageMetadata({
+  title: "Proyectos de vivienda",
+  description:
+    "Explora proyectos de vivienda Colsubsidio, sus ubicaciones, espacios, planos y recorridos virtuales disponibles.",
+  path: "/vivienda/proyectos",
+});
+
+export default async function ProyectosPage() {
+  const projects = await getHousingProjectsFromBackend();
+  const catalogItems = createProjectCatalogItems(projects);
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Proyectos de vivienda Colsubsidio",
+    url: absoluteUrl("/vivienda/proyectos"),
+    numberOfItems: projects.length,
+    itemListElement: projects.map((project, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: project.name,
+      url: absoluteUrl(`/vivienda/proyectos/${project.id}`),
+      image: absoluteUrl(project.image),
+    })),
+  };
+
   return (
     <main className="mx-auto max-w-[1460px] px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
-        <section className="projects-hero relative overflow-hidden rounded-[34px] border border-black/[.06] bg-white/82 px-6 py-9 shadow-[0_20px_60px_rgba(17,24,32,.055)] backdrop-blur sm:px-9 lg:px-11">
-          <AnimatedHeroBackground variant="projects" compact interactive={false} />
-          <div className="relative z-10 grid items-end gap-7 lg:grid-cols-[1fr_.72fr]">
-            <div><div className="inline-flex items-center gap-2 rounded-full bg-[#0067b1]/6 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.14em] text-[#0067b1]"><Icon name="sparkles" className="h-4 w-4 text-[#ffd000]" />Recomendación personalizada</div><h1 className="mt-5 max-w-3xl text-4xl font-bold leading-[.96] tracking-[-.06em] sm:text-6xl">Proyectos que se ajustan a ti.</h1><p className="mt-4 max-w-2xl text-sm leading-7 text-black/48">Ordenamos la oferta por compatibilidad financiera, ubicación, tamaño del hogar y horizonte de compra.</p></div>
-            <div className="grid grid-cols-3 gap-3 lg:justify-self-end"><div className="rounded-[17px] border border-black/[.06] bg-white p-4 text-center shadow-sm"><div className="text-2xl font-extrabold text-[#0067b1]">3</div><div className="mt-1 text-[9px] text-black/38">Compatibles</div></div><div className="rounded-[17px] border border-black/[.06] bg-white p-4 text-center shadow-sm"><div className="text-2xl font-extrabold">94%</div><div className="mt-1 text-[9px] text-black/38">Mejor match</div></div><div className="rounded-[17px] border border-black/[.06] bg-white p-4 text-center shadow-sm"><div className="text-2xl font-extrabold">$186M</div><div className="mt-1 text-[9px] text-black/38">Desde</div></div></div>
+      <StructuredData data={structuredData} />
+      <section className="projects-hero surface-solid relative overflow-hidden px-6 py-9 sm:px-9 lg:px-11">
+        <AnimatedHeroBackground variant="projects" compact interactive={false} />
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[color:var(--vm-color-brand-blue)]/[.06] px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
+            <Icon name="building" className="h-4 w-4 text-[color:var(--vm-color-brand-yellow)]" />
+            Vivienda Colsubsidio
           </div>
-        </section>
-
-        <section className="surface-card mt-6 flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
-          <button className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#0067b1] px-4 text-xs font-bold text-white shadow-sm"><Icon name="filter" className="h-4 w-4" />Todos los filtros</button>
-          {["Bogotá y Sabana", "$140–220 M", "2–3 habitaciones", "Entrega 2027–2028"].map((filter) => <button key={filter} className="h-10 rounded-full border border-black/[.08] bg-white px-4 text-xs font-semibold text-black/50 transition hover:border-[#0067b1]/24 hover:text-[#0067b1]">{filter}</button>)}
-          <div className="ml-auto flex items-center gap-2 border-t border-black/[.06] pt-3 sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0"><span className="hidden text-[10px] text-black/38 lg:block">Ordenar por</span><select className="h-10 rounded-full border border-black/[.08] bg-white px-4 text-xs font-bold outline-none"><option>Mayor compatibilidad</option><option>Menor precio</option><option>Entrega más cercana</option></select></div>
-        </section>
-
-        <div className="projects-grid mt-7 grid gap-6 lg:grid-cols-3">{projects.map((project) => <ProjectCard key={project.id} project={project} />)}</div>
-        <div className="mt-8 flex justify-center"><button className="inline-flex h-11 items-center gap-2 rounded-full border border-black/[.08] bg-white px-5 text-xs font-bold shadow-sm transition hover:border-[#0067b1]/22 hover:text-[#0067b1]">Ver más opciones <Icon name="arrow" className="h-4 w-4" /></button></div>
-      </main>
+          <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-[.96] tracking-[-.055em] sm:text-6xl">
+            Proyectos para imaginar tu próxima etapa.
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-[color:var(--vm-color-ink-muted)]">
+            Explora ubicaciones, espacios y recorridos oficiales. Cuando un dato comercial
+            requiera validación, te lo diremos con claridad.
+          </p>
+          <div className="mt-7 flex flex-wrap gap-3 text-xs font-semibold text-[color:var(--vm-color-ink-muted)]">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 shadow-sm">
+              <Icon name="check" className="h-4 w-4 text-[color:var(--vm-color-success)]" />
+              {projects.length} proyectos para conocer
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 shadow-sm">
+              <Icon name="eye" className="h-4 w-4 text-[color:var(--vm-color-brand-blue)]" />
+              Recorridos virtuales disponibles
+            </span>
+          </div>
+        </div>
+      </section>
+      <ProjectCatalog projects={catalogItems} />
+    </main>
   );
 }
