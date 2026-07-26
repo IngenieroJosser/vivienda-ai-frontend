@@ -25,6 +25,16 @@ export function selectNextBestAction(
   if (!discovery.motivation) return "DISCOVER_MOTIVATION";
   if (!discovery.obstacle && !profile.mainConcern) return "DISCOVER_OBSTACLE";
 
+  const missingHousing = ["location", "horizon"].filter(
+    (field) => !profile[field as ProfileField],
+  );
+  if (missingHousing.length > 1) return "HOUSING_CONTEXT";
+
+  const missingFinancial = ["incomeRange", "obligations", "savings"].filter(
+    (field) => !profile[field as ProfileField],
+  );
+  if (missingFinancial.length > 1) return "FINANCIAL_CONTEXT";
+
   const contextualOrder: ProfileField[] = profile.mainConcern === "PAYMENT"
     ? ["incomeRange", "obligations", "savings", "horizon", "location", "affiliation"]
     : profile.mainConcern === "BENEFITS"
@@ -126,6 +136,10 @@ function buildReflection(profile: ProfileAnswers): string {
 function getPrompt(action: ConversationAction): string {
   const prompts: Partial<Record<ConversationAction, string>> = {
     OPEN_DISCOVERY: "¿Cómo imaginas la vivienda que quieres y para quién sería?",
+    HOUSING_CONTEXT:
+      "Para relacionar tu búsqueda con opciones reales, ¿dónde te gustaría vivir y en qué momento esperas comprar?",
+    FINANCIAL_CONTEXT:
+      "Para cuidar que la vivienda y tus demás obligaciones no superen el 40 % de los ingresos del hogar, cuéntame qué ingresos reciben, cuánto pagan hoy en cuotas y con qué ahorro cuentan.",
     DISCOVER_PREVIOUS_BUYER_INTENT: getPreviousBuyerIntentPrompt(),
     DISCOVER_MOTIVATION: "¿Qué te motivó a buscar vivienda justo ahora?",
     DISCOVER_OBSTACLE: "¿Qué sientes que podría impedirte avanzar hoy?",

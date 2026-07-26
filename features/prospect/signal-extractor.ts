@@ -115,6 +115,14 @@ function extractIncome(profile: ProfileAnswers, text: string): void {
   else if (/((entre\s+)?(2|dos|3|tres)\s*(a|y|-)\s*(4|cuatro|7|siete)\s*(millones?|millon|salarios|smmlv)|entre 2 y 4 salarios|2 a 4 salarios|dos a cuatro salarios)/.test(text)) profile.incomeRange = "MID";
   else if (/((hasta|menos de|menor a|maximo|max)\s+(2|3)\s*(millones?|millon|salarios|smmlv)|hasta 2 salarios|menos de 2 salarios|uno o dos salarios)/.test(text)) profile.incomeRange = "LOW";
   else if (/(prefiero.{0,25}despues|validarlo.{0,25}despues|no se.{0,35}(ingreso|salario|sueldo|rango))/.test(text)) profile.incomeRange = "UNKNOWN";
+  else if (
+    /(ingres\w*|ganamos|gano|salario|sueldo|recibimos|recibo|recibe|devengamos|devengo|devenga)/.test(
+      text,
+    )
+  ) {
+    const value = extractMoneyValues(text)[0] ?? 0;
+    if (value) profile.incomeRange = incomeBand(value);
+  }
 }
 
 function extractExpectedReply(
@@ -123,7 +131,30 @@ function extractExpectedReply(
   text: string,
   expectedAction: ConversationAction,
 ): void {
-  if (expectedAction === "obligations") {
+  if (expectedAction === "FINANCIAL_CONTEXT") {
+    const values = extractMoneyValues(text);
+    if (
+      !profile.incomeRange &&
+      values.length === 1 &&
+      !/(deuda|obligacion|cuota|tarjeta|ahorro|ahorrad|cesantia)/.test(text)
+    ) {
+      profile.incomeRange = incomeBand(values[0]!);
+    }
+    if (/(bajas?|ninguna|sin deudas?|pocas?)/.test(text)) {
+      profile.obligations = "LOW";
+    } else if (/(intermedias?|medias?|moderadas?|algunas?)/.test(text)) {
+      profile.obligations = "MEDIUM";
+    } else if (/(altas?|muchas?|elevadas?)/.test(text)) {
+      profile.obligations = "HIGH";
+    }
+    if (/(ya tengo|tengo una base|list[oa]|cesantias)/.test(text)) {
+      profile.savings = "READY";
+    } else if (/(estoy ahorrando|parcial|algo|construyendo)/.test(text)) {
+      profile.savings = "PARTIAL";
+    } else if (/(aun no|todavia no|no tengo|sin ahorro)/.test(text)) {
+      profile.savings = "NONE";
+    }
+  } else if (expectedAction === "obligations") {
     if (/(bajas?|ninguna|sin deudas?|pocas?)/.test(text)) profile.obligations = "LOW";
     else if (/(intermedias?|medias?|moderadas?|algunas?)/.test(text)) profile.obligations = "MEDIUM";
     else if (/(altas?|muchas?|elevadas?)/.test(text)) profile.obligations = "HIGH";
@@ -172,12 +203,42 @@ function extractObligations(profile: ProfileAnswers, text: string): void {
   else if (/(algunas deudas|entre 15.{0,10}30|deudas moderadas)/.test(text)) profile.obligations = "MEDIUM";
   else if (/(muchas deudas|mas del 30|muy endeudad)/.test(text)) profile.obligations = "HIGH";
   else if (/(no se.{0,35}(deudas|obligaciones)|no tengo claro.{0,35}(deudas|obligaciones))/.test(text)) profile.obligations = "UNKNOWN";
+  else if (/(deuda|deudas|creditos|cuotas|obligaciones|tarjetas)/.test(text)) {
+    const value = Math.min(...extractMoneyValues(text));
+    if (Number.isFinite(value)) {
+      profile.obligations =
+        value < 1_000_000 ? "LOW" : value < 2_500_000 ? "MEDIUM" : "HIGH";
+    }
+  }
 }
 
 function extractSavings(profile: ProfileAnswers, text: string): void {
   if (/(no tengo (ahorro|cuota inicial)|sin ahorro|me preocupa no tener.{0,20}cuota inicial)/.test(text)) profile.savings = "NONE";
   else if (/(estoy ahorrando|ahorro poco|construyendo.{0,15}ahorro|tengo algo ahorrado)/.test(text)) profile.savings = "PARTIAL";
   else if (/(ya tengo (ahorro|la cuota inicial)|cuento con (ahorro|la cuota inicial)|tengo una base de ahorro)/.test(text)) profile.savings = "READY";
+  else if (
+    /\b\d+(?:[.,]\d+)?\s*(?:millones?|millon|mil|k)?\s+ahorrad[oa]s?\b/.test(
+      text,
+    )
+  ) profile.savings = "READY";
+}
+
+function extractMoneyValues(text: string): number[] {
+  return Array.from(
+    text.matchAll(/\b(\d+(?:[.,]\d+)?)\s*(millones?|millon|mil|k)?\b/g),
+    ([, raw, unit]) => {
+      let value = Number(raw.replace(",", "."));
+      if (unit?.startsWith("millon")) value *= 1_000_000;
+      else if (unit === "mil" || unit === "k") value *= 1_000;
+      return value >= 1_000 ? Math.round(value) : 0;
+    },
+  ).filter((value) => value > 0);
+}
+
+function incomeBand(value: number): "LOW" | "MID" | "HIGH" {
+  if (value < 3_000_000) return "LOW";
+  if (value < 7_000_000) return "MID";
+  return "HIGH";
 }
 
 function extractGoal(profile: ProfileAnswers, text: string): void {

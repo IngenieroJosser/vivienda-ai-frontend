@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { AgentConversationResponse } from "../../../lib/api/conversations";
 import { campaignExperiences, sanitizeAcquisitionContext } from "../campaigns";
 import {
+  applyAgentStart,
   applyAgentSnapshot,
   mapAgentResponseToEvaluation,
 } from "../agent-conversation";
@@ -97,6 +98,25 @@ function response(): AgentConversationResponse {
 }
 
 describe("agent conversation snapshot", () => {
+  it("preserves grouped conversational actions returned by the backend", () => {
+    const base = createProspectSession({
+      id: "grouped-action-session",
+      acquisition: sanitizeAcquisitionContext({
+        utm_campaign: "vivienda_familias",
+      }),
+      campaign: campaignExperiences.general,
+      timestamp: "2026-07-26T01:00:00.000Z",
+    });
+    const grouped = {
+      ...response(),
+      next_action: "FINANCIAL_CONTEXT",
+    };
+
+    expect(applyAgentStart(base, grouped).nextAction).toBe(
+      "FINANCIAL_CONTEXT",
+    );
+  });
+
   it("refreshes the authoritative action without losing visible turns", () => {
     const base = acceptProspectConsent(
       createProspectSession({

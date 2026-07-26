@@ -73,6 +73,8 @@ export type ServiceGuidance = {
 
 export type ConversationAction =
   | "OPEN_DISCOVERY"
+  | "HOUSING_CONTEXT"
+  | "FINANCIAL_CONTEXT"
   | "DISCOVER_PREVIOUS_BUYER_INTENT"
   | "DISCOVER_MOTIVATION"
   | "DISCOVER_OBSTACLE"
