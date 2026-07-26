@@ -35,6 +35,7 @@ import {
   startAgentConversation,
   sendAgentConversationMessage,
 } from "@/lib/api/conversations";
+import { toAcquisitionPayload } from "@/lib/api/acquisition";
 import {
   applyAgentMessage,
   applyAgentSnapshot,
@@ -368,13 +369,10 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
           session_id: accepted.id,
           external_lead_id: accepted.leadReference,
           first_name: accepted.firstName,
-          acquisition: {
-            source: accepted.acquisition.source,
-            campaign: accepted.acquisition.campaign,
-            content: accepted.acquisition.content,
-            lead_reference: accepted.leadReference,
-            is_paid: accepted.acquisition.source.toLowerCase() === "meta",
-          },
+          acquisition: toAcquisitionPayload(
+            accepted.acquisition,
+            accepted.leadReference,
+          ),
           customer_relationship: accepted.customerRelationship,
           consent_accepted_at: acceptedAt,
           known_profile: compactStringRecord(accepted.knownProfile),

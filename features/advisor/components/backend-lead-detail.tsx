@@ -175,11 +175,66 @@ function SummaryPanel({ detail }: { readonly detail: LeadDetailResponse }) {
       </section>
 
       <section className="surface-solid p-6 sm:p-8">
-        <SectionHeading title="Perfil y contexto" description="Datos recibidos en la sesión de perfilamiento." />
+        <SectionHeading
+          title="Origen de la oportunidad"
+          description="Contexto conservado desde el anuncio para entender qué atrajo a la persona y continuar con una atención coherente."
+        />
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Fact label="Fuente" value={detail.source} />
+          <Fact
+            label="Medio"
+            value={detail.acquisition.medium || "Por confirmar"}
+          />
           <Fact label="Campaña" value={detail.campaign} />
           <Fact label="Contenido" value={detail.content} />
+          <Fact
+            label="Proyecto consultado"
+            value={detail.acquisition.project_id || "Campaña general"}
+          />
+          <Fact
+            label="Ubicación del anuncio"
+            value={formatPlacement(
+              detail.acquisition.placement,
+              detail.acquisition.site_source,
+            )}
+          />
+          <Fact
+            label="Referencia de campaña"
+            value={detail.acquisition.campaign_id || "No disponible"}
+          />
+          <Fact
+            label="Referencia del anuncio"
+            value={
+              detail.acquisition.ad_name ||
+              detail.acquisition.ad_id ||
+              "No disponible"
+            }
+          />
+          <Fact
+            label="Atribución del clic"
+            value={detail.acquisition.click_id ? "Disponible" : "No disponible"}
+          />
+          <Fact
+            label="Dispositivo"
+            value={formatDeviceClass(detail.acquisition.device_class)}
+          />
+          <Fact
+            label="Idioma y zona"
+            value={[
+              detail.acquisition.locale,
+              detail.acquisition.timezone,
+            ].filter(Boolean).join(" · ") || "Por confirmar"}
+          />
+          <Fact
+            label="Origen de navegación"
+            value={detail.acquisition.referrer_origin || "Acceso directo"}
+          />
+        </div>
+      </section>
+
+      <section className="surface-solid p-6 sm:p-8">
+        <SectionHeading title="Perfil y contexto" description="Datos recibidos en la sesión de perfilamiento." />
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Fact label="Estado" value={detail.status} />
           <Fact label="Consentimiento" value={detail.consent_accepted_at ? formatDate(detail.consent_accepted_at) : "No registrado"} />
           <Fact label="Creado" value={formatDate(detail.created_at)} />
@@ -445,6 +500,25 @@ function formatContactTime(value: string): string {
     ANY: "Cualquier horario",
   };
   return labels[value] ?? "Por confirmar";
+}
+
+function formatPlacement(
+  placement: string | null | undefined,
+  siteSource: string | null | undefined,
+): string {
+  const values = [siteSource, placement].filter(
+    (value): value is string => Boolean(value),
+  );
+  return values.length ? values.map(humanizeKey).join(" · ") : "Por confirmar";
+}
+
+function formatDeviceClass(value: string | null | undefined): string {
+  const labels: Record<string, string> = {
+    MOBILE: "Teléfono",
+    TABLET: "Tableta",
+    DESKTOP: "Computador",
+  };
+  return value ? labels[value] ?? humanizeKey(value) : "Por confirmar";
 }
 
 function humanizeKey(value: string): string {

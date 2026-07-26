@@ -578,6 +578,8 @@ export interface components {
              * @default web
              */
             source: string;
+            /** Medium */
+            medium?: string | null;
             /**
              * Campaign
              * @default direct
@@ -588,10 +590,40 @@ export interface components {
              * @default unknown
              */
             content: string;
+            /** Term */
+            term?: string | null;
+            /** Campaign Id */
+            campaign_id?: string | null;
+            /** Ad Set Id */
+            ad_set_id?: string | null;
+            /** Ad Set Name */
+            ad_set_name?: string | null;
+            /** Ad Id */
+            ad_id?: string | null;
+            /** Ad Name */
+            ad_name?: string | null;
+            /** Placement */
+            placement?: string | null;
+            /** Site Source */
+            site_source?: string | null;
+            /** Click Id */
+            click_id?: string | null;
+            /** Project Id */
+            project_id?: string | null;
             /** Lead Reference */
             lead_reference?: string | null;
             /** Is Paid */
             is_paid?: boolean | null;
+            /** Landing Path */
+            landing_path?: string | null;
+            /** Referrer Origin */
+            referrer_origin?: string | null;
+            /** Locale */
+            locale?: string | null;
+            /** Timezone */
+            timezone?: string | null;
+            /** Device Class */
+            device_class?: string | null;
         };
         /** ActivityCreateRequest */
         ActivityCreateRequest: {
@@ -1299,6 +1331,7 @@ export interface components {
             content: string;
             /** Is Paid */
             is_paid: boolean | null;
+            acquisition: components["schemas"]["AcquisitionPayload"];
             /** Status */
             status: string;
             /** Consent Accepted At */

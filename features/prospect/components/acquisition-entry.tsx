@@ -9,6 +9,7 @@ import {
 } from "@/components/orientation-visuals";
 import { Icon } from "@/components/icon";
 import { createFunnelEvent, trackFunnelEvent } from "../analytics";
+import { enrichAcquisitionContext } from "../campaigns";
 import type { AcquisitionContext, CampaignExperience } from "../domain";
 import { createProspectSession } from "../engine";
 import {
@@ -33,16 +34,23 @@ export function AcquisitionEntry({
     startedRef.current = true;
 
     try {
+      const enrichedAcquisition = enrichAcquisitionContext(acquisition, {
+        landingPath: window.location.pathname,
+        referrer: document.referrer,
+        locale: window.navigator.language,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        viewportWidth: window.innerWidth,
+      });
       const recoverable = findRecoverableProspectSession({
-        leadReference: acquisition.leadReference,
-        campaign: acquisition.campaign,
+        leadReference: enrichedAcquisition.leadReference,
+        campaign: enrichedAcquisition.campaign,
       });
 
-      const arrivalKey = `vivienda-match:arrival:${acquisition.source}:${acquisition.campaign}:${acquisition.content}`;
+      const arrivalKey = `vivienda-match:arrival:${enrichedAcquisition.source}:${enrichedAcquisition.campaign}:${enrichedAcquisition.content}`;
       if (!window.sessionStorage.getItem(arrivalKey)) {
         trackFunnelEvent(createFunnelEvent({
           name: "PAID_ARRIVAL",
-          acquisition,
+          acquisition: enrichedAcquisition,
           occurredAt: new Date().toISOString(),
         }));
         window.sessionStorage.setItem(arrivalKey, "1");
@@ -62,7 +70,7 @@ export function AcquisitionEntry({
         : `public-${Date.now().toString(36)}`;
       const session = createProspectSession({
         id,
-        acquisition,
+        acquisition: enrichedAcquisition,
         campaign,
         timestamp: new Date().toISOString(),
       });

@@ -1,4 +1,5 @@
 import { apiRequest } from "./client";
+import type { AcquisitionPayload } from "./acquisition";
 
 export type AgentMode = "OPENAI_AGENTS" | "DETERMINISTIC_FALLBACK";
 export type AgentLeadRoute =
@@ -117,13 +118,7 @@ export type StartAgentConversationInput = {
   session_id: string;
   external_lead_id?: string;
   first_name?: string;
-  acquisition: {
-    source: string;
-    campaign: string;
-    content: string;
-    lead_reference?: string;
-    is_paid?: boolean;
-  };
+  acquisition: AcquisitionPayload;
   customer_relationship: string;
   consent_accepted_at: string;
   known_profile: Record<string, string>;

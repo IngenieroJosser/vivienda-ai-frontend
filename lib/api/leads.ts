@@ -6,6 +6,10 @@ import type {
   AgentLeadRoute,
   AgentProjectRecommendation,
 } from "./conversations";
+import {
+  toAcquisitionPayload,
+  type AcquisitionPayload,
+} from "./acquisition";
 
 type DeepRequired<Value> = Value extends readonly (infer Item)[]
   ? DeepRequired<Item>[]
@@ -18,13 +22,7 @@ export type SessionSyncRequest = {
   session_version: number;
   lead_id: string | null;
   first_name: string | null;
-  acquisition: {
-    source: string;
-    campaign: string;
-    content: string;
-    lead_reference: string | null;
-    is_paid: boolean | null;
-  };
+  acquisition: AcquisitionPayload;
   status: ProspectSession["status"];
   consent_accepted_at: string | null;
   customer_relationship: ProspectSession["customerRelationship"];
@@ -217,14 +215,10 @@ export function toSessionSyncRequest(
     session_version: session.syncVersion ?? 1,
     lead_id: session.leadId ?? null,
     first_name: session.firstName ?? null,
-    acquisition: {
-      source: session.acquisition.source,
-      campaign: session.acquisition.campaign,
-      content: session.acquisition.content,
-      lead_reference:
-        session.acquisition.leadReference ?? session.leadReference ?? null,
-      is_paid: session.acquisition.source.toLowerCase() === "meta",
-    },
+    acquisition: toAcquisitionPayload(
+      session.acquisition,
+      session.acquisition.leadReference ?? session.leadReference,
+    ),
     status: session.status,
     consent_accepted_at: session.consentAcceptedAt ?? null,
     customer_relationship: session.customerRelationship,

@@ -44,7 +44,7 @@ npm run build
 ### Prospecto
 
 - `/` — entrada pública centrada en la conversación.
-- `/orientacion` — identificación, consentimiento e inicio.
+- `/orientacion` — atribución de campaña, consentimiento e inicio.
 - `/orientacion/[sessionId]` — conversación libre y recuperable.
 - `/orientacion/resultado/[sessionId]` — resultado, proyectos y siguiente paso.
 - `/vivienda/proyectos` — catálogo de proyectos.
@@ -99,6 +99,19 @@ segundo plano y no bloquea la conversación. Si el servicio no está disponible,
 la interfaz mantiene los datos locales y presenta estados recuperables. Cuando
 el backend responde, su nivel, ruta, capacidad, plan y recomendaciones son la
 fuente autoritativa para la presentación.
+
+### Contexto de adquisición
+
+La entrada desde pauta conserva una lista explícita de parámetros útiles:
+fuente, medio, campaña, contenido, término, identificadores de campaña,
+conjunto y anuncio, ubicación, proyecto de interés y referencia del clic.
+Después añade contexto técnico grueso —ruta de entrada, origen, idioma, zona
+horaria y clase de dispositivo— para facilitar soporte y análisis.
+
+Este contexto se mantiene local antes del consentimiento y se envía al backend
+al iniciar la conversación autorizada. No se realiza fingerprinting ni se
+capturan agente de usuario, URL completa del referente, características del
+hardware o información sensible inferida desde el navegador.
 
 Los contratos TypeScript se generan desde el OpenAPI versionado del backend:
 

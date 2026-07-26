@@ -3,6 +3,7 @@ import { createFunnelEvent, summarizeFunnelByCampaign } from "../analytics";
 import { getCapacityRange } from "../capacity";
 import {
   campaignExperiences,
+  enrichAcquisitionContext,
   resolveKnownProspect,
   resolveCampaignExperience,
   sanitizeAcquisitionContext,
@@ -31,6 +32,78 @@ describe("paid acquisition prospect journey", () => {
     });
     expect(sanitizeAcquisitionContext({ leadId: "lead-jonathan<script>" }).leadReference).toBeUndefined();
     expect(resolveCampaignExperience(acquisition.campaign).id).toBe("versalles");
+  });
+
+  it("captures allowlisted Meta attribution and coarse browser context", () => {
+    const attributed = enrichAcquisitionContext(
+      sanitizeAcquisitionContext({
+        utm_source: "Meta",
+        utm_medium: "paid-social",
+        utm_campaign: "Vivienda_Familias",
+        utm_content: "Video_03",
+        utm_term: "vivienda-vis",
+        campaign_id: "12021001",
+        adset_id: "12021002",
+        adset_name: "familias_bogota",
+        ad_id: "12021003",
+        ad_name: "video_hogar_03",
+        placement: "instagram_stories",
+        site_source_name: "ig",
+        fbclid: "IwZXh0bgNhZW0CMTEAAR_example-1",
+        project_id: "abeto",
+      }),
+      {
+        landingPath: "/orientacion?ignored=true",
+        referrer: "https://l.instagram.com/tracking/path",
+        locale: "es-CO",
+        timezone: "America/Bogota",
+        viewportWidth: 390,
+      },
+    );
+
+    expect(attributed).toMatchObject({
+      source: "meta",
+      medium: "paid-social",
+      campaign: "vivienda_familias",
+      content: "video_03",
+      term: "vivienda-vis",
+      campaignId: "12021001",
+      adSetId: "12021002",
+      adSetName: "familias_bogota",
+      adId: "12021003",
+      adName: "video_hogar_03",
+      placement: "instagram_stories",
+      siteSource: "ig",
+      clickId: "IwZXh0bgNhZW0CMTEAAR_example-1",
+      projectId: "abeto",
+      landingPath: "/orientacion",
+      referrerOrigin: "https://l.instagram.com",
+      locale: "es-CO",
+      timezone: "America/Bogota",
+      deviceClass: "MOBILE",
+    });
+  });
+
+  it("rejects arbitrary identifiers and fingerprint-like browser values", () => {
+    const attributed = enrichAcquisitionContext(
+      sanitizeAcquisitionContext({
+        fbclid: "<script>alert(1)</script>",
+      }),
+      {
+        landingPath: "https://attacker.example/path",
+        referrer: "javascript:alert(1)",
+        locale: "<script>",
+        timezone: "../../secret",
+        viewportWidth: Number.NaN,
+      },
+    );
+
+    expect(attributed).not.toHaveProperty("clickId");
+    expect(attributed).not.toHaveProperty("landingPath");
+    expect(attributed).not.toHaveProperty("referrerOrigin");
+    expect(attributed).not.toHaveProperty("locale");
+    expect(attributed).not.toHaveProperty("timezone");
+    expect(attributed).not.toHaveProperty("deviceClass");
   });
 
   it("extracts several profile signals from one natural-language response", () => {
