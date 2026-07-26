@@ -25,6 +25,9 @@
 *.pem
 *.zip
 
+# Local presentation material
+/docs/PITCH_HYPERFRAMES_MVP.md
+
 # debug
 npm-debug.log*
 yarn-debug.log*
