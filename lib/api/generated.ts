@@ -465,40 +465,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/enrichment/public-profile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Public Profile */
-        post: operations["public_profile_api_v1_enrichment_public_profile_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/enrichment/search-console": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Search Console */
-        get: operations["search_console_api_v1_enrichment_search_console_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/ai/extract": {
         parameters: {
             query?: never;
@@ -612,6 +578,8 @@ export interface components {
              * @default web
              */
             source: string;
+            /** Medium */
+            medium?: string | null;
             /**
              * Campaign
              * @default direct
@@ -622,10 +590,40 @@ export interface components {
              * @default unknown
              */
             content: string;
+            /** Term */
+            term?: string | null;
+            /** Campaign Id */
+            campaign_id?: string | null;
+            /** Ad Set Id */
+            ad_set_id?: string | null;
+            /** Ad Set Name */
+            ad_set_name?: string | null;
+            /** Ad Id */
+            ad_id?: string | null;
+            /** Ad Name */
+            ad_name?: string | null;
+            /** Placement */
+            placement?: string | null;
+            /** Site Source */
+            site_source?: string | null;
+            /** Click Id */
+            click_id?: string | null;
+            /** Project Id */
+            project_id?: string | null;
             /** Lead Reference */
             lead_reference?: string | null;
             /** Is Paid */
             is_paid?: boolean | null;
+            /** Landing Path */
+            landing_path?: string | null;
+            /** Referrer Origin */
+            referrer_origin?: string | null;
+            /** Locale */
+            locale?: string | null;
+            /** Timezone */
+            timezone?: string | null;
+            /** Device Class */
+            device_class?: string | null;
         };
         /** ActivityCreateRequest */
         ActivityCreateRequest: {
@@ -1037,6 +1035,8 @@ export interface components {
              * Format: date-time
              */
             generated_at: string;
+            /** Prospect Access Token */
+            prospect_access_token?: string | null;
         };
         /**
          * ConversationState
@@ -1126,23 +1126,6 @@ export interface components {
             count: number;
             /** Share */
             share: number;
-        };
-        /** EnrichmentResponse */
-        EnrichmentResponse: {
-            /** Lead Id */
-            lead_id: string;
-            /** Provider */
-            provider: string;
-            /** Status */
-            status: string;
-            /** Collected Fields */
-            collected_fields?: string[];
-            /** Data */
-            data?: {
-                [key: string]: unknown;
-            };
-            /** Warnings */
-            warnings?: string[];
         };
         /** ErrorDetail */
         ErrorDetail: {
@@ -1348,6 +1331,7 @@ export interface components {
             content: string;
             /** Is Paid */
             is_paid: boolean | null;
+            acquisition: components["schemas"]["AcquisitionPayload"];
             /** Status */
             status: string;
             /** Consent Accepted At */
@@ -1359,8 +1343,6 @@ export interface components {
             evaluation: components["schemas"]["InternalEvaluationDetail"] | null;
             journey?: components["schemas"]["SessionSyncResponse"] | null;
             commercial_workflow?: components["schemas"]["CommercialWorkflowResponse"] | null;
-            /** Enrichments */
-            enrichments: components["schemas"]["LeadEnrichmentDetail"][];
             /** Audit Events */
             audit_events: components["schemas"]["LeadAuditEvent"][];
             /** Chat Records */
@@ -1386,28 +1368,6 @@ export interface components {
             assistant_text: string;
             /** Extracted Fields */
             extracted_fields?: string[];
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-        };
-        /** LeadEnrichmentDetail */
-        LeadEnrichmentDetail: {
-            /** Provider */
-            provider: string;
-            /** Source Url */
-            source_url?: string | null;
-            /** Purpose */
-            purpose: string;
-            /** Status */
-            status: string;
-            /** Data */
-            data?: {
-                [key: string]: unknown;
-            };
-            /** Warnings */
-            warnings?: string[];
             /**
              * Created At
              * Format: date-time
@@ -1809,29 +1769,6 @@ export interface components {
              */
             requested_at: string;
         };
-        /** PublicProfileEnrichmentRequest */
-        PublicProfileEnrichmentRequest: {
-            /** Lead Id */
-            lead_id: string;
-            /**
-             * Provider
-             * @default apify
-             * @constant
-             */
-            provider: "apify";
-            /**
-             * Profile Url
-             * Format: uri
-             */
-            profile_url: string;
-            /** Consent */
-            consent: boolean;
-            /**
-             * Purpose
-             * @default personalize_housing_guidance
-             */
-            purpose: string;
-        };
         /**
          * ReadinessLevel
          * @enum {string}
@@ -1898,19 +1835,6 @@ export interface components {
             can_continue: boolean;
             /** Period */
             period: string;
-        };
-        /** SearchConsoleOverview */
-        SearchConsoleOverview: {
-            /** Configured */
-            configured: boolean;
-            /** Site Url */
-            site_url?: string | null;
-            /** Rows */
-            rows?: {
-                [key: string]: unknown;
-            }[];
-            /** Note */
-            note: string;
         };
         /** SessionSyncRequest */
         SessionSyncRequest: {
@@ -3161,59 +3085,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    public_profile_api_v1_enrichment_public_profile_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PublicProfileEnrichmentRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EnrichmentResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    search_console_api_v1_enrichment_search_console_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SearchConsoleOverview"];
-                };
             };
         };
     };

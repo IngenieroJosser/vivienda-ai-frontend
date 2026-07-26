@@ -6,6 +6,10 @@ import type {
   AgentLeadRoute,
   AgentProjectRecommendation,
 } from "./conversations";
+import {
+  toAcquisitionPayload,
+  type AcquisitionPayload,
+} from "./acquisition";
 
 type DeepRequired<Value> = Value extends readonly (infer Item)[]
   ? DeepRequired<Item>[]
@@ -18,13 +22,7 @@ export type SessionSyncRequest = {
   session_version: number;
   lead_id: string | null;
   first_name: string | null;
-  acquisition: {
-    source: string;
-    campaign: string;
-    content: string;
-    lead_reference: string | null;
-    is_paid: boolean | null;
-  };
+  acquisition: AcquisitionPayload;
   status: ProspectSession["status"];
   consent_accepted_at: string | null;
   customer_relationship: ProspectSession["customerRelationship"];
@@ -171,9 +169,29 @@ export type LeadDetailResponse = Omit<
 export function listLeads(options: {
   limit?: number;
   signal?: AbortSignal;
+  assignedToMe?: boolean;
+  pendingAssignment?: boolean;
+  commercialState?: string;
+  slaOverdue?: boolean;
+  overdueFollowUp?: boolean;
+  nextAction?: string;
+  reevaluationDate?: string;
 } = {}): Promise<LeadListItem[]> {
-  const limit = options.limit ?? 100;
-  return apiRequest<LeadListItem[]>(`/leads?limit=${limit}`, {
+  const query = new URLSearchParams({
+    limit: String(options.limit ?? 100),
+  });
+  if (options.assignedToMe) query.set("assigned_to_me", "true");
+  if (options.pendingAssignment) query.set("pending_assignment", "true");
+  if (options.commercialState) {
+    query.set("commercial_state", options.commercialState);
+  }
+  if (options.slaOverdue) query.set("sla_overdue", "true");
+  if (options.overdueFollowUp) query.set("overdue_follow_up", "true");
+  if (options.nextAction) query.set("next_action", options.nextAction);
+  if (options.reevaluationDate) {
+    query.set("reevaluation_date", options.reevaluationDate);
+  }
+  return apiRequest<LeadListItem[]>(`/leads?${query.toString()}`, {
     signal: options.signal,
     advisorAuth: true,
   });
@@ -197,14 +215,10 @@ export function toSessionSyncRequest(
     session_version: session.syncVersion ?? 1,
     lead_id: session.leadId ?? null,
     first_name: session.firstName ?? null,
-    acquisition: {
-      source: session.acquisition.source,
-      campaign: session.acquisition.campaign,
-      content: session.acquisition.content,
-      lead_reference:
-        session.acquisition.leadReference ?? session.leadReference ?? null,
-      is_paid: session.acquisition.source.toLowerCase() === "meta",
-    },
+    acquisition: toAcquisitionPayload(
+      session.acquisition,
+      session.acquisition.leadReference ?? session.leadReference,
+    ),
     status: session.status,
     consent_accepted_at: session.consentAcceptedAt ?? null,
     customer_relationship: session.customerRelationship,

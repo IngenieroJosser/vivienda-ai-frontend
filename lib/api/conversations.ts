@@ -1,4 +1,5 @@
 import { apiRequest } from "./client";
+import type { AcquisitionPayload } from "./acquisition";
 
 export type AgentMode = "OPENAI_AGENTS" | "DETERMINISTIC_FALLBACK";
 export type AgentLeadRoute =
@@ -110,19 +111,14 @@ export type AgentConversationResponse = {
   prompt_version: string;
   model_name: string;
   generated_at: string;
+  prospect_access_token: string | null;
 };
 
 export type StartAgentConversationInput = {
   session_id: string;
   external_lead_id?: string;
   first_name?: string;
-  acquisition: {
-    source: string;
-    campaign: string;
-    content: string;
-    lead_reference?: string;
-    is_paid?: boolean;
-  };
+  acquisition: AcquisitionPayload;
   customer_relationship: string;
   consent_accepted_at: string;
   known_profile: Record<string, string>;
@@ -144,32 +140,48 @@ export function startAgentConversation(
 export function sendAgentConversationMessage(
   sessionId: string,
   input: { external_turn_id: string; message: string; created_at: string },
+  accessToken: string,
   signal?: AbortSignal,
 ): Promise<AgentConversationResponse> {
   return apiRequest<AgentConversationResponse>(
     `/conversations/${encodeURIComponent(sessionId)}/messages`,
-    { method: "POST", body: input, signal },
+    {
+      method: "POST",
+      body: input,
+      signal,
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
   );
 }
 
 export function getAgentConversation(
   sessionId: string,
+  accessToken: string,
   signal?: AbortSignal,
 ): Promise<AgentConversationResponse> {
   return apiRequest<AgentConversationResponse>(
     `/conversations/${encodeURIComponent(sessionId)}`,
-    { signal },
+    {
+      signal,
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
   );
 }
 
 export function declineAgentConversation(
   sessionId: string,
   createdAt: string,
+  accessToken: string,
   signal?: AbortSignal,
 ): Promise<AgentConversationResponse> {
   return apiRequest<AgentConversationResponse>(
     `/conversations/${encodeURIComponent(sessionId)}/decline`,
-    { method: "POST", body: { created_at: createdAt }, signal },
+    {
+      method: "POST",
+      body: { created_at: createdAt },
+      signal,
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
   );
 }
 

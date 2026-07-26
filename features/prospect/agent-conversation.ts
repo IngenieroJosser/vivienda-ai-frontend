@@ -65,7 +65,8 @@ export function applyAgentStart(
     authoritativeJourney: response.journey,
     agentMode: response.agent_mode,
     conversationState: response.conversation_state,
-    quickReplies: response.quick_replies,
+    prospectAccessToken:
+      response.prospect_access_token ?? session.prospectAccessToken,
     agentWelcomeMessage: response.assistant_message,
     syncStatus: "SYNCED",
     syncVersion: response.journey.session_version,
@@ -128,7 +129,8 @@ export function applyAgentMessage(
     authoritativeJourney: input.response.journey,
     agentMode: input.response.agent_mode,
     conversationState: input.response.conversation_state,
-    quickReplies: input.response.quick_replies,
+    prospectAccessToken:
+      input.response.prospect_access_token ?? session.prospectAccessToken,
     lastTrainingRecordId: input.response.training_record_id ?? undefined,
     syncStatus: "SYNCED",
     syncVersion: input.response.journey.session_version,
@@ -174,7 +176,7 @@ export function mapAgentResponseToEvaluation(
   return {
     leadId: (response.lead_id || `lead-${session.leadReference}`) as EvaluationResult["leadId"],
     readinessScore: response.readiness_score,
-    confidenceScore: response.confidence_score,
+    confidenceScore: normalizeConfidenceScore(response.confidence_score),
     priority: response.priority,
     route,
     projectIds: response.journey.recommendations.map((item) => item.project_id),
@@ -210,6 +212,11 @@ export function mapAgentResponseToEvaluation(
       response.journey.nurture_plan?.primary_gap ??
       "Validar la información declarada y el proyecto recomendado.",
   };
+}
+
+function normalizeConfidenceScore(value: number): number {
+  const ratio = value > 1 ? value / 100 : value;
+  return Math.max(0, Math.min(1, ratio));
 }
 
 function commercialSummary(response: AgentConversationResponse): string {

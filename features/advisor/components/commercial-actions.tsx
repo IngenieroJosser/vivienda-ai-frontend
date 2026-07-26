@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Icon } from "@/components/icon";
 import { useQualifiedLeads } from "@/features/conversation/components/use-qualified-leads";
 import { isCommercialOpportunity } from "@/features/conversation/qualified-leads";
+import type { CommercialActivityInput } from "@/lib/api/leads";
 import {
-  claimLead,
-  createLeadActivity,
-  type CommercialActivityInput,
-} from "@/lib/api/leads";
+  claimLeadAndRefresh,
+  createActivityAndRefresh,
+  type CommercialLeadSnapshot,
+} from "@/lib/api/commercial-operations";
+import { getCommercialErrorMessage } from "@/lib/api/commercial-errors";
 import {
   applyBackendWorkflow,
   appendCommercialActivity,
@@ -20,10 +22,20 @@ import {
 } from "../commercial";
 import { useCommercialStates } from "../use-commercial-states";
 import { getCommercialWorkflow } from "../workflow";
+import {
+  resolveActivityAttempt,
+  type ActivityAttempt,
+} from "../commercial-ui-model";
 
 const ADVISOR_NAME = "Asesor actual";
 
-export function CommercialActions({ leadId }: { leadId: string }) {
+export function CommercialActions({
+  leadId,
+  onCanonicalChange,
+}: {
+  leadId: string;
+  onCanonicalChange?: (snapshot: CommercialLeadSnapshot) => void;
+}) {
   const leads = useQualifiedLeads();
   const qualifiedLead = leads.find(({ scenario }) => scenario.leadId === leadId);
   const { states, status, save, retry } = useCommercialStates();
@@ -31,6 +43,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
   const [followUpAt, setFollowUpAt] = useState("");
   const [feedback, setFeedback] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const activityAttemptRef = useRef<ActivityAttempt | null>(null);
 
   if (!qualifiedLead || !isCommercialOpportunity(qualifiedLead.evaluation)) {
     return null;
@@ -92,23 +105,35 @@ export function CommercialActions({ leadId }: { leadId: string }) {
     if (!state.backendWorkflowVersion) return;
     setSubmitting(true);
     setFeedback("");
+    const attempt = resolveActivityAttempt(
+      activityAttemptRef.current,
+      {
+        activityType: input.activity_type,
+        channel: contactChannel,
+        result: input.result,
+        note: input.note ?? "",
+        workflowVersion: state.backendWorkflowVersion,
+      },
+      () => `advisor-${crypto.randomUUID()}`,
+    );
+    activityAttemptRef.current = attempt;
     try {
-      const result = await createLeadActivity(
+      const snapshot = await createActivityAndRefresh(
         leadId,
         {
           ...input,
           channel: contactChannel,
-          managed_at: new Date().toISOString(),
+          managed_at: attempt.managedAt,
           expected_workflow_version: state.backendWorkflowVersion,
         },
-        `advisor-${crypto.randomUUID()}`,
+        attempt.key,
       );
-      save(applyBackendWorkflow(updated, result.workflow));
+      activityAttemptRef.current = null;
+      save(applyBackendWorkflow(updated, snapshot.workflow));
+      onCanonicalChange?.(snapshot);
       setFeedback(successMessage);
-    } catch {
-      setFeedback(
-        "El backend no pudo confirmar la acción. Actualiza la oportunidad antes de intentarlo de nuevo.",
-      );
+    } catch (error) {
+      setFeedback(getCommercialErrorMessage(error));
     } finally {
       setSubmitting(false);
     }
@@ -137,13 +162,12 @@ export function CommercialActions({ leadId }: { leadId: string }) {
     setSubmitting(true);
     setFeedback("");
     try {
-      const backendWorkflow = await claimLead(leadId);
-      save(applyBackendWorkflow(updated, backendWorkflow));
+      const snapshot = await claimLeadAndRefresh(leadId);
+      save(applyBackendWorkflow(updated, snapshot.workflow));
+      onCanonicalChange?.(snapshot);
       setFeedback(description);
-    } catch {
-      setFeedback(
-        "La oportunidad cambió o ya fue asignada. Recarga la bandeja para ver su estado actual.",
-      );
+    } catch (error) {
+      setFeedback(getCommercialErrorMessage(error));
     } finally {
       setSubmitting(false);
     }

@@ -3,9 +3,25 @@ import type { EvaluationResult, ProfileAnswers, ProfileField } from "../conversa
 
 export type AcquisitionContext = {
   source: string;
+  medium?: string;
   campaign: string;
   content: string;
+  term?: string;
+  campaignId?: string;
+  adSetId?: string;
+  adSetName?: string;
+  adId?: string;
+  adName?: string;
+  placement?: string;
+  siteSource?: string;
+  clickId?: string;
+  projectId?: string;
   leadReference?: string;
+  landingPath?: string;
+  referrerOrigin?: string;
+  locale?: string;
+  timezone?: string;
+  deviceClass?: "MOBILE" | "TABLET" | "DESKTOP";
 };
 
 export type CampaignExperience = {
@@ -107,7 +123,7 @@ export type ProspectSession = {
   authoritativeJourney?: AgentJourney;
   agentMode?: AgentMode;
   conversationState?: string;
-  quickReplies?: string[];
+  prospectAccessToken?: string;
   agentWelcomeMessage?: string;
   lastTrainingRecordId?: string;
   createdAt: string;

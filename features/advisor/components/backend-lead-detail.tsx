@@ -5,7 +5,6 @@ import { useState } from "react";
 import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
 import { getHousingProject } from "../../../lib/housing-catalog";
-import { ChatLearningPanel } from "./chat-learning-panel";
 import { CommercialActions } from "./commercial-actions";
 import type {
   LeadDetailEvaluation,
@@ -14,7 +13,7 @@ import type {
   ProjectRecommendation,
 } from "../../../lib/api/leads";
 
-type DetailTab = "SUMMARY" | "PROJECTS" | "CONVERSATION" | "LEARNING" | "ACTIVITY";
+type DetailTab = "SUMMARY" | "PROJECTS" | "CONVERSATION" | "ACTIVITY";
 
 const routeLabels: Record<LeadRoute, string> = {
   READY_TO_CLOSE: "Listo para contacto",
@@ -29,9 +28,11 @@ const routeLabels: Record<LeadRoute, string> = {
 export function BackendLeadDetail({
   detail,
   embedded = false,
+  onDetailChange,
 }: {
   readonly detail: LeadDetailResponse;
   readonly embedded?: boolean;
+  readonly onDetailChange?: (detail: LeadDetailResponse) => void;
 }) {
   const [activeTab, setActiveTab] = useState<DetailTab>("SUMMARY");
   const evaluation = detail.evaluation;
@@ -43,7 +44,6 @@ export function BackendLeadDetail({
     { value: "SUMMARY", label: "Resumen", icon: "document" },
     { value: "PROJECTS", label: "Proyectos", icon: "building" },
     { value: "CONVERSATION", label: "Conversación", icon: "mail" },
-    { value: "LEARNING", label: "Aprendizaje", icon: "brain" },
     { value: "ACTIVITY", label: "Trazabilidad", icon: "history" },
   ];
 
@@ -81,11 +81,14 @@ export function BackendLeadDetail({
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Metric
               label="Preparación"
-              value={evaluation ? `${evaluation.readiness_score}/100` : readinessLabels[journey.readiness.level]}
+              value={readinessLabels[journey.readiness.level]}
             />
             <Metric
               label="Confianza de datos"
-              value={evaluation ? `${evaluation.confidence_score}/100` : `${journey.readiness.missing_fields.length} pendientes`}
+              value={evidenceLabel(
+                evaluation?.confidence_score,
+                journey.readiness.missing_fields.length,
+              )}
             />
             <Metric label="Cuota estimada" value={formatCop(journey.capacity.estimated_monthly_payment ?? 0)} />
             <Metric label="Siguiente acción" value={journey.handoff.next_action} />
@@ -113,13 +116,15 @@ export function BackendLeadDetail({
       </section>
 
       {isCommercialRoute ? (
-        <CommercialActions leadId={detail.id} />
+        <CommercialActions
+          leadId={detail.id}
+          onCanonicalChange={(snapshot) => onDetailChange?.(snapshot.lead)}
+        />
       ) : null}
 
       {activeTab === "SUMMARY" ? <SummaryPanel detail={detail} /> : null}
       {activeTab === "PROJECTS" ? <RecommendationsPanel recommendations={journey?.recommendations ?? []} /> : null}
       {activeTab === "CONVERSATION" ? <ConversationPanel detail={detail} /> : null}
-      {activeTab === "LEARNING" ? <ChatLearningPanel records={detail.chat_records ?? []} /> : null}
       {activeTab === "ACTIVITY" ? <ActivityPanel detail={detail} /> : null}
     </div>
   );
@@ -170,11 +175,66 @@ function SummaryPanel({ detail }: { readonly detail: LeadDetailResponse }) {
       </section>
 
       <section className="surface-solid p-6 sm:p-8">
-        <SectionHeading title="Perfil y contexto" description="Datos recibidos en la sesión de perfilamiento." />
+        <SectionHeading
+          title="Origen de la oportunidad"
+          description="Contexto conservado desde el anuncio para entender qué atrajo a la persona y continuar con una atención coherente."
+        />
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Fact label="Fuente" value={detail.source} />
+          <Fact
+            label="Medio"
+            value={detail.acquisition.medium || "Por confirmar"}
+          />
           <Fact label="Campaña" value={detail.campaign} />
           <Fact label="Contenido" value={detail.content} />
+          <Fact
+            label="Proyecto consultado"
+            value={detail.acquisition.project_id || "Campaña general"}
+          />
+          <Fact
+            label="Ubicación del anuncio"
+            value={formatPlacement(
+              detail.acquisition.placement,
+              detail.acquisition.site_source,
+            )}
+          />
+          <Fact
+            label="Referencia de campaña"
+            value={detail.acquisition.campaign_id || "No disponible"}
+          />
+          <Fact
+            label="Referencia del anuncio"
+            value={
+              detail.acquisition.ad_name ||
+              detail.acquisition.ad_id ||
+              "No disponible"
+            }
+          />
+          <Fact
+            label="Atribución del clic"
+            value={detail.acquisition.click_id ? "Disponible" : "No disponible"}
+          />
+          <Fact
+            label="Dispositivo"
+            value={formatDeviceClass(detail.acquisition.device_class)}
+          />
+          <Fact
+            label="Idioma y zona"
+            value={[
+              detail.acquisition.locale,
+              detail.acquisition.timezone,
+            ].filter(Boolean).join(" · ") || "Por confirmar"}
+          />
+          <Fact
+            label="Origen de navegación"
+            value={detail.acquisition.referrer_origin || "Acceso directo"}
+          />
+        </div>
+      </section>
+
+      <section className="surface-solid p-6 sm:p-8">
+        <SectionHeading title="Perfil y contexto" description="Datos recibidos en la sesión de perfilamiento." />
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Fact label="Estado" value={detail.status} />
           <Fact label="Consentimiento" value={detail.consent_accepted_at ? formatDate(detail.consent_accepted_at) : "No registrado"} />
           <Fact label="Creado" value={formatDate(detail.created_at)} />
@@ -341,20 +401,6 @@ function ActivityPanel({ detail }: { readonly detail: LeadDetailResponse }) {
         </section>
       ) : null}
 
-      {detail.enrichments.length ? (
-        <section className="surface-solid p-6 sm:p-8">
-          <SectionHeading title="Información complementaria" description="Fuentes adicionales asociadas a la oportunidad." />
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {detail.enrichments.map((enrichment) => (
-              <div key={`${enrichment.provider}-${enrichment.created_at}`} className="rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] p-4">
-                <div className="flex items-center justify-between gap-3"><strong>{enrichment.provider}</strong><Pill tone="gray">{enrichment.status}</Pill></div>
-                <p className="mt-2 text-sm">{enrichment.purpose}</p>
-                {enrichment.source_url ? <ExternalLink href={enrichment.source_url} label="Ver fuente" /> : null}
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
     </>
   );
 }
@@ -456,6 +502,25 @@ function formatContactTime(value: string): string {
   return labels[value] ?? "Por confirmar";
 }
 
+function formatPlacement(
+  placement: string | null | undefined,
+  siteSource: string | null | undefined,
+): string {
+  const values = [siteSource, placement].filter(
+    (value): value is string => Boolean(value),
+  );
+  return values.length ? values.map(humanizeKey).join(" · ") : "Por confirmar";
+}
+
+function formatDeviceClass(value: string | null | undefined): string {
+  const labels: Record<string, string> = {
+    MOBILE: "Teléfono",
+    TABLET: "Tableta",
+    DESKTOP: "Computador",
+  };
+  return value ? labels[value] ?? humanizeKey(value) : "Por confirmar";
+}
+
 function humanizeKey(value: string): string {
   return value.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/^./, (letter) => letter.toUpperCase());
 }
@@ -478,3 +543,18 @@ const readinessLabels = {
   DEVELOPING: "En desarrollo",
   INITIAL: "Etapa inicial",
 };
+
+function evidenceLabel(
+  confidenceScore: number | undefined,
+  missingFields: number,
+): string {
+  if (typeof confidenceScore === "number") {
+    const ratio = confidenceScore > 1 ? confidenceScore / 100 : confidenceScore;
+    if (ratio >= 0.8) return "Sólida";
+    if (ratio >= 0.65) return "Parcial";
+    return "Por completar";
+  }
+  if (missingFields === 0) return "Sólida";
+  if (missingFields <= 2) return "Parcial";
+  return "Por completar";
+}
