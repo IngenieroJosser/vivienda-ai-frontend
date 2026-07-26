@@ -1,12 +1,55 @@
-# Vivienda Match AI — Frontend
+<p align="center">
+  <img src="./public/brand/colsubsidio-logo.svg" alt="Colsubsidio" width="230" />
+</p>
 
-Experiencia digital para el reto de Vivienda Colsubsidio. El producto combina
-información conocida y una conversación natural para orientar al prospecto y
-entregar oportunidades accionables al equipo comercial.
+<h1 align="center">Vivienda Match AI · Frontend</h1>
 
-Está construido con Next.js 16, React 19, TypeScript y Tailwind CSS. El frontend
-consume los servicios FastAPI disponibles y conserva una experiencia local
-funcional cuando la API no responde.
+<p align="center">
+  Orientación conversacional para transformar el interés por vivienda en
+  oportunidades comerciales explicables y acompañadas.
+</p>
+
+<p align="center">
+  <img alt="Next.js 16" src="https://img.shields.io/badge/Next.js-16-0067B1?style=flat-square" />
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-0067B1?style=flat-square" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-0067B1?style=flat-square" />
+  <img alt="Tests" src="https://img.shields.io/badge/tests-Vitest-FFD000?style=flat-square&labelColor=0067B1" />
+</p>
+
+---
+
+Este repositorio contiene la experiencia web de **Vivienda Match AI** para el
+reto de Vivienda Colsubsidio. Reúne el recorrido público del prospecto, el
+catálogo verificable de proyectos y el espacio operativo del equipo comercial.
+
+La interfaz aprovecha el contexto conocido del prospecto sin convertir la
+conversación en un formulario. Cuando una persona todavía no está preparada
+para comprar, presenta un plan de acompañamiento; cuando existe una oportunidad
+real, entrega al asesor el contexto necesario para actuar.
+
+## Repositorios del producto
+
+| Repositorio | Responsabilidad |
+| --- | --- |
+| **[Frontend](https://github.com/IngenieroJosser/vivienda-ai-frontend)** | Experiencia del prospecto, catálogo y portal comercial |
+| **[Backend](https://github.com/IngenieroJosser/vivienda-ai-backend)** | Conversación, evaluación, matching, persistencia y flujo operativo |
+
+## Capacidades principales
+
+- Conversación libre y recuperable, sin respuestas preescritas.
+- Reconocimiento de afiliados, no afiliados y compradores anteriores.
+- Evaluación financiera orientativa con límite responsable del 40 %.
+- Recomendación explicable de hasta tres proyectos con fuentes verificables.
+- Acompañamiento de prospectos que necesitan fortalecer sus condiciones.
+- Entrega consistente del resultado al portal del asesor.
+- Catálogo responsive con galerías, planos y recorridos virtuales optimizados.
+- Estados de carga, error, recuperación y continuidad local.
+
+## Tecnología
+
+Next.js 16, React 19, TypeScript estricto, Tailwind CSS y Vitest. El frontend
+consume la API FastAPI del repositorio backend y conserva una experiencia local
+recuperable cuando el servicio no responde.
 
 ## Ejecución local
 
@@ -14,15 +57,14 @@ Requisitos:
 
 - Node.js 20 o superior.
 - npm 10 o superior.
-- Backend de Vivienda Match AI para probar los recorridos conectados.
+- [Backend de Vivienda Match AI](https://github.com/IngenieroJosser/vivienda-ai-backend)
+  ejecutándose en el puerto `3001` para probar los recorridos conectados.
 
-Crea `.env.local`:
+Instala las dependencias y crea `.env.local`:
 
 ```dotenv
 NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 ```
-
-Luego ejecuta:
 
 ```bash
 npm install
@@ -35,9 +77,12 @@ La aplicación queda disponible en `http://localhost:3000`.
 
 ```bash
 npm run lint
-npm test
+npm test -- --run
 npm run build
 ```
+
+Los tres comandos deben finalizar correctamente antes de integrar o publicar
+cambios.
 
 ## Recorridos activos
 
@@ -121,6 +166,15 @@ npm run api:types
 
 El resultado se conserva en `lib/api/generated.ts`; no debe editarse a mano.
 
+```text
+Pauta o entrada directa
+→ consentimiento e identificación
+→ conversación adaptativa
+→ evaluación y recomendación autoritativas
+→ resultado o acompañamiento
+→ oportunidad visible para el asesor
+```
+
 ## Arquitectura
 
 | Módulo                  | Responsabilidad                                          |
@@ -165,3 +219,22 @@ La suite protege las reglas principales del sistema:
 - Verifica la carga diferida y la configuración de imágenes y visores.
 - Comprueba umbral, dirección y predominio horizontal de los gestos de galería.
 - Confirma que la fuente local y su variable CSS permanezcan conectadas.
+
+## Documentación
+
+- [`docs/SISTEMA_VISUAL_V1.md`](docs/SISTEMA_VISUAL_V1.md) — tokens,
+  superficies, accesibilidad y rendimiento visual.
+- [`lib/api/generated.ts`](lib/api/generated.ts) — contrato TypeScript generado
+  desde OpenAPI.
+- [README del backend](https://github.com/IngenieroJosser/vivienda-ai-backend#readme)
+  — ejecución de la API, agente conversacional y persistencia.
+
+## Seguridad
+
+- Las claves privadas pertenecen exclusivamente al backend.
+- Ningún secreto debe usar el prefijo `NEXT_PUBLIC_`.
+- El contexto de pauta se limita a campos explícitos y no realiza
+  fingerprinting.
+- La capacidad financiera es orientativa y los beneficios requieren validación.
+- Los precios, inventarios y fechas se presentan con su fuente o como
+  información por confirmar.
