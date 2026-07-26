@@ -220,6 +220,41 @@ La suite protege las reglas principales del sistema:
 - Comprueba umbral, dirección y predominio horizontal de los gestos de galería.
 - Confirma que la fuente local y su variable CSS permanezcan conectadas.
 
+## De prototipo a piloto en 90 días
+
+Si Vivienda Match AI gana el reto, el siguiente objetivo no será añadir más
+pantallas. Será convertir la demostración en un piloto seguro, medible y
+operable con Colsubsidio.
+
+### Primer mes · Validar y preparar
+
+- Validar el recorrido con prospectos y asesores reales.
+- Acordar fuentes de datos, consentimiento y tratamiento de información.
+- Definir la integración con pauta, identidad, CRM y canales de contacto.
+- Corregir fricciones de accesibilidad, rendimiento y comprensión.
+- Establecer métricas base y criterios de éxito del piloto.
+
+### Segundo mes · Integrar y asegurar
+
+- Sustituir fixtures por contratos controlados con servicios de Colsubsidio.
+- Implementar autenticación corporativa y autorización por rol.
+- Conectar atribución de campañas, persistencia y asignación comercial.
+- Preparar staging, observabilidad, alertas y trazabilidad del embudo.
+- Validar catálogo, beneficios y mensajes con responsables del negocio.
+
+### Tercer mes · Ejecutar el piloto
+
+- Activar una campaña y una población controladas.
+- Medir finalización, calidad del perfil y entrega efectiva al asesor.
+- Medir tiempo hasta el primer contacto y avance de oportunidades.
+- Verificar que el acompañamiento recupere prospectos sin tratarlos como
+  descartados.
+- Documentar resultados y decidir la ampliación del producto con evidencia.
+
+Al finalizar los 90 días se espera contar con un piloto integrado y auditable,
+una línea base de conversión y una decisión informada sobre el siguiente
+despliegue. Las metas numéricas se acordarán con Colsubsidio antes del piloto.
+
 ## Documentación
 
 - [`docs/SISTEMA_VISUAL_V1.md`](docs/SISTEMA_VISUAL_V1.md) — tokens,
@@ -238,3 +273,21 @@ La suite protege las reglas principales del sistema:
 - La capacidad financiera es orientativa y los beneficios requieren validación.
 - Los precios, inventarios y fechas se presentan con su fuente o como
   información por confirmar.
+
+## Licencia y uso de marca
+
+Este repositorio no concede actualmente una licencia de código abierto. Salvo
+acuerdo escrito de sus autores, el código y la documentación se consideran con
+todos los derechos reservados.
+
+Colsubsidio, su nombre, logotipo y demás elementos de identidad son propiedad
+de sus respectivos titulares. Su presencia en este prototipo responde
+únicamente al contexto del reto y no implica cesión, patrocinio ni autorización
+para usos diferentes.
+
+Las fuentes, librerías, fotografías, recorridos virtuales y demás recursos de
+terceros conservan sus licencias y condiciones originales. Manrope se distribuye
+bajo SIL Open Font License 1.1, incluida junto al archivo de fuente.
+
+Antes de publicar, reutilizar comercialmente o distribuir el producto, el
+equipo debe acordar una licencia formal y revisar los permisos de cada recurso.
