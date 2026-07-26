@@ -5,9 +5,15 @@ import { Icon } from "@/components/icon";
 import { useQualifiedLeads } from "@/features/conversation/components/use-qualified-leads";
 import { isCommercialOpportunity } from "@/features/conversation/qualified-leads";
 import {
+  claimLead,
+  createLeadActivity,
+  type CommercialActivityInput,
+} from "@/lib/api/leads";
+import {
+  applyBackendWorkflow,
   appendCommercialActivity,
   commercialStatusLabels,
-  createCommercialState,
+  createCommercialStateForLead,
   type CommercialActivityType,
   type CommercialStatus,
   type CommercialOpportunityState,
@@ -24,19 +30,27 @@ export function CommercialActions({ leadId }: { leadId: string }) {
   const [note, setNote] = useState("");
   const [followUpAt, setFollowUpAt] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   if (!qualifiedLead || !isCommercialOpportunity(qualifiedLead.evaluation)) {
     return null;
   }
 
-  const state =
-    states[leadId] ??
-    createCommercialState(leadId, qualifiedLead.scenario.capturedAt);
+  const baseline = createCommercialStateForLead(qualifiedLead);
+  const state = states[leadId]
+    ? { ...baseline, ...states[leadId] }
+    : baseline;
   const isAssigned = Boolean(state.assignedTo);
   const hasFirstContact = Boolean(state.firstContactAt);
   const workflow = getCommercialWorkflow(state);
+  const contactChannel = preferredContactChannel(
+    qualifiedLead.evaluation.profileSnapshot.preferredChannel,
+  );
+  const backendConnected =
+    qualifiedLead.source === "BACKEND" &&
+    typeof state.backendWorkflowVersion === "number";
 
-  function persist(
+  function buildLocalUpdate(
     type: CommercialActivityType,
     description: string,
     patch: Parameters<typeof appendCommercialActivity>[1] = {
@@ -45,12 +59,20 @@ export function CommercialActions({ leadId }: { leadId: string }) {
       timestamp: new Date().toISOString(),
     },
   ) {
-    const updated = appendCommercialActivity(state, {
+    return appendCommercialActivity(state, {
       ...patch,
       type,
       description,
       timestamp: new Date().toISOString(),
     });
+  }
+
+  function persistLocal(
+    type: CommercialActivityType,
+    description: string,
+    patch?: Parameters<typeof appendCommercialActivity>[1],
+  ) {
+    const updated = buildLocalUpdate(type, description, patch);
     const saved = save(updated);
     setFeedback(
       saved
@@ -59,58 +81,197 @@ export function CommercialActions({ leadId }: { leadId: string }) {
     );
   }
 
-  function acceptOpportunity() {
+  async function persistBackendActivity(
+    input: Omit<
+      CommercialActivityInput,
+      "expected_workflow_version" | "managed_at" | "channel"
+    >,
+    updated: CommercialOpportunityState,
+    successMessage: string,
+  ) {
+    if (!state.backendWorkflowVersion) return;
+    setSubmitting(true);
+    setFeedback("");
+    try {
+      const result = await createLeadActivity(
+        leadId,
+        {
+          ...input,
+          channel: contactChannel,
+          managed_at: new Date().toISOString(),
+          expected_workflow_version: state.backendWorkflowVersion,
+        },
+        `advisor-${crypto.randomUUID()}`,
+      );
+      save(applyBackendWorkflow(updated, result.workflow));
+      setFeedback(successMessage);
+    } catch {
+      setFeedback(
+        "El backend no pudo confirmar la acción. Actualiza la oportunidad antes de intentarlo de nuevo.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function acceptOpportunity() {
     const timestamp = new Date().toISOString();
-    persist("OPPORTUNITY_ACCEPTED", `Oportunidad aceptada por ${ADVISOR_NAME}.`, {
+    const description = `Oportunidad aceptada por ${ADVISOR_NAME}.`;
+    const updated = buildLocalUpdate("OPPORTUNITY_ACCEPTED", description, {
       type: "OPPORTUNITY_ACCEPTED",
       description: "",
       timestamp,
       status: "ASSIGNED",
       assignedTo: ADVISOR_NAME,
     });
+    if (!backendConnected) {
+      persistLocal("OPPORTUNITY_ACCEPTED", description, {
+        type: "OPPORTUNITY_ACCEPTED",
+        description: "",
+        timestamp,
+        status: "ASSIGNED",
+        assignedTo: ADVISOR_NAME,
+      });
+      return;
+    }
+    setSubmitting(true);
+    setFeedback("");
+    try {
+      const backendWorkflow = await claimLead(leadId);
+      save(applyBackendWorkflow(updated, backendWorkflow));
+      setFeedback(description);
+    } catch {
+      setFeedback(
+        "La oportunidad cambió o ya fue asignada. Recarga la bandeja para ver su estado actual.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function recordContact() {
     const timestamp = new Date().toISOString();
-    persist("CONTACT_RECORDED", "Contacto registrado por el asesor.", {
+    const description = "Contacto registrado por el asesor.";
+    const updated = buildLocalUpdate("CONTACT_RECORDED", description, {
       type: "CONTACT_RECORDED",
       description: "",
       timestamp,
       status: "CONTACTING",
       firstContact: true,
     });
+    if (!backendConnected) {
+      persistLocal("CONTACT_RECORDED", description, {
+        type: "CONTACT_RECORDED",
+        description: "",
+        timestamp,
+        status: "CONTACTING",
+        firstContact: true,
+      });
+      return;
+    }
+    void persistBackendActivity(
+      {
+        activity_type: "CONTACT_SUCCESS",
+        result: "Primer contacto confirmado",
+        note: "El asesor confirmó el contacto con el prospecto.",
+      },
+      updated,
+      description,
+    );
   }
 
   function addNote() {
     const cleanNote = note.trim().slice(0, 500);
     if (!cleanNote) return;
-    persist("NOTE_ADDED", `Nota: ${cleanNote}`);
+    const description = `Nota: ${cleanNote}`;
+    const updated = buildLocalUpdate("NOTE_ADDED", description);
     setNote("");
+    if (!backendConnected) {
+      persistLocal("NOTE_ADDED", description);
+      return;
+    }
+    void persistBackendActivity(
+      {
+        activity_type: "NOTE",
+        result: "Nota comercial registrada",
+        note: cleanNote,
+      },
+      updated,
+      "Nota guardada en la trazabilidad del lead.",
+    );
   }
 
   function scheduleFollowUp() {
     if (!followUpAt) return;
     const timestamp = new Date(followUpAt).toISOString();
     const occurredAt = new Date().toISOString();
-    persist("FOLLOW_UP_SCHEDULED", `Seguimiento programado para ${formatDate(timestamp)}.`, {
+    const description = `Seguimiento programado para ${formatDate(timestamp)}.`;
+    const updated = buildLocalUpdate("FOLLOW_UP_SCHEDULED", description, {
       type: "FOLLOW_UP_SCHEDULED",
       description: "",
       timestamp: occurredAt,
       status: "FOLLOW_UP",
       followUpAt: timestamp,
     });
+    if (!backendConnected) {
+      persistLocal("FOLLOW_UP_SCHEDULED", description, {
+        type: "FOLLOW_UP_SCHEDULED",
+        description: "",
+        timestamp: occurredAt,
+        status: "FOLLOW_UP",
+        followUpAt: timestamp,
+      });
+      return;
+    }
+    void persistBackendActivity(
+      {
+        activity_type: "FOLLOW_UP_SCHEDULED",
+        result: "Seguimiento acordado",
+        next_follow_up_at: timestamp,
+        note: description,
+      },
+      updated,
+      description,
+    );
   }
 
   function changeStatus(status: CommercialStatus) {
-    persist(
+    const description =
+      `Estado actualizado a ${commercialStatusLabels[status]}.`;
+    const updated = buildLocalUpdate(
       "STATUS_CHANGED",
-      `Estado actualizado a ${commercialStatusLabels[status]}.`,
+      description,
       {
         type: "STATUS_CHANGED",
         description: "",
         timestamp: new Date().toISOString(),
         status,
       },
+    );
+    if (!backendConnected) {
+      persistLocal("STATUS_CHANGED", description, {
+        type: "STATUS_CHANGED",
+        description: "",
+        timestamp: new Date().toISOString(),
+        status,
+      });
+      return;
+    }
+    const backendActivity = backendActivityForStatus(status, followUpAt);
+    if (!backendActivity) {
+      setFeedback(
+        "Para visita, seguimiento o aplazamiento define primero una fecha y hora.",
+      );
+      return;
+    }
+    void persistBackendActivity(
+      {
+        ...backendActivity,
+        result: commercialStatusLabels[status],
+        note: description,
+      },
+      updated,
+      description,
     );
   }
 
@@ -119,17 +280,36 @@ export function CommercialActions({ leadId }: { leadId: string }) {
     checked: boolean,
   ) {
     const label = field === "subsidyValidationRequired" ? "subsidio" : "financiación";
-    persist(
+    const description = checked
+      ? `Se solicitó validación de ${label}.`
+      : `Se retiró la validación de ${label}.`;
+    const updated = buildLocalUpdate(
       "VALIDATION_CHANGED",
-      checked
-        ? `Se solicitó validación de ${label}.`
-        : `Se retiró la validación de ${label}.`,
+      description,
       {
         type: "VALIDATION_CHANGED",
         description: "",
         timestamp: new Date().toISOString(),
         [field]: checked,
       },
+    );
+    if (!backendConnected) {
+      persistLocal("VALIDATION_CHANGED", description, {
+        type: "VALIDATION_CHANGED",
+        description: "",
+        timestamp: new Date().toISOString(),
+        [field]: checked,
+      });
+      return;
+    }
+    void persistBackendActivity(
+      {
+        activity_type: "NOTE",
+        result: "Validación comercial actualizada",
+        note: description,
+      },
+      updated,
+      description,
     );
   }
 
@@ -146,6 +326,11 @@ export function CommercialActions({ leadId }: { leadId: string }) {
           <p className="mt-1 text-xs text-[color:var(--vm-color-ink-muted)]">
             {state.assignedTo ?? "Sin asesor asignado"}
           </p>
+          {backendConnected ? (
+            <p className="mt-1 text-[11px] font-semibold text-[color:var(--vm-color-success)]">
+              Sincronizado con el backend
+            </p>
+          ) : null}
         </div>
         <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-[color:var(--vm-color-brand-blue)] shadow-sm">
           <Icon name="briefcase" className="h-5 w-5" />
@@ -159,7 +344,10 @@ export function CommercialActions({ leadId }: { leadId: string }) {
         </div>
       ) : null}
 
-      <div className="advisor-management-flow">
+      <div
+        className={`advisor-management-flow ${submitting ? "pointer-events-none opacity-70" : ""}`}
+        aria-busy={submitting}
+      >
         <div className="advisor-management-flow__current">
           <span>Paso actual</span>
           <strong>{workflow.title}</strong>
@@ -170,6 +358,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
           <button
             type="button"
             onClick={acceptOpportunity}
+            disabled={submitting}
             className="advisor-management-flow__primary"
           >
             <Icon name="user" className="h-4 w-4" />
@@ -193,6 +382,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
             <button
               type="button"
               onClick={recordContact}
+              disabled={submitting}
               className="advisor-management-flow__primary"
             >
               <Icon name="check" className="h-4 w-4" />
@@ -210,6 +400,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
             onStatusChange={changeStatus}
             onSchedule={scheduleFollowUp}
             onValidationChange={toggleValidation}
+            disabled={submitting}
           />
         ) : null}
 
@@ -235,7 +426,7 @@ export function CommercialActions({ leadId }: { leadId: string }) {
             <button
               type="button"
               onClick={addNote}
-              disabled={!note.trim()}
+              disabled={!note.trim() || submitting}
             >
               Guardar nota
             </button>
@@ -307,6 +498,7 @@ function PostContactManagement({
   onStatusChange,
   onSchedule,
   onValidationChange,
+  disabled,
 }: {
   state: CommercialOpportunityState;
   followUpAt: string;
@@ -317,6 +509,7 @@ function PostContactManagement({
     field: "subsidyValidationRequired" | "financingValidationRequired",
     checked: boolean,
   ) => void;
+  disabled: boolean;
 }) {
   const [result, setResult] = useState<CommercialStatus>(state.status);
   const terminal = ["WON", "DEFERRED", "NOT_VIABLE"].includes(state.status);
@@ -364,7 +557,7 @@ function PostContactManagement({
         <button
           type="button"
           onClick={() => onStatusChange(result)}
-          disabled={result === state.status}
+          disabled={result === state.status || disabled}
           className="advisor-management-flow__secondary"
         >
           Guardar resultado
@@ -391,7 +584,7 @@ function PostContactManagement({
           <button
             type="button"
             onClick={onSchedule}
-            disabled={!followUpAt}
+            disabled={!followUpAt || disabled}
             className="advisor-management-flow__primary"
           >
             <Icon name="calendar" className="h-4 w-4" />
@@ -402,6 +595,7 @@ function PostContactManagement({
             <ValidationCheck
               label="Validar subsidio"
               checked={state.subsidyValidationRequired}
+              disabled={disabled}
               onChange={(checked) =>
                 onValidationChange("subsidyValidationRequired", checked)
               }
@@ -409,6 +603,7 @@ function PostContactManagement({
             <ValidationCheck
               label="Validar financiación"
               checked={state.financingValidationRequired}
+              disabled={disabled}
               onChange={(checked) =>
                 onValidationChange("financingValidationRequired", checked)
               }
@@ -418,6 +613,42 @@ function PostContactManagement({
       ) : null}
     </>
   );
+}
+
+function preferredContactChannel(
+  value: string | undefined,
+): CommercialActivityInput["channel"] {
+  if (value === "WHATSAPP" || value === "EMAIL" || value === "PHONE") {
+    return value;
+  }
+  return "PHONE";
+}
+
+function backendActivityForStatus(
+  status: CommercialStatus,
+  followUpAt: string,
+): Pick<CommercialActivityInput, "activity_type" | "next_follow_up_at"> | null {
+  if (status === "WON") {
+    return { activity_type: "CLOSED_WON", next_follow_up_at: null };
+  }
+  if (status === "NOT_VIABLE") {
+    return { activity_type: "CLOSED_LOST", next_follow_up_at: null };
+  }
+  if (status === "FOLLOW_UP" || status === "DEFERRED") {
+    if (!followUpAt) return null;
+    return {
+      activity_type: "FOLLOW_UP_SCHEDULED",
+      next_follow_up_at: new Date(followUpAt).toISOString(),
+    };
+  }
+  if (status === "VISIT") {
+    if (!followUpAt) return null;
+    return {
+      activity_type: "APPOINTMENT_SCHEDULED",
+      next_follow_up_at: new Date(followUpAt).toISOString(),
+    };
+  }
+  return { activity_type: "CONTACT_SUCCESS", next_follow_up_at: null };
 }
 
 function formatDate(value: string): string {

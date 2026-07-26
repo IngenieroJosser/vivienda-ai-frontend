@@ -3,10 +3,7 @@
 import { useEffect, useState } from "react";
 import { listLeads } from "../../../lib/api/leads";
 import type { QualifiedLead } from "../qualified-leads";
-import {
-  getQualifiedScenarioLeads,
-  mergeQualifiedLeads,
-} from "../qualified-leads";
+import { getQualifiedScenarioLeads } from "../qualified-leads";
 import { getStoredSessions } from "../storage";
 import { buildPublicScenario } from "../../../features/prospect/engine";
 import { getStoredContactRequests } from "../../../features/prospect/handoff-storage";
@@ -27,11 +24,17 @@ export function useQualifiedLeads(): QualifiedLead[] {
     listLeads({ limit: LEADS_LIMIT, signal: controller.signal })
       .then((items) => {
         if (!cancelled) {
+          const remote = mapBackendLeadsToQualified(items);
+          const remoteSessions = new Set(
+            items.map(({ session_id }) => session_id),
+          );
+          const unsyncedPublic = getLocalQualifiedLeads().filter(
+            ({ scenario }) =>
+              scenario.id.startsWith("public-") &&
+              !remoteSessions.has(scenario.id.slice("public-".length)),
+          );
           setQualifiedLeads(
-            mergeQualifiedLeads(
-              mapBackendLeadsToQualified(items),
-              getLocalQualifiedLeads(),
-            ),
+            remote.length ? [...remote, ...unsyncedPublic] : getLocalQualifiedLeads(),
           );
         }
       })

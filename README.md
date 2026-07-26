@@ -59,6 +59,7 @@ npm run build
 - `/asesor/leads/[id]` — detalle, recomendación y evidencia disponible.
 - `/asesor/agenda` — actividades y seguimientos.
 - `/asesor/nutricion` — acompañamiento de prospectos en preparación.
+- `/asesor/inteligencia` — revisión de ChatLead y aprendizaje supervisado.
 - `/asesor/comparador` — comparación contextual de proyectos; no forma parte de
   la navegación principal.
 
@@ -76,8 +77,13 @@ El token firmado es únicamente para la demostración local y expira. En una
 integración productiva debe obtenerse después de autenticar al asesor, no
 incorporarse al bundle público. Los recorridos conectados usan actualmente:
 
-- `POST /leads/sync` para conservar una versión de la sesión y obtener el
-  resultado canónico.
+- `POST /conversations` para crear o reanudar una sesión del perfilador.
+- `POST /conversations/{session_id}/messages` para ejecutar el agente, reglas y
+  persistencia de cada turno.
+- `GET /conversations/{session_id}` para recuperar el estado canónico.
+- `POST /conversations/chat-records/{id}/feedback` para revisión humana.
+- `GET /conversations/chat-training/summary` y `POST
+  /conversations/chat-training/export` para el ciclo supervisado de ChatLead.
 - `POST /leads/{id}/handoff` para persistir la solicitud y preferencia de
   contacto.
 - `PUT /leads/{id}/nurture` para persistir hitos y estado del acompañamiento.

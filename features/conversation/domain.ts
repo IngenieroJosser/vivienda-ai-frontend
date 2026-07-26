@@ -11,7 +11,18 @@ export type ProfileField =
   | "obligations"
   | "savings"
   | "subsidyInterest"
-  | "visitIntent";
+  | "visitIntent"
+  | "homeOwnership"
+  | "creditStatus"
+  | "monthlySavingsGoal"
+  | "debtReductionPlan"
+  | "followUpPreference"
+  | "preferredChannel"
+  | "fullName"
+  | "phone"
+  | "email"
+  | "contactTimePreference"
+  | "contactConsent";
 
 export type ProfileAnswers = Partial<Record<ProfileField, string>>;
 

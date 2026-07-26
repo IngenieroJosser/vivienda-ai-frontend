@@ -1,7 +1,7 @@
 import { syncProspectSession } from "../../lib/api/leads";
 import type { ProspectSession } from "./domain";
 
-const SESSIONS_KEY = "vivienda-match-ai:prospect-sessions:v5";
+const SESSIONS_KEY = "vivienda-match-ai:prospect-sessions:v6";
 const SYNC_TIMEOUT_MS = 6_000;
 const pendingSyncs = new Map<string, ProspectSession>();
 const activeSyncs = new Set<string>();
@@ -28,6 +28,11 @@ export function getStoredProspectSessions(): ProspectSession[] {
 function writeSessionLocally(session: ProspectSession): void {
   const sessions = readSessions().filter((stored) => stored.id !== session.id);
   window.localStorage.setItem(SESSIONS_KEY, JSON.stringify([session, ...sessions].slice(0, 12)));
+}
+
+export function saveProspectSessionLocalOnly(session: ProspectSession): void {
+  if (typeof window === "undefined") return;
+  writeSessionLocally(session);
 }
 
 export function saveProspectSession(session: ProspectSession): void {
@@ -67,9 +72,8 @@ async function flushSessionSync(sessionId: string): Promise<void> {
         ...current,
         leadId: response.lead_id,
         syncStatus: "SYNCED",
-        ...(current.syncVersion === session.syncVersion
-          ? { authoritativeJourney: response }
-          : {}),
+        // La API conversacional es la fuente oficial del journey del agente.
+        // El endpoint legado de sincronización solo confirma persistencia.
       });
     }
   } catch {

@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
 import { getHousingProject } from "../../../lib/housing-catalog";
+import { ChatLearningPanel } from "./chat-learning-panel";
+import { CommercialActions } from "./commercial-actions";
 import type {
   LeadDetailEvaluation,
   LeadDetailResponse,
@@ -12,12 +14,13 @@ import type {
   ProjectRecommendation,
 } from "../../../lib/api/leads";
 
-type DetailTab = "SUMMARY" | "PROJECTS" | "CONVERSATION" | "ACTIVITY";
+type DetailTab = "SUMMARY" | "PROJECTS" | "CONVERSATION" | "LEARNING" | "ACTIVITY";
 
 const routeLabels: Record<LeadRoute, string> = {
   READY_TO_CLOSE: "Listo para contacto",
   NEEDS_VALIDATION: "Validación pendiente",
   NON_AFFILIATE_REVIEW: "Revisión comercial",
+  REGULATORY_WAITLIST: "Espera regulatoria 90/10",
   NURTURE: "Acompañamiento",
   FINANCIAL_PREPARATION: "Preparación financiera",
   OPTED_OUT: "Sin contacto",
@@ -33,10 +36,14 @@ export function BackendLeadDetail({
   const [activeTab, setActiveTab] = useState<DetailTab>("SUMMARY");
   const evaluation = detail.evaluation;
   const journey = detail.journey;
+  const isCommercialRoute =
+    journey &&
+    ["READY_TO_CLOSE", "NON_AFFILIATE_REVIEW"].includes(journey.route);
   const tabs: Array<{ value: DetailTab; label: string; icon: Parameters<typeof Icon>[0]["name"] }> = [
     { value: "SUMMARY", label: "Resumen", icon: "document" },
     { value: "PROJECTS", label: "Proyectos", icon: "building" },
     { value: "CONVERSATION", label: "Conversación", icon: "mail" },
+    { value: "LEARNING", label: "Aprendizaje", icon: "brain" },
     { value: "ACTIVITY", label: "Trazabilidad", icon: "history" },
   ];
 
@@ -46,7 +53,9 @@ export function BackendLeadDetail({
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div>
             <div className="text-xs font-bold uppercase tracking-[.11em] text-[color:var(--vm-color-brand-blue)]">
-              Oportunidad comercial
+              {isCommercialRoute
+                ? "Oportunidad comercial"
+                : "Ruta de acompañamiento"}
             </div>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-.05em]">
               {detail.first_name?.trim() || "Prospecto sin nombre"}
@@ -72,11 +81,11 @@ export function BackendLeadDetail({
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Metric
               label="Preparación"
-              value={readinessLabels[journey.readiness.level]}
+              value={evaluation ? `${evaluation.readiness_score}/100` : readinessLabels[journey.readiness.level]}
             />
             <Metric
-              label="Información pendiente"
-              value={`${journey.readiness.missing_fields.length}`}
+              label="Confianza de datos"
+              value={evaluation ? `${evaluation.confidence_score}/100` : `${journey.readiness.missing_fields.length} pendientes`}
             />
             <Metric label="Cuota estimada" value={formatCop(journey.capacity.estimated_monthly_payment ?? 0)} />
             <Metric label="Siguiente acción" value={journey.handoff.next_action} />
@@ -103,9 +112,14 @@ export function BackendLeadDetail({
         </nav>
       </section>
 
+      {isCommercialRoute ? (
+        <CommercialActions leadId={detail.id} />
+      ) : null}
+
       {activeTab === "SUMMARY" ? <SummaryPanel detail={detail} /> : null}
       {activeTab === "PROJECTS" ? <RecommendationsPanel recommendations={journey?.recommendations ?? []} /> : null}
       {activeTab === "CONVERSATION" ? <ConversationPanel detail={detail} /> : null}
+      {activeTab === "LEARNING" ? <ChatLearningPanel records={detail.chat_records ?? []} /> : null}
       {activeTab === "ACTIVITY" ? <ActivityPanel detail={detail} /> : null}
     </div>
   );
@@ -114,8 +128,47 @@ export function BackendLeadDetail({
 function SummaryPanel({ detail }: { readonly detail: LeadDetailResponse }) {
   const evaluation = detail.evaluation;
   const journey = detail.journey;
+  const profile = detail.profile as unknown as Record<string, unknown>;
+  const contactChannel = String(profile.preferredChannel ?? "");
+  const contactValue =
+    contactChannel === "EMAIL"
+      ? String(profile.email ?? "")
+      : String(profile.phone ?? "");
+  const handoffRequested = Boolean(journey?.handoff.requested);
   return (
     <>
+      <section className="surface-solid p-6 sm:p-8">
+        <SectionHeading
+          title={
+            handoffRequested
+              ? "Entrega para contacto"
+              : "Información para acompañamiento"
+          }
+          description={
+            handoffRequested
+              ? "Datos declarados y autorizados para que el asesor continúe desde el cierre, sin repetir el perfilamiento."
+              : "Contexto declarado y autorizado para acompañar a la persona sin repetir el perfilamiento."
+          }
+        />
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Fact label="Nombre" value={String(profile.fullName ?? detail.first_name ?? "Por confirmar")} />
+          <Fact label="Canal preferido" value={formatContactChannel(contactChannel)} />
+          <Fact label="Dato de contacto" value={contactValue || "Por confirmar"} />
+          <Fact label="Horario" value={formatContactTime(String(profile.contactTimePreference ?? ""))} />
+          <Fact label="Autorización" value={profile.contactConsent === "YES" ? "Confirmada" : "No confirmada"} />
+          <Fact
+            label="Estado de entrega"
+            value={
+              handoffRequested
+                ? "Solicitud recibida"
+                : journey?.nurture_plan
+                  ? "Ruta de acompañamiento activa"
+                  : "Sin solicitud comercial"
+            }
+          />
+        </div>
+      </section>
+
       <section className="surface-solid p-6 sm:p-8">
         <SectionHeading title="Perfil y contexto" description="Datos recibidos en la sesión de perfilamiento." />
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -126,6 +179,24 @@ function SummaryPanel({ detail }: { readonly detail: LeadDetailResponse }) {
           <Fact label="Consentimiento" value={detail.consent_accepted_at ? formatDate(detail.consent_accepted_at) : "No registrado"} />
           <Fact label="Creado" value={formatDate(detail.created_at)} />
         </div>
+      </section>
+
+      <section className="surface-solid p-6 sm:p-8">
+        <SectionHeading title="Contexto del negocio" description="Información para decidir si el asesor debe cerrar, validar o dejar el acompañamiento automatizado activo." />
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Fact label="Canal" value={detail.is_paid ? "Lead pago" : "Canal orgánico o propio"} />
+          <Fact label="Modo del chat" value={detail.chat_records?.at(-1)?.agent_mode ?? "No registrado"} />
+          <Fact label="Estado conversacional" value={detail.chat_records?.at(-1)?.conversation_state ?? "No registrado"} />
+          <Fact label="Ruta comercial" value={journey ? routeLabels[journey.route] : "Por evaluar"} />
+          <Fact label="Estado 90/10" value={journey?.regulatory?.status ?? "No aplica o no consultado"} />
+          <Fact label="Brecha de acompañamiento" value={journey?.nurture_plan?.primary_gap ?? "Sin brecha prioritaria"} />
+        </div>
+        {journey?.regulatory ? (
+          <div className="mt-5 rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] bg-[color:var(--vm-color-brand-blue)]/[.03] p-4 text-sm leading-6">
+            <strong>Control regulatorio 90/10:</strong>{" "}
+            {journey.regulatory.non_affiliate_sales} ventas no afiliadas de {journey.regulatory.total_sales} registradas en el periodo {journey.regulatory.period}. Disponibilidad adicional estimada: {journey.regulatory.available_non_affiliate_slots}. Esta señal orienta la ruta y no representa una promesa comercial.
+          </div>
+        ) : null}
       </section>
 
       <section className="surface-solid p-6 sm:p-8">
@@ -194,6 +265,15 @@ function RecommendationCard({ recommendation }: { readonly recommendation: Proje
           <h3 className="mt-2 text-lg font-semibold">{recommendation.project_name}</h3>
         </div>
         <Pill tone="blue">{recommendation.purpose === "MATCH" ? "Coincidencia" : "Referencia"}</Pill>
+      </div>
+      <div className="mt-4 rounded-[var(--vm-radius-control)] bg-[color:var(--vm-color-brand-blue)]/[.04] p-3">
+        <div className="text-[11px] uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">Referencia histórica de precio</div>
+        <div className="mt-1 text-sm font-semibold">
+          {formatPriceRange(recommendation)}
+        </div>
+        <div className="mt-1 text-[11px] text-[color:var(--vm-color-ink-muted)]">
+          {recommendation.budget_status === "WITHIN_RANGE" ? "Compatible con la capacidad preliminar" : recommendation.budget_status === "REFERENCE_ONLY" ? "Opción de referencia; requiere revisión" : "Precio por confirmar"}
+        </div>
       </div>
       <ul className="mt-4 space-y-2 text-sm leading-5">
         {recommendation.reasons.map((reason) => <li key={reason}>• {reason}</li>)}
@@ -317,7 +397,7 @@ function Fact({ label, value }: { readonly label: string; readonly value: string
 }
 
 function Metric({ label, value }: { readonly label: string; readonly value: string }) {
-  return <div className="rounded-[var(--vm-radius-card)] bg-[color:var(--vm-color-brand-blue)]/[.05] p-4"><div className="text-xs uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">{label}</div><div className="mt-2 text-xl font-semibold">{value}</div></div>;
+  return <div className="rounded-[var(--vm-radius-card)] bg-[color:var(--vm-color-brand-blue)]/[.05] p-4"><div className="text-xs uppercase tracking-[.08em] text-[color:var(--vm-color-ink-muted)]">{label}</div><div className={`mt-2 font-semibold ${value.length > 28 ? "text-sm leading-5" : "text-xl"}`}>{value}</div></div>;
 }
 
 function ExternalLink({ href, label }: { readonly href: string; readonly label: string }) {
@@ -341,11 +421,39 @@ function formatCop(value: number): string {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(value);
 }
 
+function formatPriceRange(recommendation: ProjectRecommendation): string {
+  const from = recommendation.price_from_cop;
+  const to = recommendation.price_to_cop;
+  const reference = recommendation.price_reference_cop;
+  if (from && to) return `${formatCop(from)} – ${formatCop(to)}`;
+  if (reference) return `Referencia ${formatCop(reference)}`;
+  return "Por confirmar";
+}
+
 function formatValue(value: unknown): string {
   if (value === null || value === undefined || value === "") return "Por confirmar";
   if (Array.isArray(value)) return value.map((item) => formatValue(item)).join(", ");
   if (typeof value === "object") return JSON.stringify(value);
   return String(value);
+}
+
+function formatContactChannel(value: string): string {
+  const labels: Record<string, string> = {
+    WHATSAPP: "WhatsApp",
+    PHONE: "Llamada",
+    EMAIL: "Correo electrónico",
+  };
+  return labels[value] ?? "Por confirmar";
+}
+
+function formatContactTime(value: string): string {
+  const labels: Record<string, string> = {
+    WEEKDAY_MORNING: "Entre semana en la mañana",
+    WEEKDAY_AFTERNOON: "Entre semana en la tarde",
+    SATURDAY: "Sábado",
+    ANY: "Cualquier horario",
+  };
+  return labels[value] ?? "Por confirmar";
 }
 
 function humanizeKey(value: string): string {

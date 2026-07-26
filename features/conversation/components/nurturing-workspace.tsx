@@ -144,9 +144,9 @@ export function NurturingWorkspace() {
               className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--vm-color-brand-blue)]"
             />
             <p>
-              Esta versión representa el comportamiento futuro con estado local.
-              En producción, reglas, progreso, mensajes y fechas pertenecerán al
-              backend.
+              Las rutas, hitos, fechas y excepciones de los leads capturados se
+              sincronizan con el backend. Los escenarios de demostración conservan
+              su estado en este navegador.
             </p>
           </div>
         </div>
@@ -302,7 +302,9 @@ function NurturingPlanDetail({
     );
     setReason("");
     setFeedback(
-      "Intervención registrada localmente y añadida al historial.",
+      lead.source === "BACKEND"
+        ? "Intervención enviada al backend y añadida al historial."
+        : "Intervención guardada en el escenario de demostración.",
     );
   }
 
@@ -463,9 +465,9 @@ function NurturingPlanDetail({
           <div>
             <h4 className="text-sm font-semibold">Intervención excepcional</h4>
             <p className="mt-1 text-xs leading-5 text-[color:var(--vm-color-ink-muted)]">
-              Toda intervención requiere motivo y queda registrada. Estas
-              acciones son locales hasta conectar permisos y auditoría del
-              backend.
+              {lead.source === "BACKEND"
+                ? "Toda intervención requiere motivo, queda registrada y sincroniza el estado de la ruta con el backend."
+                : "Toda intervención requiere motivo y queda registrada en este escenario de demostración."}
             </p>
           </div>
         </div>

@@ -121,12 +121,19 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
     ? ["READY_TO_CLOSE", "NON_AFFILIATE_REVIEW"].includes(authoritative.route)
     : evaluation.route === "ADVISOR_NOW" ||
       evaluation.route === "NON_AFFILIATE_PRIORITY";
+  const handoffRequested = Boolean(
+    contactRequest || authoritative?.handoff.requested,
+  );
   const actionHref = readyForAdvisor
-    ? `/vivienda/agendar?from=orientacion&sessionId=${encodeURIComponent(session.id)}`
+    ? handoffRequested
+      ? matchedProjects[0]
+        ? `/vivienda/proyectos/${matchedProjects[0].project.id}`
+        : "/vivienda/proyectos"
+      : `/vivienda/agendar?from=orientacion&sessionId=${encodeURIComponent(session.id)}`
     : "#plan-preparacion";
   const actionLabel = readyForAdvisor
-    ? contactRequest
-      ? "Ver estado de mi solicitud"
+    ? handoffRequested
+      ? "Ver proyectos recomendados"
       : "Solicitar contacto"
     : "Revisar mi plan de preparación";
   const profileSummary = buildProfileSummary(evaluation);
@@ -222,18 +229,18 @@ export function ProspectResult({ sessionId }: { sessionId: string }) {
         <section className="surface-result-action result-reveal result-reveal--4 mt-8 overflow-hidden rounded-[var(--vm-radius-elevated)] p-7 sm:flex sm:items-end sm:justify-between sm:gap-8 sm:p-10">
           <div>
             <div className="text-xs font-bold uppercase tracking-[.1em] text-[color:var(--vm-color-brand-blue)]">
-              {contactRequest ? "Solicitud en proceso" : "Tu siguiente acción"}
+              {handoffRequested ? "Solicitud en proceso" : "Tu siguiente acción"}
             </div>
             <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-[-.04em]">
-              {contactRequest
+              {handoffRequested
                 ? "Tu preferencia de contacto quedó registrada."
                 : readyForAdvisor
                   ? "Ya puedes solicitar acompañamiento."
                   : "Avanza a tu ritmo con una meta clara."}
             </h2>
-            {contactRequest ? (
+            {handoffRequested ? (
               <p className="mt-3 max-w-xl text-sm leading-6 text-[color:var(--vm-color-ink-muted)]">
-                El equipo de vivienda deberá revisar tu orientación y confirmar el contacto.
+                El equipo de vivienda ya recibió tu perfil, la conversación y los proyectos recomendados. Deberá validar disponibilidad y confirmar el contacto.
               </p>
             ) : null}
           </div>

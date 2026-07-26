@@ -31,7 +31,9 @@ export function saveNurturingState(state: NurturingState): void {
   window.dispatchEvent(new CustomEvent(NURTURING_STATE_EVENT));
   void updateLeadNurture(state.leadId, {
     status: state.journeyStatus,
-    completed_milestone_ids: state.completedMilestones,
+    completed_milestone_ids: state.completedMilestones.map(
+      (label) => state.milestoneIds[label] ?? label,
+    ),
     intervention_required: state.interventionRequired,
     requested_reevaluation_at: state.requestedReevaluationAt ?? null,
     updated_at: state.updatedAt,

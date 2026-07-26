@@ -122,6 +122,100 @@ export const questionBank: Record<ProfileField, Question> = {
       { value: "UNSURE", label: "Todavía no estoy seguro(a)" },
     ],
   },
+  homeOwnership: {
+    id: "homeOwnership",
+    prompt: "Para orientar beneficios potenciales, ¿actualmente tienes una vivienda a tu nombre?",
+    options: [
+      { value: "NO", label: "No tengo vivienda" },
+      { value: "YES", label: "Sí tengo vivienda" },
+      { value: "UNKNOWN", label: "Prefiero validarlo después" },
+    ],
+  },
+  creditStatus: {
+    id: "creditStatus",
+    prompt: "Sin consultar centrales de riesgo, ¿cómo describirías tu situación crediticia actual?",
+    explanation: "Esta respuesta es declarativa y no constituye un estudio ni una aprobación de crédito.",
+    options: [
+      { value: "CURRENT", label: "Estoy al día" },
+      { value: "REVIEW_NEEDED", label: "Necesito revisar algunas obligaciones" },
+      { value: "NO_HISTORY", label: "Tengo poca o ninguna historia crediticia" },
+      { value: "UNKNOWN", label: "Prefiero responder después" },
+    ],
+  },
+  monthlySavingsGoal: {
+    id: "monthlySavingsGoal",
+    prompt: "Para acompañarte, ¿qué aporte mensual podrías destinar a una meta de ahorro?",
+    options: [
+      { value: "UP_TO_300K", label: "Hasta $300.000" },
+      { value: "300K_700K", label: "Entre $300.000 y $700.000" },
+      { value: "OVER_700K", label: "Más de $700.000" },
+      { value: "DEFINE_LATER", label: "Necesito definirlo" },
+    ],
+  },
+  debtReductionPlan: {
+    id: "debtReductionPlan",
+    prompt: "¿Qué tan posible sería reducir alguna obligación antes de retomar la compra?",
+    options: [
+      { value: "ACTIVE", label: "Ya tengo un plan" },
+      { value: "POSSIBLE", label: "Podría organizar uno" },
+      { value: "NOT_NOW", label: "No es posible por ahora" },
+      { value: "UNKNOWN", label: "Necesito orientación" },
+    ],
+  },
+  followUpPreference: {
+    id: "followUpPreference",
+    prompt: "¿Cuándo te gustaría que revisemos nuevamente tu avance?",
+    options: [
+      { value: "30_DAYS", label: "En 30 días" },
+      { value: "90_DAYS", label: "En 3 meses" },
+      { value: "180_DAYS", label: "En 6 meses" },
+      { value: "ON_DEMAND", label: "Prefiero retomarlo cuando esté listo(a)" },
+    ],
+  },
+  preferredChannel: {
+    id: "preferredChannel",
+    prompt: "¿Por qué canal prefieres recibir recordatorios de tu plan?",
+    options: [
+      { value: "WHATSAPP", label: "WhatsApp" },
+      { value: "PHONE", label: "Llamada" },
+      { value: "EMAIL", label: "Correo electrónico" },
+      { value: "WEB", label: "Continuar solo en este portal" },
+      { value: "NONE", label: "No deseo recordatorios" },
+    ],
+  },
+  fullName: {
+    id: "fullName",
+    prompt: "¿A nombre de quién dejamos registrada la orientación?",
+    options: [],
+  },
+  phone: {
+    id: "phone",
+    prompt: "¿Cuál es el número en el que prefieres recibir el contacto?",
+    options: [],
+  },
+  email: {
+    id: "email",
+    prompt: "¿Cuál es el correo en el que prefieres recibir el contacto?",
+    options: [],
+  },
+  contactTimePreference: {
+    id: "contactTimePreference",
+    prompt: "¿En qué momento te queda mejor recibir el contacto?",
+    options: [
+      { value: "WEEKDAY_MORNING", label: "Entre semana en la mañana" },
+      { value: "WEEKDAY_AFTERNOON", label: "Entre semana en la tarde" },
+      { value: "SATURDAY", label: "Sábado" },
+      { value: "ANY", label: "Cualquier horario" },
+    ],
+  },
+  contactConsent: {
+    id: "contactConsent",
+    prompt: "¿Autorizas compartir tu orientación con el equipo de vivienda y recibir contacto?",
+    options: [
+      { value: "YES", label: "Sí, autorizo el contacto" },
+      { value: "NO", label: "Prefiero continuar sin contacto" },
+    ],
+  },
 };
 
 export const allQuestions: Record<Question["id"], Question> = {

@@ -38,7 +38,7 @@ export function createProspectSession(input: {
   };
 
   return {
-    version: 5,
+    version: 6,
     id: input.id,
     ...(knownProspect?.firstName ? { firstName: knownProspect.firstName } : {}),
     acquisition: input.acquisition,
@@ -154,7 +154,7 @@ export function buildPublicScenario(
   return {
     id: `public-${session.id}`,
     leadId: `lead-${session.leadReference}`,
-    displayName: session.firstName ?? "Prospecto",
+    displayName: session.answers.fullName ?? session.firstName ?? "Prospecto",
     leadSource: session.acquisition.source === "meta" ? "META" : "ORGANIC",
     capturedAt: session.createdAt,
     routeLabel: "Orientación pública",

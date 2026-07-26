@@ -1,4 +1,5 @@
 import { getHousingProject } from "../../lib/housing-catalog";
+import type { CommercialWorkflow } from "../../lib/api/leads";
 import type { QualifiedLead } from "../conversation/qualified-leads";
 import { isCommercialOpportunity } from "../conversation/qualified-leads";
 
@@ -41,6 +42,8 @@ export type CommercialOpportunityState = {
   subsidyValidationRequired: boolean;
   financingValidationRequired: boolean;
   activities: CommercialActivity[];
+  backendState?: NonNullable<QualifiedLead["backendWorkflow"]>["state"];
+  backendWorkflowVersion?: number;
   updatedAt: string;
 };
 
@@ -102,6 +105,66 @@ export function createCommercialState(
   };
 }
 
+export function createCommercialStateForLead(
+  lead: QualifiedLead,
+): CommercialOpportunityState {
+  const workflow = lead.backendWorkflow;
+  if (!workflow) {
+    return createCommercialState(
+      lead.scenario.leadId,
+      lead.scenario.capturedAt,
+    );
+  }
+  const contacted = !["PENDING", "ASSIGNED"].includes(workflow.state);
+  return {
+    leadId: lead.scenario.leadId,
+    status: backendStatusMap[workflow.state],
+    ...(workflow.assignedAdvisorId
+      ? { assignedTo: workflow.assignedAdvisorId }
+      : {}),
+    ...(contacted
+      ? {
+          firstContactAt: workflow.updatedAt,
+          lastContactAt: workflow.updatedAt,
+        }
+      : {}),
+    ...(workflow.nextFollowUpAt
+      ? { followUpAt: workflow.nextFollowUpAt }
+      : {}),
+    subsidyValidationRequired: false,
+    financingValidationRequired: false,
+    activities: [],
+    backendState: workflow.state,
+    backendWorkflowVersion: workflow.version,
+    updatedAt: workflow.updatedAt,
+  };
+}
+
+export function applyBackendWorkflow(
+  state: CommercialOpportunityState,
+  workflow: CommercialWorkflow,
+): CommercialOpportunityState {
+  const contacted = !["PENDING", "ASSIGNED"].includes(workflow.state);
+  const updatedAt = workflow.updated_at ?? state.updatedAt;
+  return {
+    ...state,
+    status: backendStatusMap[workflow.state],
+    ...(workflow.assigned_advisor_id
+      ? { assignedTo: workflow.assigned_advisor_id }
+      : {}),
+    ...(contacted && !state.firstContactAt
+      ? { firstContactAt: updatedAt }
+      : {}),
+    ...(contacted ? { lastContactAt: updatedAt } : {}),
+    ...(workflow.next_follow_up_at
+      ? { followUpAt: workflow.next_follow_up_at }
+      : {}),
+    backendState: workflow.state,
+    backendWorkflowVersion: workflow.workflow_version,
+    updatedAt,
+  };
+}
+
 export function projectCommercialOpportunities(
   leads: QualifiedLead[],
   states: Record<string, CommercialOpportunityState>,
@@ -117,9 +180,9 @@ export function projectCommercialOpportunities(
       const recommendedProject = evaluation.projectMatches[0]
         ? getHousingProject(evaluation.projectMatches[0].projectId)?.name
         : undefined;
-      const state =
-        states[scenario.leadId] ??
-        createCommercialState(scenario.leadId, scenario.capturedAt);
+      const baseline = createCommercialStateForLead(lead);
+      const stored = states[scenario.leadId];
+      const state = stored ? { ...baseline, ...stored } : baseline;
 
       return {
         lead,
@@ -143,6 +206,20 @@ export function projectCommercialOpportunities(
     })
     .sort(compareOpportunities);
 }
+
+const backendStatusMap: Record<
+  NonNullable<QualifiedLead["backendWorkflow"]>["state"],
+  CommercialStatus
+> = {
+  PENDING: "NEW",
+  ASSIGNED: "ASSIGNED",
+  IN_PROGRESS: "CONTACTING",
+  FOLLOW_UP: "FOLLOW_UP",
+  APPOINTMENT_SCHEDULED: "VISIT",
+  CLOSED_WON: "WON",
+  CLOSED_LOST: "NOT_VIABLE",
+  OPTED_OUT: "NOT_VIABLE",
+};
 
 export function compareOpportunities(
   a: CommercialOpportunity,

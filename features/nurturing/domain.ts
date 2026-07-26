@@ -40,6 +40,7 @@ export type NurturingActivity = {
 export type NurturingState = {
   leadId: string;
   completedMilestones: string[];
+  milestoneIds: Record<string, string>;
   notes: string[];
   simulations: number;
   activities: NurturingActivity[];
@@ -83,6 +84,7 @@ export function createNurturingState(
   return {
     leadId,
     completedMilestones: [],
+    milestoneIds: {},
     notes: [],
     simulations: 0,
     activities: [],
@@ -100,19 +102,46 @@ export function buildNurturingPlans(
     .filter(({ evaluation }) => isNurturingLead(evaluation))
     .map((lead) => {
       const barrier = classifyBarrier(lead.evaluation);
-      const initialState = createNurturingState(
+      const emptyState = createNurturingState(
         lead.scenario.leadId,
         lead.scenario.capturedAt,
       );
+      const initialState = lead.backendNurture
+        ? {
+            ...emptyState,
+            completedMilestones: lead.backendNurture.milestones
+              .filter(({ completed }) => completed)
+              .map(({ label }) => label),
+            milestoneIds: Object.fromEntries(
+              lead.backendNurture.milestones.map(({ id, label }) => [
+                label,
+                id,
+              ]),
+            ),
+            journeyStatus: lead.backendNurture.status,
+            interventionRequired:
+              lead.backendNurture.interventionRequired,
+          }
+        : emptyState;
       const state = states[lead.scenario.leadId]
-        ? { ...initialState, ...states[lead.scenario.leadId] }
+        ? {
+            ...initialState,
+            ...states[lead.scenario.leadId],
+            milestoneIds: {
+              ...initialState.milestoneIds,
+              ...states[lead.scenario.leadId].milestoneIds,
+            },
+          }
         : initialState;
       const configuration = getBarrierConfiguration(barrier);
-      const completedMilestones = configuration.milestones.filter((milestone) =>
+      const milestones = lead.backendNurture?.milestones.length
+        ? lead.backendNurture.milestones.map(({ label }) => label)
+        : configuration.milestones;
+      const completedMilestones = milestones.filter((milestone) =>
         state.completedMilestones.includes(milestone),
       ).length;
       const progress = Math.round(
-        (completedMilestones / configuration.milestones.length) * 100,
+        (completedMilestones / milestones.length) * 100,
       );
       const missingData = getMissingData(lead.evaluation.profileSnapshot);
       const interventionRequired =
@@ -123,11 +152,13 @@ export function buildNurturingPlans(
         barrier,
         barrierLabel: barrierLabels[barrier],
         barrierDescription:
-          lead.evaluation.blockers[0] ?? configuration.description,
+          lead.backendNurture?.primaryGap ??
+          lead.evaluation.blockers[0] ??
+          configuration.description,
         objective: lead.evaluation.advanceCondition,
         route: configuration.route,
         suggestedResources: configuration.resources,
-        milestones: configuration.milestones,
+        milestones,
         reevaluationAt: lead.evaluation.followUpAt,
         progress,
         missingData,

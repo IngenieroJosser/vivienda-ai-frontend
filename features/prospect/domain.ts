@@ -1,4 +1,4 @@
-import type { CanonicalJourneyResponse } from "@/lib/api/leads";
+import type { AgentJourney, AgentMode } from "@/lib/api/conversations";
 import type { EvaluationResult, ProfileAnswers, ProfileField } from "../conversation/domain";
 
 export type AcquisitionContext = {
@@ -81,7 +81,7 @@ export type ConversationTurn = {
 };
 
 export type ProspectSession = {
-  version: 5;
+  version: 5 | 6;
   id: string;
   leadId?: string;
   firstName?: string;
@@ -104,7 +104,12 @@ export type ProspectSession = {
   evaluation?: EvaluationResult;
   syncVersion?: number;
   syncStatus?: "PENDING" | "SYNCED";
-  authoritativeJourney?: CanonicalJourneyResponse;
+  authoritativeJourney?: AgentJourney;
+  agentMode?: AgentMode;
+  conversationState?: string;
+  quickReplies?: string[];
+  agentWelcomeMessage?: string;
+  lastTrainingRecordId?: string;
   createdAt: string;
   updatedAt: string;
 };

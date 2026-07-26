@@ -6,6 +6,35 @@ export type QualifiedLead = {
   scenario: Scenario;
   evaluation: EvaluationResult;
   source?: "BACKEND" | "LOCAL";
+  backendNurture?: {
+    status: "ACTIVE" | "PAUSED" | "REEVALUATION_PENDING" | "NEEDS_ATTENTION";
+    primaryGap: string | null;
+    targetAmount: number | null;
+    interventionRequired: boolean;
+    milestones: Array<{
+      id: string;
+      label: string;
+      completed: boolean;
+      completedAt: string | null;
+    }>;
+  };
+  backendWorkflow?: {
+    state:
+      | "PENDING"
+      | "ASSIGNED"
+      | "IN_PROGRESS"
+      | "FOLLOW_UP"
+      | "APPOINTMENT_SCHEDULED"
+      | "CLOSED_WON"
+      | "CLOSED_LOST"
+      | "OPTED_OUT";
+    version: number;
+    assignedAdvisorId: string | null;
+    nextAction: string | null;
+    nextFollowUpAt: string | null;
+    slaDueAt: string | null;
+    updatedAt: string;
+  };
 };
 
 export function getQualifiedScenarioLeads(): QualifiedLead[] {

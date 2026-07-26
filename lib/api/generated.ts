@@ -210,6 +210,125 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Conversation */
+        post: operations["start_conversation_api_v1_conversations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{session_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send Message */
+        post: operations["send_message_api_v1_conversations__session_id__messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Conversation */
+        get: operations["get_conversation_api_v1_conversations__session_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{session_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline Conversation */
+        post: operations["decline_conversation_api_v1_conversations__session_id__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/chat-records/{record_id}/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review Chat Record */
+        post: operations["review_chat_record_api_v1_conversations_chat_records__record_id__feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/chat-training/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Chat Training Summary */
+        get: operations["chat_training_summary_api_v1_conversations_chat_training_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/chat-training/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Export Chat Training */
+        post: operations["export_chat_training_api_v1_conversations_chat_training_export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects": {
         parameters: {
             query?: never;
@@ -321,6 +440,23 @@ export interface paths {
         };
         /** Model Info */
         get: operations["model_info_api_v1_analytics_model_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/advisor-dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Advisor Dashboard */
+        get: operations["advisor_dashboard_api_v1_analytics_advisor_dashboard_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -535,6 +671,23 @@ export interface components {
             /** Created At */
             created_at: string | null;
         };
+        /** AdvisorDashboardResponse */
+        AdvisorDashboardResponse: {
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            live: components["schemas"]["AdvisorLiveSnapshot"];
+            historical: components["schemas"]["HistoricalSnapshot"];
+            model: components["schemas"]["ModelSnapshot"];
+            /** Insights */
+            insights?: components["schemas"]["AdvisorInsight"][];
+            /** Assets */
+            assets?: components["schemas"]["DataAsset"][];
+            /** Warnings */
+            warnings?: string[];
+        };
         /** AdvisorHandoffPatch */
         AdvisorHandoffPatch: {
             status: components["schemas"]["HandoffStatus"];
@@ -545,6 +698,38 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** AdvisorInsight */
+        AdvisorInsight: {
+            /** Title */
+            title: string;
+            /** Detail */
+            detail: string;
+            /**
+             * Tone
+             * @default INFO
+             * @enum {string}
+             */
+            tone: "INFO" | "SUCCESS" | "ATTENTION";
+        };
+        /** AdvisorLiveSnapshot */
+        AdvisorLiveSnapshot: {
+            /** Total Leads */
+            total_leads: number;
+            /** Ready For Advisor */
+            ready_for_advisor: number;
+            /** Accompaniment */
+            accompaniment: number;
+            /** Needs Validation */
+            needs_validation: number;
+            /** Pending Handoffs */
+            pending_handoffs: number;
+            /** Paid Leads */
+            paid_leads: number;
+            /** Affiliation Identified */
+            affiliation_identified: number;
+            /** Route Distribution */
+            route_distribution?: components["schemas"]["DistributionItem"][];
         };
         /** AdvisorSummary */
         AdvisorSummary: {
@@ -558,6 +743,39 @@ export interface components {
             pending_validations: string[];
             /** Risk Notes */
             risk_notes: string[];
+        };
+        /**
+         * AgentMode
+         * @enum {string}
+         */
+        AgentMode: "OPENAI_AGENTS" | "DETERMINISTIC_FALLBACK";
+        /** AgentUsage */
+        AgentUsage: {
+            /**
+             * Requests
+             * @default 0
+             */
+            requests: number;
+            /**
+             * Input Tokens
+             * @default 0
+             */
+            input_tokens: number;
+            /**
+             * Output Tokens
+             * @default 0
+             */
+            output_tokens: number;
+            /**
+             * Total Tokens
+             * @default 0
+             */
+            total_tokens: number;
+            /**
+             * Latency Ms
+             * @default 0
+             */
+            latency_ms: number;
         };
         /** AssignLeadRequest */
         AssignLeadRequest: {
@@ -613,11 +831,111 @@ export interface components {
              */
             disclaimer: string;
         };
+        /** ChatLeadFeedbackRequest */
+        ChatLeadFeedbackRequest: {
+            /**
+             * Rating
+             * @enum {string}
+             */
+            rating: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
+            /** Corrected Next Action */
+            corrected_next_action?: string | null;
+            /** Corrected Route */
+            corrected_route?: string | null;
+            /**
+             * Outcome
+             * @default UNKNOWN
+             * @enum {string}
+             */
+            outcome: "UNKNOWN" | "CONTACTED" | "APPOINTMENT_SCHEDULED" | "CLOSED_WON" | "CLOSED_LOST" | "NURTURE_PROGRESS" | "OPTED_OUT";
+            /** Note */
+            note?: string | null;
+            /**
+             * Training Eligible
+             * @default true
+             */
+            training_eligible: boolean;
+            /**
+             * Reviewed At
+             * Format: date-time
+             */
+            reviewed_at: string;
+        };
+        /** ChatLeadRecord */
+        ChatLeadRecord: {
+            /** Id */
+            id: string;
+            /** External Turn Id */
+            external_turn_id: string;
+            /** User Message */
+            user_message: string;
+            /** Assistant Message */
+            assistant_message: string;
+            /** Conversation State */
+            conversation_state: string;
+            /** Next Action */
+            next_action: string;
+            /** Route */
+            route: string;
+            /** Agent Mode */
+            agent_mode: string;
+            /** Model Name */
+            model_name: string;
+            /** Prompt Version */
+            prompt_version: string;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Latency Ms */
+            latency_ms: number;
+            /** Training Eligible */
+            training_eligible: boolean;
+            /** Feedback Rating */
+            feedback_rating?: string | null;
+            /** Corrected Next Action */
+            corrected_next_action?: string | null;
+            /** Corrected Route */
+            corrected_route?: string | null;
+            /** Observed Outcome */
+            observed_outcome?: string | null;
+            /** Reviewer Note */
+            reviewer_note?: string | null;
+            /** Reviewed By */
+            reviewed_by?: string | null;
+            /** Reviewed At */
+            reviewed_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ChatLeadTrainingSummary */
+        ChatLeadTrainingSummary: {
+            /** Total Records */
+            total_records: number;
+            /** Eligible Records */
+            eligible_records: number;
+            /** Positive Records */
+            positive_records: number;
+            /** Negative Records */
+            negative_records: number;
+            /** Labeled Outcomes */
+            labeled_outcomes: number;
+            /** Exported Path */
+            exported_path?: string | null;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+        };
         /**
          * CommercialActivityType
          * @enum {string}
          */
-        CommercialActivityType: "CONTACT_ATTEMPT" | "CONTACT_SUCCESS" | "FOLLOW_UP_SCHEDULED" | "APPOINTMENT_SCHEDULED" | "CLOSED_WON" | "CLOSED_LOST" | "OPTED_OUT";
+        CommercialActivityType: "NOTE" | "CONTACT_ATTEMPT" | "CONTACT_SUCCESS" | "FOLLOW_UP_SCHEDULED" | "APPOINTMENT_SCHEDULED" | "CLOSED_WON" | "CLOSED_LOST" | "OPTED_OUT";
         /**
          * CommercialState
          * @enum {string}
@@ -648,6 +966,83 @@ export interface components {
          * @enum {string}
          */
         ContactChannel: "PHONE" | "WHATSAPP" | "EMAIL" | "IN_PERSON";
+        /** ConversationMessageRequest */
+        ConversationMessageRequest: {
+            /** External Turn Id */
+            external_turn_id: string;
+            /** Message */
+            message: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ConversationResponse */
+        ConversationResponse: {
+            /** Lead Id */
+            lead_id: string;
+            /** Session Id */
+            session_id: string;
+            /** External Turn Id */
+            external_turn_id?: string | null;
+            /** Assistant Message */
+            assistant_message: string;
+            conversation_state: components["schemas"]["ConversationState"];
+            /** Next Action */
+            next_action: string;
+            /** Quick Replies */
+            quick_replies?: string[];
+            /** Extracted Fields */
+            extracted_fields?: string[];
+            /** Profile */
+            profile?: {
+                [key: string]: unknown;
+            };
+            /** Discovery */
+            discovery?: {
+                [key: string]: unknown;
+            };
+            journey: components["schemas"]["SessionSyncResponse"];
+            /**
+             * Readiness Score
+             * @default 0
+             */
+            readiness_score: number;
+            /**
+             * Confidence Score
+             * @default 0
+             */
+            confidence_score: number;
+            /**
+             * Priority
+             * @default LOW
+             */
+            priority: string;
+            agent_mode: components["schemas"]["AgentMode"];
+            agent_usage?: components["schemas"]["AgentUsage"];
+            regulatory: components["schemas"]["RegulatoryResult"];
+            /** Continue Conversation */
+            continue_conversation: boolean;
+            /** Completed */
+            completed: boolean;
+            /** Training Record Id */
+            training_record_id?: string | null;
+            /** Prompt Version */
+            prompt_version: string;
+            /** Model Name */
+            model_name: string;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+        };
+        /**
+         * ConversationState
+         * @enum {string}
+         */
+        ConversationState: "CONSENT" | "DISCOVERY" | "AFFILIATION" | "FINANCIAL_DISCOVERY" | "BENEFITS_DISCOVERY" | "PROJECT_MATCHING" | "NURTURE_COACHING" | "REGULATORY_REVIEW" | "CONTACT_CAPTURE" | "READY_FOR_ADVISOR" | "COMPLETED" | "OPTED_OUT";
         /** ConversationTurnPayload */
         ConversationTurnPayload: {
             /** Id */
@@ -658,6 +1053,37 @@ export interface components {
             assistant_text: string;
             /** Extracted Fields */
             extracted_fields?: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** DataAsset */
+        DataAsset: {
+            /** Name */
+            name: string;
+            /**
+             * Area
+             * @enum {string}
+             */
+            area: "processed" | "report" | "artifact";
+            /** Path */
+            path: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "AVAILABLE" | "MISSING";
+            /** Rows */
+            rows?: number | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /** Description */
+            description: string;
+        };
+        /** DeclineConversationRequest */
+        DeclineConversationRequest: {
             /**
              * Created At
              * Format: date-time
@@ -689,6 +1115,17 @@ export interface components {
             obstacle?: string | null;
             /** Advanceneed */
             advanceNeed?: string | null;
+        };
+        /** DistributionItem */
+        DistributionItem: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Count */
+            count: number;
+            /** Share */
+            share: number;
         };
         /** EnrichmentResponse */
         EnrichmentResponse: {
@@ -800,10 +1237,49 @@ export interface components {
             /** Processed Data Available */
             processed_data_available: boolean;
         };
+        /** HistoricalSnapshot */
+        HistoricalSnapshot: {
+            /** Pipeline Generated At */
+            pipeline_generated_at?: string | null;
+            /** Status */
+            status: string;
+            /** Historical Records */
+            historical_records: number;
+            /** Model Records */
+            model_records: number;
+            /** Mapped Records */
+            mapped_records: number;
+            /** Mapped Projects */
+            mapped_projects: number;
+            /** Withdrawals */
+            withdrawals: number;
+            /** Withdrawal Rate */
+            withdrawal_rate: number;
+            /** Affiliate Share */
+            affiliate_share: number;
+            /** Non Affiliate Share */
+            non_affiliate_share: number;
+            /** Quality Issue Rows */
+            quality_issue_rows: number;
+            /** Top Projects */
+            top_projects?: components["schemas"]["DistributionItem"][];
+            /** Top Channels */
+            top_channels?: components["schemas"]["DistributionItem"][];
+        };
         /** InternalEvaluationDetail */
         InternalEvaluationDetail: {
             route: components["schemas"]["LeadRoute"];
             priority: components["schemas"]["Priority"];
+            /**
+             * Readiness Score
+             * @default 0
+             */
+            readiness_score: number;
+            /**
+             * Confidence Score
+             * @default 0
+             */
+            confidence_score: number;
             /** Reason Codes */
             reason_codes?: string[];
             /** Blockers */
@@ -887,6 +1363,8 @@ export interface components {
             enrichments: components["schemas"]["LeadEnrichmentDetail"][];
             /** Audit Events */
             audit_events: components["schemas"]["LeadAuditEvent"][];
+            /** Chat Records */
+            chat_records?: components["schemas"]["ChatLeadRecord"][];
             /**
              * Created At
              * Format: date-time
@@ -954,13 +1432,48 @@ export interface components {
             status: string;
             /** Affiliation Status */
             affiliation_status: string;
+            /** Profile */
+            profile?: {
+                [key: string]: unknown;
+            };
             /** Route */
             route: string | null;
             /** Priority */
             priority: string | null;
             readiness_level: components["schemas"]["ReadinessLevel"] | null;
+            /** Readiness Score */
+            readiness_score?: number | null;
+            /** Confidence Score */
+            confidence_score?: number | null;
+            /** Readiness Factors */
+            readiness_factors?: string[];
+            /** Readiness Blockers */
+            readiness_blockers?: string[];
+            /** Estimated Amount */
+            estimated_amount?: number | null;
+            /** Estimated Monthly Payment */
+            estimated_monthly_payment?: number | null;
             /** Top Project Id */
             top_project_id: string | null;
+            /** Conversation State */
+            conversation_state?: string | null;
+            /** Agent Mode */
+            agent_mode?: string | null;
+            /** Regulatory Status */
+            regulatory_status?: string | null;
+            /** Nurture Primary Gap */
+            nurture_primary_gap?: string | null;
+            /** Nurture Status */
+            nurture_status?: string | null;
+            /** Nurture Target Amount */
+            nurture_target_amount?: number | null;
+            /**
+             * Nurture Intervention Required
+             * @default false
+             */
+            nurture_intervention_required: boolean;
+            /** Nurture Milestones */
+            nurture_milestones?: components["schemas"]["NurtureMilestone"][];
             /**
              * Handoff Requested
              * @default false
@@ -1001,13 +1514,40 @@ export interface components {
          * LeadRoute
          * @enum {string}
          */
-        LeadRoute: "READY_TO_CLOSE" | "NEEDS_VALIDATION" | "NON_AFFILIATE_REVIEW" | "NURTURE" | "FINANCIAL_PREPARATION" | "OPTED_OUT";
+        LeadRoute: "READY_TO_CLOSE" | "NEEDS_VALIDATION" | "NON_AFFILIATE_REVIEW" | "REGULATORY_WAITLIST" | "NURTURE" | "FINANCIAL_PREPARATION" | "OPTED_OUT";
         /** LivenessResponse */
         LivenessResponse: {
             /** Status */
             status: string;
             /** Version */
             version: string;
+        };
+        /** ModelSnapshot */
+        ModelSnapshot: {
+            /** Version */
+            version: string;
+            /** Available */
+            available: boolean;
+            /** Source Dataset */
+            source_dataset?: string | null;
+            /** Train Rows */
+            train_rows: number;
+            /** Test Rows */
+            test_rows: number;
+            /** Top1 Accuracy */
+            top1_accuracy: number;
+            /** Recall At 3 */
+            recall_at_3: number;
+            /** Popularity Recall At 3 */
+            popularity_recall_at_3: number;
+            /** Recall Uplift Percentage Points */
+            recall_uplift_percentage_points: number;
+            /** Coverage Top1 */
+            coverage_top1: number;
+            /** Trained At */
+            trained_at?: string | null;
+            /** Claim */
+            claim: string;
         };
         /**
          * NurtureJourneyStatus
@@ -1089,6 +1629,32 @@ export interface components {
             subsidy_interest?: string | null;
             /** Housing Goal */
             housing_goal?: string | null;
+            /** Home Ownership */
+            home_ownership?: string | null;
+            /** Credit Status */
+            credit_status?: string | null;
+            /** Visit Intent */
+            visit_intent?: string | null;
+            /** Monthly Savings Goal */
+            monthly_savings_goal?: string | null;
+            /** Debt Reduction Plan */
+            debt_reduction_plan?: string | null;
+            /** Follow Up Preference */
+            follow_up_preference?: string | null;
+            /** Preferred Channel */
+            preferred_channel?: string | null;
+            /** Full Name */
+            full_name?: string | null;
+            /** Phone */
+            phone?: string | null;
+            /** Email */
+            email?: string | null;
+            /** Contact Time Preference */
+            contact_time_preference?: string | null;
+            /** Contact Consent */
+            contact_consent?: string | null;
+            /** Requests Advisor */
+            requests_advisor?: string | null;
         } & {
             [key: string]: unknown;
         };
@@ -1112,6 +1678,32 @@ export interface components {
             subsidyInterest?: string | null;
             /** Housinggoal */
             housingGoal?: string | null;
+            /** Homeownership */
+            homeOwnership?: string | null;
+            /** Creditstatus */
+            creditStatus?: string | null;
+            /** Visitintent */
+            visitIntent?: string | null;
+            /** Monthlysavingsgoal */
+            monthlySavingsGoal?: string | null;
+            /** Debtreductionplan */
+            debtReductionPlan?: string | null;
+            /** Followuppreference */
+            followUpPreference?: string | null;
+            /** Preferredchannel */
+            preferredChannel?: string | null;
+            /** Fullname */
+            fullName?: string | null;
+            /** Phone */
+            phone?: string | null;
+            /** Email */
+            email?: string | null;
+            /** Contacttimepreference */
+            contactTimePreference?: string | null;
+            /** Contactconsent */
+            contactConsent?: string | null;
+            /** Requestsadvisor */
+            requestsAdvisor?: string | null;
         } & {
             [key: string]: unknown;
         };
@@ -1135,6 +1727,20 @@ export interface components {
              * @enum {string}
              */
             purpose: "MATCH" | "REFERENCE";
+            /** Price From Cop */
+            price_from_cop?: number | null;
+            /** Price Reference Cop */
+            price_reference_cop?: number | null;
+            /** Price To Cop */
+            price_to_cop?: number | null;
+            /** Price Reference Source */
+            price_reference_source?: string | null;
+            /**
+             * Budget Status
+             * @default UNKNOWN
+             * @enum {string}
+             */
+            budget_status: "WITHIN_RANGE" | "REFERENCE_ONLY" | "UNKNOWN";
         };
         /** ProjectResponse */
         ProjectResponse: {
@@ -1157,6 +1763,14 @@ export interface components {
              * @default
              */
             summary: string;
+            /** Price From Cop */
+            price_from_cop?: number | null;
+            /** Price Reference Cop */
+            price_reference_cop?: number | null;
+            /** Price To Cop */
+            price_to_cop?: number | null;
+            /** Price Reference Source */
+            price_reference_source?: string | null;
             /**
              * Active
              * @default true
@@ -1262,6 +1876,29 @@ export interface components {
             /** Campaign Project Id */
             campaign_project_id?: string | null;
         };
+        /** RegulatoryResult */
+        RegulatoryResult: {
+            /** Mode */
+            mode: string;
+            /** Status */
+            status: string;
+            /** Affiliate Sales */
+            affiliate_sales: number;
+            /** Non Affiliate Sales */
+            non_affiliate_sales: number;
+            /** Total Sales */
+            total_sales: number;
+            /** Non Affiliate Share */
+            non_affiliate_share: number;
+            /** Non Affiliate Limit */
+            non_affiliate_limit: number;
+            /** Available Non Affiliate Slots */
+            available_non_affiliate_slots: number;
+            /** Can Continue */
+            can_continue: boolean;
+            /** Period */
+            period: string;
+        };
         /** SearchConsoleOverview */
         SearchConsoleOverview: {
             /** Configured */
@@ -1332,6 +1969,7 @@ export interface components {
             nurture_plan?: components["schemas"]["NurturePlan"] | null;
             /** Recommendations */
             recommendations?: components["schemas"]["ProjectRecommendation"][];
+            regulatory?: components["schemas"]["RegulatoryResult"] | null;
             handoff: components["schemas"]["HandoffResult"];
             /**
              * Evaluated At
@@ -1374,6 +2012,33 @@ export interface components {
             }[];
             /** Interpretation */
             interpretation: string;
+        };
+        /** StartConversationRequest */
+        StartConversationRequest: {
+            /** Session Id */
+            session_id: string;
+            /** External Lead Id */
+            external_lead_id?: string | null;
+            /** First Name */
+            first_name?: string | null;
+            acquisition?: components["schemas"]["AcquisitionPayload"];
+            /**
+             * Customer Relationship
+             * @default UNKNOWN
+             */
+            customer_relationship: string;
+            /**
+             * Consent Accepted At
+             * Format: date-time
+             */
+            consent_accepted_at: string;
+            known_profile?: components["schemas"]["ProfilePayload-Input"];
+            known_discovery?: components["schemas"]["DiscoveryPayload-Input"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /** SummaryRequest */
         SummaryRequest: {
@@ -2069,6 +2734,217 @@ export interface operations {
             };
         };
     };
+    start_conversation_api_v1_conversations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_message_api_v1_conversations__session_id__messages_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConversationMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_conversation_api_v1_conversations__session_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decline_conversation_api_v1_conversations__session_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeclineConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_chat_record_api_v1_conversations_chat_records__record_id__feedback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatLeadFeedbackRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chat_training_summary_api_v1_conversations_chat_training_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatLeadTrainingSummary"];
+                };
+            };
+        };
+    };
+    export_chat_training_api_v1_conversations_chat_training_export_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatLeadTrainingSummary"];
+                };
+            };
+        };
+    };
     list_projects_api_v1_projects_get: {
         parameters: {
             query?: never;
@@ -2251,6 +3127,40 @@ export interface operations {
                         [key: string]: unknown;
                     };
                 };
+            };
+        };
+    };
+    advisor_dashboard_api_v1_analytics_advisor_dashboard_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdvisorDashboardResponse"];
+                };
+            };
+            /** @description Bearer Token ausente o inválido. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Usuario autenticado sin rol de asesor. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

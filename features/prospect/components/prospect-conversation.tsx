@@ -31,6 +31,16 @@ import {
 import { getInitialMessage } from "../conversation-policy";
 import type { ProspectSession } from "../domain";
 import {
+  getAgentConversation,
+  startAgentConversation,
+  sendAgentConversationMessage,
+} from "@/lib/api/conversations";
+import {
+  applyAgentMessage,
+  applyAgentSnapshot,
+  applyAgentStart,
+} from "../agent-conversation";
+import {
   acceptProspectConsent,
   answerProspectMessage,
   declineProspectConsent,
@@ -39,6 +49,7 @@ import { takeSessionMessage } from "../pending-message";
 import {
   loadProspectSessionResult,
   saveProspectSession,
+  saveProspectSessionLocalOnly,
 } from "../storage";
 
 export function ProspectConversation({ sessionId }: { sessionId: string }) {
@@ -54,6 +65,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
   const [hasNewMessages, setHasNewMessages] = useState(false);
   const completedRef = useRef(false);
   const composingRef = useRef(false);
+  const processingMessageRef = useRef<string | null>(null);
   const nearEndRef = useRef(true);
   const reducedMotionRef = useRef(false);
   const sessionRef = useRef<ProspectSession | null>(null);
@@ -75,9 +87,91 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
           occurredAt: updated.updatedAt,
         }),
       );
-      router.push(`/orientacion/resultado/${updated.id}`);
+      const leadId = updated.leadId?.trim();
+      router.push(
+        leadId
+          ? `/asesor?leadId=${encodeURIComponent(leadId)}&from=chat`
+          : "/asesor?from=chat",
+      );
     },
     [router],
+  );
+
+  const processAgentMessage = useCallback(
+    async (
+      currentSession: ProspectSession,
+      outgoing: { id: string; text: string },
+    ) => {
+      try {
+        const createdAt = new Date().toISOString();
+        const response = await sendAgentConversationMessage(
+          currentSession.id,
+          {
+            external_turn_id: outgoing.id,
+            message: outgoing.text,
+            created_at: createdAt,
+          },
+        );
+        const updated = applyAgentMessage(currentSession, {
+          userText: outgoing.text,
+          turnId: outgoing.id,
+          createdAt,
+          response,
+        });
+        saveProspectSessionLocalOnly(updated);
+        sessionRef.current = updated;
+        setSession(updated);
+        setAnimatedTurnId(outgoing.id);
+        dispatch({ type: "ANSWER_RECEIVED" });
+      } catch {
+        try {
+          const updated = answerProspectMessage(
+            currentSession,
+            outgoing.text,
+            new Date().toISOString(),
+          );
+          saveProspectSession(updated);
+          sessionRef.current = updated;
+          setSession(updated);
+          setAnimatedTurnId(updated.turns.at(-1)?.id ?? "");
+          dispatch({ type: "ANSWER_RECEIVED" });
+        } catch {
+          dispatch({
+            type: "FAILED",
+            error:
+              "No pudimos procesar el mensaje. Tu texto sigue disponible para reintentar.",
+          });
+        }
+      } finally {
+        processingMessageRef.current = null;
+      }
+    },
+    [],
+  );
+
+  const synchronizeAgentConversation = useCallback(
+    async (stored: ProspectSession) => {
+      if (!stored.consentAcceptedAt || stored.status !== "ACTIVE") return;
+      try {
+        const response = await getAgentConversation(stored.id);
+        const current = sessionRef.current;
+        if (
+          !current ||
+          current.id !== stored.id ||
+          current.updatedAt !== stored.updatedAt ||
+          current.turns.length !== stored.turns.length
+        ) {
+          return;
+        }
+        const synchronized = applyAgentSnapshot(current, response);
+        saveProspectSessionLocalOnly(synchronized);
+        sessionRef.current = synchronized;
+        setSession(synchronized);
+      } catch {
+        // The local conversation remains usable while the API is unavailable.
+      }
+    },
+    [],
   );
 
   const loadConversation = useCallback(() => {
@@ -97,6 +191,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
     setSession(stored);
     sessionRef.current = stored;
     setLoadStatus("READY");
+    void synchronizeAgentConversation(stored);
     if (stored.status === "ACTIVE") {
       const pendingMessage = takeSessionMessage(stored.id);
       if (pendingMessage) {
@@ -107,7 +202,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
         });
       }
     }
-  }, [sessionId]);
+  }, [sessionId, synchronizeAgentConversation]);
 
   useEffect(() => {
     reducedMotionRef.current = window.matchMedia(
@@ -152,38 +247,24 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
             });
             break;
           }
-          try {
-            const updated = answerProspectMessage(
-              currentSession,
-              chatState.outgoing.text,
-              new Date().toISOString(),
-            );
-            saveProspectSession(updated);
-            sessionRef.current = updated;
-            setSession(updated);
-            setAnimatedTurnId(updated.turns.at(-1)?.id ?? "");
-            dispatch({ type: "ANSWER_RECEIVED" });
-          } catch {
-            dispatch({
-              type: "FAILED",
-              error:
-                "No pudimos procesar el mensaje. Tu texto sigue disponible.",
-            });
-          }
+          if (processingMessageRef.current === chatState.outgoing.id) break;
+          processingMessageRef.current = chatState.outgoing.id;
+          void processAgentMessage(currentSession, chatState.outgoing);
           break;
         }
         case "answered": {
-          dispatch({ type: "RESET" });
-          textareaRef.current?.focus({ preventScroll: true });
           const currentSession = sessionRef.current;
           if (currentSession?.status === "COMPLETED") {
-            completeConversation(currentSession);
+            window.setTimeout(() => completeConversation(currentSession), 1400);
+            break;
           }
+          dispatch({ type: "RESET" });
+          textareaRef.current?.focus({ preventScroll: true });
           break;
         }
       }
     }, delay);
-  }, [chatState, completeConversation]);
+  }, [chatState, completeConversation, processAgentMessage]);
 
   const scrollToLatest = useCallback((behavior?: ScrollBehavior) => {
     conversationEndRef.current?.scrollIntoView({
@@ -258,32 +339,61 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
   function acceptConsent() {
     if (!session || !consentChecked) return;
     const acceptedAt = new Date().toISOString();
-    const updated = acceptProspectConsent(session, acceptedAt);
-    saveProspectSession(updated);
-    setSession(updated);
-    sessionRef.current = updated;
+    const accepted = acceptProspectConsent(session, acceptedAt);
+    saveProspectSessionLocalOnly(accepted);
+    setSession(accepted);
+    sessionRef.current = accepted;
     trackFunnelEvent(
       createFunnelEvent({
         name: "CONSENT_ACCEPTED",
-        acquisition: updated.acquisition,
-        sessionId: updated.id,
+        acquisition: accepted.acquisition,
+        sessionId: accepted.id,
         occurredAt: acceptedAt,
       }),
     );
 
-    const pendingMessage = takeSessionMessage(updated.id);
-    if (pendingMessage) {
-      dispatch({
-        type: "SUBMIT",
-        id: createMessageId(updated.id),
-        rawMessage: pendingMessage,
-      });
-    } else {
-      window.setTimeout(
-        () => textareaRef.current?.focus({ preventScroll: true }),
-        0,
-      );
-    }
+    const pendingMessage = takeSessionMessage(accepted.id);
+    void (async () => {
+      let current = accepted;
+      try {
+        const response = await startAgentConversation({
+          session_id: accepted.id,
+          external_lead_id: accepted.leadReference,
+          first_name: accepted.firstName,
+          acquisition: {
+            source: accepted.acquisition.source,
+            campaign: accepted.acquisition.campaign,
+            content: accepted.acquisition.content,
+            lead_reference: accepted.leadReference,
+            is_paid: accepted.acquisition.source.toLowerCase() === "meta",
+          },
+          customer_relationship: accepted.customerRelationship,
+          consent_accepted_at: acceptedAt,
+          known_profile: compactStringRecord(accepted.knownProfile),
+          known_discovery: compactStringRecord(accepted.discovery),
+          created_at: accepted.createdAt,
+        });
+        current = applyAgentStart(accepted, response);
+        saveProspectSessionLocalOnly(current);
+        setSession(current);
+        sessionRef.current = current;
+      } catch {
+        saveProspectSession(accepted);
+      }
+
+      if (pendingMessage) {
+        dispatch({
+          type: "SUBMIT",
+          id: createMessageId(current.id),
+          rawMessage: pendingMessage,
+        });
+      } else {
+        window.setTimeout(
+          () => textareaRef.current?.focus({ preventScroll: true }),
+          0,
+        );
+      }
+    })();
   }
 
   function declineConsent() {
@@ -455,6 +565,12 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
                   <Icon name="shield" className="h-3.5 w-3.5" />
                   Información protegida
                 </span>
+                <span className="orientation-chat-attribute">
+                  <Icon name="sparkles" className="h-3.5 w-3.5" />
+                  {session.agentMode === "OPENAI_AGENTS"
+                    ? "Conversación personalizada"
+                    : "Orientación disponible"}
+                </span>
               </div>
             </div>
           </section>
@@ -478,7 +594,7 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
             aria-live="polite"
           >
             <AssistantMessage animate>
-              {getInitialMessage(session)}
+              {session.agentWelcomeMessage ?? getInitialMessage(session)}
             </AssistantMessage>
             {session.turns.map((turn) => (
               <div key={turn.id} className="space-y-5">
@@ -526,6 +642,20 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
               Enter para enviar · Shift + Enter para nueva línea
             </span>
           </div>
+          {session.quickReplies?.length && chatState.phase === "idle" ? (
+            <div className="mb-3 flex flex-wrap gap-2 px-1" aria-label="Respuestas sugeridas">
+              {session.quickReplies.map((reply) => (
+                <button
+                  key={reply}
+                  type="button"
+                  onClick={() => submitMessage(reply)}
+                  className="min-h-9 rounded-full border border-[color:var(--vm-color-line)] bg-white px-3 text-xs font-semibold text-[color:var(--vm-color-brand-blue)] transition hover:border-[color:var(--vm-color-brand-blue)] hover:bg-[color:var(--vm-color-brand-blue)]/[.04]"
+                >
+                  {reply}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -629,6 +759,15 @@ export function ProspectConversation({ sessionId }: { sessionId: string }) {
         />
       ) : null}
     </div>
+  );
+}
+
+function compactStringRecord(input: Record<string, string | undefined>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(input).filter(
+      (entry): entry is [string, string] =>
+        typeof entry[1] === "string" && entry[1].trim().length > 0,
+    ),
   );
 }
 

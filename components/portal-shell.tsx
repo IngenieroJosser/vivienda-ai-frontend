@@ -8,14 +8,17 @@ import { Icon } from "./icon";
 import { buildAgendaItems } from "@/features/advisor/agenda";
 import { useCommercialStates } from "@/features/advisor/use-commercial-states";
 import { useQualifiedLeads } from "@/features/conversation/components/use-qualified-leads";
-import { isCommercialOpportunity } from "@/features/conversation/qualified-leads";
+import {
+  isCommercialOpportunity,
+  isNurturingLead,
+} from "@/features/conversation/qualified-leads";
 
 type Role = "asesor";
 type NavItem = {
   label: string;
   href: string;
   icon: Parameters<typeof Icon>[0]["name"];
-  count?: "opportunities" | "agenda";
+  count?: "opportunities" | "agenda" | "nurturing";
 };
 
 const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[] }> = {
@@ -26,7 +29,8 @@ const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[]
       { label: "Resumen", href: "/asesor", icon: "chart" },
       { label: "Oportunidades", href: "/asesor/leads", icon: "users", count: "opportunities" },
       { label: "Agenda", href: "/asesor/agenda", icon: "calendar", count: "agenda" },
-      { label: "Acompañamiento", href: "/asesor/nutricion", icon: "heart" },
+      { label: "Acompañamiento", href: "/asesor/nutricion", icon: "heart", count: "nurturing" },
+      { label: "Inteligencia", href: "/asesor/inteligencia", icon: "brain" },
     ],
   },
 };
@@ -51,6 +55,10 @@ export function PortalLayout({ role, children }: { role: Role; children: ReactNo
     return {
       opportunities,
       agenda: buildAgendaItems(qualifiedLeads, states, now).length,
+      nurturing: qualifiedLeads.filter(
+        ({ evaluation, source }) =>
+          source === "BACKEND" && isNurturingLead(evaluation),
+      ).length,
     };
   }, [now, qualifiedLeads, states]);
 

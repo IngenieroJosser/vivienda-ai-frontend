@@ -1,14 +1,37 @@
 import { PortalShell } from "@/components/portal-shell";
-import { CommercialDashboard } from "@/features/advisor/components/commercial-dashboard";
+import { AdvisorOverviewDashboard } from "@/features/advisor/components/advisor-overview-dashboard";
 
-export default function AdvisorPage() {
+export default async function AdvisorPage({
+  searchParams,
+}: {
+  readonly searchParams: Promise<{
+    leadId?: string | string[];
+    from?: string | string[];
+  }>;
+}) {
+  const params = await searchParams;
+  const leadId = firstValue(params.leadId);
+  const source = firstValue(params.from);
   return (
     <PortalShell
       role="asesor"
-      title="Oportunidades que requieren atención"
-      subtitle="A quién contactar primero, por qué está preparado y qué acción puede acercarlo al cierre."
+      title="Panorama comercial y acompañamiento"
+      subtitle="Prioriza cierres, acompaña a quienes aún no están listos y consulta la evidencia que sustenta cada recomendación."
     >
-      <CommercialDashboard />
+      <AdvisorOverviewDashboard
+        focusLeadId={safeLeadId(leadId)}
+        receivedFromChat={source === "chat"}
+      />
     </PortalShell>
   );
+}
+
+function firstValue(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function safeLeadId(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  return /^[a-zA-Z0-9-]{1,128}$/.test(trimmed) ? trimmed : undefined;
 }

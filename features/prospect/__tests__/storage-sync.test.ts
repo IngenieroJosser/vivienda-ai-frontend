@@ -119,11 +119,11 @@ describe("prospect session backend sync", () => {
     expect(stored).toMatchObject({
       leadId: "server-lead-1",
       evaluation: localEvaluation,
-      authoritativeJourney: {
-        route: "NEEDS_VALIDATION",
-        recommendations: [],
-      },
     });
+    // La sincronización legada solo confirma persistencia y el leadId;
+    // el journey autoritativo llega exclusivamente por /conversations
+    // (ver agent-conversation.ts), así que no debe pisarlo aquí.
+    expect(stored?.authoritativeJourney).toBeUndefined();
     expect(findProspectSessionByLeadId("server-lead-1")?.id).toBe(session.id);
   });
 
@@ -173,13 +173,13 @@ describe("prospect session backend sync", () => {
     await flushPromises();
 
     expect(syncProspectSession).toHaveBeenCalledTimes(2);
-    expect(loadProspectSession(session.id)).toMatchObject({
+    const recovered = loadProspectSession(session.id);
+    expect(recovered).toMatchObject({
       leadId: "server-lead-1",
       syncStatus: "SYNCED",
-      authoritativeJourney: {
-        session_id: session.id,
-      },
     });
+    // La sincronización legada no es la fuente autoritativa del journey.
+    expect(recovered?.authoritativeJourney).toBeUndefined();
   });
 });
 
