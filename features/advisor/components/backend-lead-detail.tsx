@@ -5,7 +5,6 @@ import { useState } from "react";
 import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
 import { getHousingProject } from "../../../lib/housing-catalog";
-import { ChatLearningPanel } from "./chat-learning-panel";
 import { CommercialActions } from "./commercial-actions";
 import type {
   LeadDetailEvaluation,
@@ -14,7 +13,7 @@ import type {
   ProjectRecommendation,
 } from "../../../lib/api/leads";
 
-type DetailTab = "SUMMARY" | "PROJECTS" | "CONVERSATION" | "LEARNING" | "ACTIVITY";
+type DetailTab = "SUMMARY" | "PROJECTS" | "CONVERSATION" | "ACTIVITY";
 
 const routeLabels: Record<LeadRoute, string> = {
   READY_TO_CLOSE: "Listo para contacto",
@@ -29,9 +28,11 @@ const routeLabels: Record<LeadRoute, string> = {
 export function BackendLeadDetail({
   detail,
   embedded = false,
+  onDetailChange,
 }: {
   readonly detail: LeadDetailResponse;
   readonly embedded?: boolean;
+  readonly onDetailChange?: (detail: LeadDetailResponse) => void;
 }) {
   const [activeTab, setActiveTab] = useState<DetailTab>("SUMMARY");
   const evaluation = detail.evaluation;
@@ -43,7 +44,6 @@ export function BackendLeadDetail({
     { value: "SUMMARY", label: "Resumen", icon: "document" },
     { value: "PROJECTS", label: "Proyectos", icon: "building" },
     { value: "CONVERSATION", label: "Conversación", icon: "mail" },
-    { value: "LEARNING", label: "Aprendizaje", icon: "brain" },
     { value: "ACTIVITY", label: "Trazabilidad", icon: "history" },
   ];
 
@@ -116,13 +116,15 @@ export function BackendLeadDetail({
       </section>
 
       {isCommercialRoute ? (
-        <CommercialActions leadId={detail.id} />
+        <CommercialActions
+          leadId={detail.id}
+          onCanonicalChange={(snapshot) => onDetailChange?.(snapshot.lead)}
+        />
       ) : null}
 
       {activeTab === "SUMMARY" ? <SummaryPanel detail={detail} /> : null}
       {activeTab === "PROJECTS" ? <RecommendationsPanel recommendations={journey?.recommendations ?? []} /> : null}
       {activeTab === "CONVERSATION" ? <ConversationPanel detail={detail} /> : null}
-      {activeTab === "LEARNING" ? <ChatLearningPanel records={detail.chat_records ?? []} /> : null}
       {activeTab === "ACTIVITY" ? <ActivityPanel detail={detail} /> : null}
     </div>
   );

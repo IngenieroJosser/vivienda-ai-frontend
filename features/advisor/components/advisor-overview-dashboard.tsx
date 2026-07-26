@@ -5,7 +5,6 @@ import { Icon } from "@/components/icon";
 import { Pill } from "@/components/ui";
 import { isNurturingLead } from "@/features/conversation/qualified-leads";
 import { useQualifiedLeads } from "@/features/conversation/components/use-qualified-leads";
-import { AdvisorDataIntelligence } from "./advisor-data-intelligence";
 import { CommercialDashboard } from "./commercial-dashboard";
 import { LeadDetailClient } from "./lead-detail-client";
 
@@ -62,8 +61,6 @@ export function AdvisorOverviewDashboard({
           <LeadDetailClient leadId={focusLeadId} embedded />
         </section>
       ) : null}
-
-      <AdvisorDataIntelligence />
 
       <section className="surface-solid overflow-hidden">
         <header className="flex flex-col justify-between gap-3 border-b border-[color:var(--vm-color-line)] px-5 py-4 sm:flex-row sm:items-center">

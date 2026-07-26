@@ -22,10 +22,18 @@ const dashboardSource = readFileSync(
   ),
   "utf8",
 );
+const actionsSource = readFileSync(
+  resolve(
+    process.cwd(),
+    "features/advisor/components/commercial-actions.tsx",
+  ),
+  "utf8",
+);
 
 describe("advisor commercial UI integration", () => {
   it("uses every official activity type without legacy aliases", () => {
     expect(ACTIVITY_TYPE_LABELS).toEqual({
+      NOTE: "Nota de gestión",
       CONTACT_ATTEMPT: "Intento de contacto",
       CONTACT_SUCCESS: "Contacto exitoso",
       FOLLOW_UP_SCHEDULED: "Seguimiento programado",
@@ -96,14 +104,11 @@ describe("advisor commercial UI integration", () => {
   });
 
   it("passes the refreshed canonical snapshot back into the detail", () => {
-    expect(detailSource).toMatch(
-      /const snapshot = await claimLeadAndRefresh\(detail\.id\);[\s\S]*applySnapshot\(snapshot\)/,
-    );
-    expect(detailSource).toMatch(
-      /const snapshot = await updateWorkflowAndRefresh\([\s\S]*applySnapshot\(snapshot\)/,
-    );
-    expect(detailSource).toMatch(
-      /const snapshot = await createActivityAndRefresh\([\s\S]*applySnapshot\(snapshot\)/,
+    expect(actionsSource).toContain("claimLeadAndRefresh");
+    expect(actionsSource).toContain("createActivityAndRefresh");
+    expect(actionsSource).toContain("onCanonicalChange?.(snapshot)");
+    expect(detailSource).toContain(
+      "onCanonicalChange={(snapshot) => onDetailChange?.(snapshot.lead)}",
     );
   });
 });

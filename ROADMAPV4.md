@@ -3,28 +3,33 @@
 > **Reto 03 · Perfilamiento inteligente de leads (Colsubsidio × 30X)**  
 > **Fecha límite:** domingo 26 de julio de 2026, 11:30 a. m. — hora de Bogotá  
 > **Equipo:** Erick, Alejandro y Josser  
-> **Punto de partida:** A0–A4.7 implementado y validado localmente  
+> **Punto de partida:** reunificación local de `main`, `Erick` y `feature/Alejandro`
 > **Propósito de esta versión:** reemplazar `ROADMAPV3.md` como plan de ejecución para la demostración
 
 ---
 
-## 0. Estado de las tareas (al 2026-07-25)
+## 0. Estado de las tareas (al 2026-07-26)
+
+> **Estado de integración:** los cambios están reunificados y validados técnicamente
+> en la rama local `feature/Reunification`. No se ha realizado `push`. La validación
+> interactiva en navegador y la evidencia audiovisual de la demostración continúan
+> pendientes.
 
 | Tarea | Responsable | Estado | Nota corta |
 |---|---|---|---|
-| **M0** — Base compartida y ramas | Los tres | ✅ **COMPLETADO** | Base commiteada, contrato preliminar listo. |
-| **J1** — Config reproducible + endpoints seguros | Josser | 🟡 **EN PROCESO** | `.env` OK; `/admin/*`, `/analytics/*`, `/ai/*` aún públicos. |
-| **J2** — Integridad del scoring y recomendador | Josser | ❌ **SIN TERMINAR** | Bono por campaña (+15 %) no eliminado. |
-| **J3** — Chat con LLM y fallback | Josser | ❌ **SIN TERMINAR** | Endpoint `POST /chat/messages` no existe. |
-| **J4** — Contrato final y validación backend | Josser | ❌ **SIN TERMINAR** | OpenAPI no congelado. |
-| **E1** — Alinear tipos, mapper y estados | Erick | ✅ **COMPLETADO** | Merge `c496ee0` del 24/07. |
-| **E2** — Cliente API de A4.7 | Erick | ✅ **COMPLETADO** | `claimLead`, `updateWorkflow`, `createActivity`, `listActivities` listos. |
-| **E3** — Cliente API del chat | Erick | ❌ **SIN TERMINAR** | Bloqueado por J3. |
-| **E4** — Pruebas de integración frontend | Erick | 🟡 **EN PROCESO** | 164/164 tests pasan; faltan casos de chat. |
-| **A1** — Detalle operativo del asesor | Alejandro | ✅ **COMPLETADO** | Probado en vivo el 25/07 con lead `83453dbf-...`. |
-| **A2** — Dashboard mínimo del asesor | Alejandro | ✅ **COMPLETADO** | Tres secciones con `listLeads({ pendingAssignment, assignedToMe, slaOverdue })`. |
-| **A3** — Experiencia del chat | Alejandro | 🟡 **EN PROCESO** | Bloqueado por J3 + E3. |
-| **A4** — E2E, datos de demo y presentación | Alejandro | 🟡 **EN PROCESO** | 7 escenarios documentados en `e2e/scenarios/*.md`; faltan datos sintéticos y video. |
+| **M0** — Base compartida y ramas | Los tres | 🟡 **EN PROCESO** | Código reunificado localmente; falta acordar y publicar una rama canónica. |
+| **J1** — Config reproducible + endpoints seguros | Josser | ✅ **COMPLETADO** | CORS por configuración y superficies administrativas protegidas; enriquecimiento fuera de alcance retirado del router público. |
+| **J2** — Integridad del scoring y recomendador | Josser | ✅ **COMPLETADO** | Eliminados el bono de campaña y el canal como señales de preparación; fallback usa la afinidad completa. |
+| **J3** — Chat con LLM y fallback | Josser | ✅ **COMPLETADO TÉCNICO** | Chat libre conectado, token de prospecto ligado a la sesión y fallback local conservado. |
+| **J4** — Contrato final y validación backend | Josser | 🟡 **EN PROCESO** | OpenAPI y tipos sincronizados localmente; falta congelar la revisión aprobada y publicarla. |
+| **E1** — Alinear tipos, mapper y estados | Erick | ✅ **COMPLETADO** | Estados y modelos comerciales integrados sobre la rama reunificada. |
+| **E2** — Cliente API de A4.7 | Erick | ✅ **COMPLETADO** | Reclamo, workflow, actividades, filtros operativos y refresco canónico conectados. |
+| **E3** — Cliente API del chat | Erick | ✅ **COMPLETADO TÉCNICO** | Inicio, envío, recuperación y rechazo usan el token de prospecto cuando existe backend. |
+| **E4** — Pruebas de integración frontend | Erick | 🟡 **EN PROCESO** | Suite automatizada ampliada; falta validación E2E real y evidencia de navegador. |
+| **A1** — Detalle operativo del asesor | Alejandro | ✅ **COMPLETADO** | Detalle y acciones consumen el estado canónico devuelto por backend. |
+| **A2** — Dashboard mínimo del asesor | Alejandro | ✅ **COMPLETADO** | Bandejas backend-first para pendientes, asignadas y SLA vencido. |
+| **A3** — Experiencia del chat | Alejandro | ✅ **COMPLETADO TÉCNICO** | Texto libre sin respuestas preescritas, estados resilientes y protección por sesión. |
+| **A4** — E2E, datos de demo y presentación | Alejandro | 🟡 **EN PROCESO** | Siete escenarios documentados; faltan ejecución interactiva, capturas y video final. |
 
 **Leyenda:**
 - ✅ **COMPLETADO** — entregable verificado, cumple definición de terminado.

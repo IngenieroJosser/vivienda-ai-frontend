@@ -6,6 +6,7 @@ import type {
 type ActivityType = CommercialActivity["activity_type"];
 
 export const ACTIVITY_TYPE_LABELS = {
+  NOTE: "Nota de gestión",
   CONTACT_ATTEMPT: "Intento de contacto",
   CONTACT_SUCCESS: "Contacto exitoso",
   FOLLOW_UP_SCHEDULED: "Seguimiento programado",

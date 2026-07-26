@@ -79,7 +79,13 @@ export function LeadDetailClient({
   }
 
   if (state === "BACKEND" && detail) {
-    return <BackendLeadDetail detail={detail} embedded={embedded} />;
+    return (
+      <BackendLeadDetail
+        detail={detail}
+        embedded={embedded}
+        onDetailChange={setDetail}
+      />
+    );
   }
 
   if (state === "LOCAL") {

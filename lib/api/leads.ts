@@ -171,9 +171,29 @@ export type LeadDetailResponse = Omit<
 export function listLeads(options: {
   limit?: number;
   signal?: AbortSignal;
+  assignedToMe?: boolean;
+  pendingAssignment?: boolean;
+  commercialState?: string;
+  slaOverdue?: boolean;
+  overdueFollowUp?: boolean;
+  nextAction?: string;
+  reevaluationDate?: string;
 } = {}): Promise<LeadListItem[]> {
-  const limit = options.limit ?? 100;
-  return apiRequest<LeadListItem[]>(`/leads?limit=${limit}`, {
+  const query = new URLSearchParams({
+    limit: String(options.limit ?? 100),
+  });
+  if (options.assignedToMe) query.set("assigned_to_me", "true");
+  if (options.pendingAssignment) query.set("pending_assignment", "true");
+  if (options.commercialState) {
+    query.set("commercial_state", options.commercialState);
+  }
+  if (options.slaOverdue) query.set("sla_overdue", "true");
+  if (options.overdueFollowUp) query.set("overdue_follow_up", "true");
+  if (options.nextAction) query.set("next_action", options.nextAction);
+  if (options.reevaluationDate) {
+    query.set("reevaluation_date", options.reevaluationDate);
+  }
+  return apiRequest<LeadListItem[]>(`/leads?${query.toString()}`, {
     signal: options.signal,
     advisorAuth: true,
   });

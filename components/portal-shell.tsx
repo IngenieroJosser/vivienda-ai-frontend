@@ -30,7 +30,6 @@ const roleConfig: Record<Role, { label: string; userRole: string; nav: NavItem[]
       { label: "Oportunidades", href: "/asesor/leads", icon: "users", count: "opportunities" },
       { label: "Agenda", href: "/asesor/agenda", icon: "calendar", count: "agenda" },
       { label: "Acompañamiento", href: "/asesor/nutricion", icon: "heart", count: "nurturing" },
-      { label: "Inteligencia", href: "/asesor/inteligencia", icon: "brain" },
     ],
   },
 };
