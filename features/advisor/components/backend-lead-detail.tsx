@@ -346,20 +346,6 @@ function ActivityPanel({ detail }: { readonly detail: LeadDetailResponse }) {
         </section>
       ) : null}
 
-      {detail.enrichments.length ? (
-        <section className="surface-solid p-6 sm:p-8">
-          <SectionHeading title="Información complementaria" description="Fuentes adicionales asociadas a la oportunidad." />
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {detail.enrichments.map((enrichment) => (
-              <div key={`${enrichment.provider}-${enrichment.created_at}`} className="rounded-[var(--vm-radius-control)] border border-[color:var(--vm-color-line)] p-4">
-                <div className="flex items-center justify-between gap-3"><strong>{enrichment.provider}</strong><Pill tone="gray">{enrichment.status}</Pill></div>
-                <p className="mt-2 text-sm">{enrichment.purpose}</p>
-                {enrichment.source_url ? <ExternalLink href={enrichment.source_url} label="Ver fuente" /> : null}
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
     </>
   );
 }

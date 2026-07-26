@@ -1310,8 +1310,6 @@ export interface components {
             evaluation: components["schemas"]["InternalEvaluationDetail"] | null;
             journey?: components["schemas"]["SessionSyncResponse"] | null;
             commercial_workflow?: components["schemas"]["CommercialWorkflowResponse"] | null;
-            /** Enrichments */
-            enrichments: components["schemas"]["LeadEnrichmentDetail"][];
             /** Audit Events */
             audit_events: components["schemas"]["LeadAuditEvent"][];
             /** Chat Records */
@@ -1337,28 +1335,6 @@ export interface components {
             assistant_text: string;
             /** Extracted Fields */
             extracted_fields?: string[];
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-        };
-        /** LeadEnrichmentDetail */
-        LeadEnrichmentDetail: {
-            /** Provider */
-            provider: string;
-            /** Source Url */
-            source_url?: string | null;
-            /** Purpose */
-            purpose: string;
-            /** Status */
-            status: string;
-            /** Data */
-            data?: {
-                [key: string]: unknown;
-            };
-            /** Warnings */
-            warnings?: string[];
             /**
              * Created At
              * Format: date-time
