@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = "https://vivienda-ai.vercel.app/api/v1";
+const DEFAULT_BASE_URL = "https://vivienda-ai-backend.onrender.com/api/v1";
 
 /**
  * Base URL del backend. Se configura con `NEXT_PUBLIC_API_URL` en `.env.local`.
